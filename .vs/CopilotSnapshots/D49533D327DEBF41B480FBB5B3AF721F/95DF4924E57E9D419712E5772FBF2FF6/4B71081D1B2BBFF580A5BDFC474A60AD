@@ -1,0 +1,531 @@
+﻿namespace BaiTapCuoiKy
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabEnvironment = new System.Windows.Forms.TabPage();
+            this.txtEnvironmentInfo = new System.Windows.Forms.TextBox();
+            this.btnGetEnvironmentInfo = new System.Windows.Forms.Button();
+            this.tabTcpServer = new System.Windows.Forms.TabPage();
+            this.txtTcpServerPort = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.btnStopTcpServer = new System.Windows.Forms.Button();
+            this.btnStartTcpServer = new System.Windows.Forms.Button();
+            this.txtTcpServerLog = new System.Windows.Forms.TextBox();
+            this.tabTcpClient = new System.Windows.Forms.TabPage();
+            this.txtTcpMessage = new System.Windows.Forms.TextBox();
+            this.btnSendTcpMessage = new System.Windows.Forms.Button();
+            this.txtTcpServerIP = new System.Windows.Forms.TextBox();
+            this.txtTcpServerPortClient = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.btnDisconnectTcp = new System.Windows.Forms.Button();
+            this.btnConnectTcp = new System.Windows.Forms.Button();
+            this.txtTcpClientLog = new System.Windows.Forms.TextBox();
+            this.tabUdpServer = new System.Windows.Forms.TabPage();
+            this.txtUdpServerPort = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.btnStopUdpServer = new System.Windows.Forms.Button();
+            this.btnStartUdpServer = new System.Windows.Forms.Button();
+            this.txtUdpServerLog = new System.Windows.Forms.TextBox();
+            this.tabUdpClient = new System.Windows.Forms.TabPage();
+            this.txtUdpMessage = new System.Windows.Forms.TextBox();
+            this.btnSendUdpMessage = new System.Windows.Forms.Button();
+            this.txtUdpServerIP = new System.Windows.Forms.TextBox();
+            this.txtUdpServerPortClient = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.btnDisconnectUdp = new System.Windows.Forms.Button();
+            this.btnConnectUdp = new System.Windows.Forms.Button();
+            this.txtUdpClientLog = new System.Windows.Forms.TextBox();
+            this.tabControl1.SuspendLayout();
+            this.tabEnvironment.SuspendLayout();
+            this.tabTcpServer.SuspendLayout();
+            this.tabTcpClient.SuspendLayout();
+            this.tabUdpServer.SuspendLayout();
+            this.tabUdpClient.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabEnvironment);
+            this.tabControl1.Controls.Add(this.tabTcpServer);
+            this.tabControl1.Controls.Add(this.tabTcpClient);
+            this.tabControl1.Controls.Add(this.tabUdpServer);
+            this.tabControl1.Controls.Add(this.tabUdpClient);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(1000, 600);
+            this.tabControl1.TabIndex = 0;
+            // 
+            // tabEnvironment
+            // 
+            this.tabEnvironment.Controls.Add(this.txtEnvironmentInfo);
+            this.tabEnvironment.Controls.Add(this.btnGetEnvironmentInfo);
+            this.tabEnvironment.Location = new System.Drawing.Point(4, 22);
+            this.tabEnvironment.Name = "tabEnvironment";
+            this.tabEnvironment.Padding = new System.Windows.Forms.Padding(3);
+            this.tabEnvironment.Size = new System.Drawing.Size(992, 574);
+            this.tabEnvironment.TabIndex = 0;
+            this.tabEnvironment.Text = "Socket Environment";
+            this.tabEnvironment.UseVisualStyleBackColor = true;
+            // 
+            // txtEnvironmentInfo
+            // 
+            this.txtEnvironmentInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtEnvironmentInfo.Font = new System.Drawing.Font("Consolas", 9F);
+            this.txtEnvironmentInfo.Location = new System.Drawing.Point(6, 35);
+            this.txtEnvironmentInfo.Multiline = true;
+            this.txtEnvironmentInfo.Name = "txtEnvironmentInfo";
+            this.txtEnvironmentInfo.ReadOnly = true;
+            this.txtEnvironmentInfo.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtEnvironmentInfo.Size = new System.Drawing.Size(980, 533);
+            this.txtEnvironmentInfo.TabIndex = 1;
+            // 
+            // btnGetEnvironmentInfo
+            // 
+            this.btnGetEnvironmentInfo.Location = new System.Drawing.Point(6, 6);
+            this.btnGetEnvironmentInfo.Name = "btnGetEnvironmentInfo";
+            this.btnGetEnvironmentInfo.Size = new System.Drawing.Size(200, 23);
+            this.btnGetEnvironmentInfo.TabIndex = 0;
+            this.btnGetEnvironmentInfo.Text = "Get Environment Info";
+            this.btnGetEnvironmentInfo.UseVisualStyleBackColor = true;
+            this.btnGetEnvironmentInfo.Click += new System.EventHandler(this.btnGetEnvironmentInfo_Click);
+            // 
+            // tabTcpServer
+            // 
+            this.tabTcpServer.Controls.Add(this.txtTcpServerPort);
+            this.tabTcpServer.Controls.Add(this.label1);
+            this.tabTcpServer.Controls.Add(this.btnStopTcpServer);
+            this.tabTcpServer.Controls.Add(this.btnStartTcpServer);
+            this.tabTcpServer.Controls.Add(this.txtTcpServerLog);
+            this.tabTcpServer.Location = new System.Drawing.Point(4, 22);
+            this.tabTcpServer.Name = "tabTcpServer";
+            this.tabTcpServer.Padding = new System.Windows.Forms.Padding(3);
+            this.tabTcpServer.Size = new System.Drawing.Size(992, 574);
+            this.tabTcpServer.TabIndex = 1;
+            this.tabTcpServer.Text = "TCP Server";
+            this.tabTcpServer.UseVisualStyleBackColor = true;
+            // 
+            // txtTcpServerPort
+            // 
+            this.txtTcpServerPort.Location = new System.Drawing.Point(50, 8);
+            this.txtTcpServerPort.Name = "txtTcpServerPort";
+            this.txtTcpServerPort.Size = new System.Drawing.Size(100, 20);
+            this.txtTcpServerPort.TabIndex = 4;
+            this.txtTcpServerPort.Text = "8080";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 11);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(32, 13);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "Port:";
+            // 
+            // btnStopTcpServer
+            // 
+            this.btnStopTcpServer.Location = new System.Drawing.Point(237, 6);
+            this.btnStopTcpServer.Name = "btnStopTcpServer";
+            this.btnStopTcpServer.Size = new System.Drawing.Size(75, 23);
+            this.btnStopTcpServer.TabIndex = 2;
+            this.btnStopTcpServer.Text = "Stop";
+            this.btnStopTcpServer.UseVisualStyleBackColor = true;
+            this.btnStopTcpServer.Click += new System.EventHandler(this.btnStopTcpServer_Click);
+            // 
+            // btnStartTcpServer
+            // 
+            this.btnStartTcpServer.Location = new System.Drawing.Point(156, 6);
+            this.btnStartTcpServer.Name = "btnStartTcpServer";
+            this.btnStartTcpServer.Size = new System.Drawing.Size(75, 23);
+            this.btnStartTcpServer.TabIndex = 1;
+            this.btnStartTcpServer.Text = "Start";
+            this.btnStartTcpServer.UseVisualStyleBackColor = true;
+            this.btnStartTcpServer.Click += new System.EventHandler(this.btnStartTcpServer_Click);
+            // 
+            // txtTcpServerLog
+            // 
+            this.txtTcpServerLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTcpServerLog.Font = new System.Drawing.Font("Consolas", 9F);
+            this.txtTcpServerLog.Location = new System.Drawing.Point(6, 35);
+            this.txtTcpServerLog.Multiline = true;
+            this.txtTcpServerLog.Name = "txtTcpServerLog";
+            this.txtTcpServerLog.ReadOnly = true;
+            this.txtTcpServerLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtTcpServerLog.Size = new System.Drawing.Size(980, 533);
+            this.txtTcpServerLog.TabIndex = 0;
+            // 
+            // tabTcpClient
+            // 
+            this.tabTcpClient.Controls.Add(this.txtTcpMessage);
+            this.tabTcpClient.Controls.Add(this.btnSendTcpMessage);
+            this.tabTcpClient.Controls.Add(this.txtTcpServerIP);
+            this.tabTcpClient.Controls.Add(this.txtTcpServerPortClient);
+            this.tabTcpClient.Controls.Add(this.label2);
+            this.tabTcpClient.Controls.Add(this.label3);
+            this.tabTcpClient.Controls.Add(this.btnDisconnectTcp);
+            this.tabTcpClient.Controls.Add(this.btnConnectTcp);
+            this.tabTcpClient.Controls.Add(this.txtTcpClientLog);
+            this.tabTcpClient.Location = new System.Drawing.Point(4, 22);
+            this.tabTcpClient.Name = "tabTcpClient";
+            this.tabTcpClient.Size = new System.Drawing.Size(992, 574);
+            this.tabTcpClient.TabIndex = 2;
+            this.tabTcpClient.Text = "TCP Client";
+            this.tabTcpClient.UseVisualStyleBackColor = true;
+            // 
+            // txtTcpMessage
+            // 
+            this.txtTcpMessage.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTcpMessage.Location = new System.Drawing.Point(6, 545);
+            this.txtTcpMessage.Name = "txtTcpMessage";
+            this.txtTcpMessage.Size = new System.Drawing.Size(897, 20);
+            this.txtTcpMessage.TabIndex = 8;
+            // 
+            // btnSendTcpMessage
+            // 
+            this.btnSendTcpMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSendTcpMessage.Location = new System.Drawing.Point(909, 543);
+            this.btnSendTcpMessage.Name = "btnSendTcpMessage";
+            this.btnSendTcpMessage.Size = new System.Drawing.Size(75, 23);
+            this.btnSendTcpMessage.TabIndex = 7;
+            this.btnSendTcpMessage.Text = "Send";
+            this.btnSendTcpMessage.UseVisualStyleBackColor = true;
+            this.btnSendTcpMessage.Click += new System.EventHandler(this.btnSendTcpMessage_Click);
+            // 
+            // txtTcpServerIP
+            // 
+            this.txtTcpServerIP.Location = new System.Drawing.Point(65, 8);
+            this.txtTcpServerIP.Name = "txtTcpServerIP";
+            this.txtTcpServerIP.Size = new System.Drawing.Size(100, 20);
+            this.txtTcpServerIP.TabIndex = 6;
+            this.txtTcpServerIP.Text = "127.0.0.1";
+            // 
+            // txtTcpServerPortClient
+            // 
+            this.txtTcpServerPortClient.Location = new System.Drawing.Point(206, 8);
+            this.txtTcpServerPortClient.Name = "txtTcpServerPortClient";
+            this.txtTcpServerPortClient.Size = new System.Drawing.Size(100, 20);
+            this.txtTcpServerPortClient.TabIndex = 5;
+            this.txtTcpServerPortClient.Text = "8080";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(171, 11);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(32, 13);
+            this.label2.TabIndex = 4;
+            this.label2.Text = "Port:";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(6, 11);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(58, 13);
+            this.label3.TabIndex = 3;
+            this.label3.Text = "Server IP:";
+            // 
+            // btnDisconnectTcp
+            // 
+            this.btnDisconnectTcp.Location = new System.Drawing.Point(393, 6);
+            this.btnDisconnectTcp.Name = "btnDisconnectTcp";
+            this.btnDisconnectTcp.Size = new System.Drawing.Size(75, 23);
+            this.btnDisconnectTcp.TabIndex = 2;
+            this.btnDisconnectTcp.Text = "Disconnect";
+            this.btnDisconnectTcp.UseVisualStyleBackColor = true;
+            this.btnDisconnectTcp.Click += new System.EventHandler(this.btnDisconnectTcp_Click);
+            // 
+            // btnConnectTcp
+            // 
+            this.btnConnectTcp.Location = new System.Drawing.Point(312, 6);
+            this.btnConnectTcp.Name = "btnConnectTcp";
+            this.btnConnectTcp.Size = new System.Drawing.Size(75, 23);
+            this.btnConnectTcp.TabIndex = 1;
+            this.btnConnectTcp.Text = "Connect";
+            this.btnConnectTcp.UseVisualStyleBackColor = true;
+            this.btnConnectTcp.Click += new System.EventHandler(this.btnConnectTcp_Click);
+            // 
+            // txtTcpClientLog
+            // 
+            this.txtTcpClientLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTcpClientLog.Font = new System.Drawing.Font("Consolas", 9F);
+            this.txtTcpClientLog.Location = new System.Drawing.Point(6, 35);
+            this.txtTcpClientLog.Multiline = true;
+            this.txtTcpClientLog.Name = "txtTcpClientLog";
+            this.txtTcpClientLog.ReadOnly = true;
+            this.txtTcpClientLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtTcpClientLog.Size = new System.Drawing.Size(980, 504);
+            this.txtTcpClientLog.TabIndex = 0;
+            // 
+            // tabUdpServer
+            // 
+            this.tabUdpServer.Controls.Add(this.txtUdpServerPort);
+            this.tabUdpServer.Controls.Add(this.label4);
+            this.tabUdpServer.Controls.Add(this.btnStopUdpServer);
+            this.tabUdpServer.Controls.Add(this.btnStartUdpServer);
+            this.tabUdpServer.Controls.Add(this.txtUdpServerLog);
+            this.tabUdpServer.Location = new System.Drawing.Point(4, 22);
+            this.tabUdpServer.Name = "tabUdpServer";
+            this.tabUdpServer.Size = new System.Drawing.Size(992, 574);
+            this.tabUdpServer.TabIndex = 3;
+            this.tabUdpServer.Text = "UDP Server";
+            this.tabUdpServer.UseVisualStyleBackColor = true;
+            // 
+            // txtUdpServerPort
+            // 
+            this.txtUdpServerPort.Location = new System.Drawing.Point(50, 8);
+            this.txtUdpServerPort.Name = "txtUdpServerPort";
+            this.txtUdpServerPort.Size = new System.Drawing.Size(100, 20);
+            this.txtUdpServerPort.TabIndex = 4;
+            this.txtUdpServerPort.Text = "8081";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(6, 11);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(32, 13);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "Port:";
+            // 
+            // btnStopUdpServer
+            // 
+            this.btnStopUdpServer.Location = new System.Drawing.Point(237, 6);
+            this.btnStopUdpServer.Name = "btnStopUdpServer";
+            this.btnStopUdpServer.Size = new System.Drawing.Size(75, 23);
+            this.btnStopUdpServer.TabIndex = 2;
+            this.btnStopUdpServer.Text = "Stop";
+            this.btnStopUdpServer.UseVisualStyleBackColor = true;
+            this.btnStopUdpServer.Click += new System.EventHandler(this.btnStopUdpServer_Click);
+            // 
+            // btnStartUdpServer
+            // 
+            this.btnStartUdpServer.Location = new System.Drawing.Point(156, 6);
+            this.btnStartUdpServer.Name = "btnStartUdpServer";
+            this.btnStartUdpServer.Size = new System.Drawing.Size(75, 23);
+            this.btnStartUdpServer.TabIndex = 1;
+            this.btnStartUdpServer.Text = "Start";
+            this.btnStartUdpServer.UseVisualStyleBackColor = true;
+            this.btnStartUdpServer.Click += new System.EventHandler(this.btnStartUdpServer_Click);
+            // 
+            // txtUdpServerLog
+            // 
+            this.txtUdpServerLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtUdpServerLog.Font = new System.Drawing.Font("Consolas", 9F);
+            this.txtUdpServerLog.Location = new System.Drawing.Point(6, 35);
+            this.txtUdpServerLog.Multiline = true;
+            this.txtUdpServerLog.Name = "txtUdpServerLog";
+            this.txtUdpServerLog.ReadOnly = true;
+            this.txtUdpServerLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtUdpServerLog.Size = new System.Drawing.Size(980, 533);
+            this.txtUdpServerLog.TabIndex = 0;
+            // 
+            // tabUdpClient
+            // 
+            this.tabUdpClient.Controls.Add(this.txtUdpMessage);
+            this.tabUdpClient.Controls.Add(this.btnSendUdpMessage);
+            this.tabUdpClient.Controls.Add(this.txtUdpServerIP);
+            this.tabUdpClient.Controls.Add(this.txtUdpServerPortClient);
+            this.tabUdpClient.Controls.Add(this.label5);
+            this.tabUdpClient.Controls.Add(this.label6);
+            this.tabUdpClient.Controls.Add(this.btnDisconnectUdp);
+            this.tabUdpClient.Controls.Add(this.btnConnectUdp);
+            this.tabUdpClient.Controls.Add(this.txtUdpClientLog);
+            this.tabUdpClient.Location = new System.Drawing.Point(4, 22);
+            this.tabUdpClient.Name = "tabUdpClient";
+            this.tabUdpClient.Size = new System.Drawing.Size(992, 574);
+            this.tabUdpClient.TabIndex = 4;
+            this.tabUdpClient.Text = "UDP Client";
+            this.tabUdpClient.UseVisualStyleBackColor = true;
+            // 
+            // txtUdpMessage
+            // 
+            this.txtUdpMessage.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtUdpMessage.Location = new System.Drawing.Point(6, 545);
+            this.txtUdpMessage.Name = "txtUdpMessage";
+            this.txtUdpMessage.Size = new System.Drawing.Size(897, 20);
+            this.txtUdpMessage.TabIndex = 8;
+            // 
+            // btnSendUdpMessage
+            // 
+            this.btnSendUdpMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSendUdpMessage.Location = new System.Drawing.Point(909, 543);
+            this.btnSendUdpMessage.Name = "btnSendUdpMessage";
+            this.btnSendUdpMessage.Size = new System.Drawing.Size(75, 23);
+            this.btnSendUdpMessage.TabIndex = 7;
+            this.btnSendUdpMessage.Text = "Send";
+            this.btnSendUdpMessage.UseVisualStyleBackColor = true;
+            this.btnSendUdpMessage.Click += new System.EventHandler(this.btnSendUdpMessage_Click);
+            // 
+            // txtUdpServerIP
+            // 
+            this.txtUdpServerIP.Location = new System.Drawing.Point(65, 8);
+            this.txtUdpServerIP.Name = "txtUdpServerIP";
+            this.txtUdpServerIP.Size = new System.Drawing.Size(100, 20);
+            this.txtUdpServerIP.TabIndex = 6;
+            this.txtUdpServerIP.Text = "127.0.0.1";
+            // 
+            // txtUdpServerPortClient
+            // 
+            this.txtUdpServerPortClient.Location = new System.Drawing.Point(206, 8);
+            this.txtUdpServerPortClient.Name = "txtUdpServerPortClient";
+            this.txtUdpServerPortClient.Size = new System.Drawing.Size(100, 20);
+            this.txtUdpServerPortClient.TabIndex = 5;
+            this.txtUdpServerPortClient.Text = "8081";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(171, 11);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(32, 13);
+            this.label5.TabIndex = 4;
+            this.label5.Text = "Port:";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(6, 11);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(58, 13);
+            this.label6.TabIndex = 3;
+            this.label6.Text = "Server IP:";
+            // 
+            // btnDisconnectUdp
+            // 
+            this.btnDisconnectUdp.Location = new System.Drawing.Point(393, 6);
+            this.btnDisconnectUdp.Name = "btnDisconnectUdp";
+            this.btnDisconnectUdp.Size = new System.Drawing.Size(75, 23);
+            this.btnDisconnectUdp.TabIndex = 2;
+            this.btnDisconnectUdp.Text = "Disconnect";
+            this.btnDisconnectUdp.UseVisualStyleBackColor = true;
+            this.btnDisconnectUdp.Click += new System.EventHandler(this.btnDisconnectUdp_Click);
+            // 
+            // btnConnectUdp
+            // 
+            this.btnConnectUdp.Location = new System.Drawing.Point(312, 6);
+            this.btnConnectUdp.Name = "btnConnectUdp";
+            this.btnConnectUdp.Size = new System.Drawing.Size(75, 23);
+            this.btnConnectUdp.TabIndex = 1;
+            this.btnConnectUdp.Text = "Connect";
+            this.btnConnectUdp.UseVisualStyleBackColor = true;
+            this.btnConnectUdp.Click += new System.EventHandler(this.btnConnectUdp_Click);
+            // 
+            // txtUdpClientLog
+            // 
+            this.txtUdpClientLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtUdpClientLog.Font = new System.Drawing.Font("Consolas", 9F);
+            this.txtUdpClientLog.Location = new System.Drawing.Point(6, 35);
+            this.txtUdpClientLog.Multiline = true;
+            this.txtUdpClientLog.Name = "txtUdpClientLog";
+            this.txtUdpClientLog.ReadOnly = true;
+            this.txtUdpClientLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtUdpClientLog.Size = new System.Drawing.Size(980, 504);
+            this.txtUdpClientLog.TabIndex = 0;
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(1000, 600);
+            this.Controls.Add(this.tabControl1);
+            this.Name = "Form1";
+            this.Text = "Socket Programming - Bài Tập Cuối Kỳ";
+            this.tabControl1.ResumeLayout(false);
+            this.tabEnvironment.ResumeLayout(false);
+            this.tabEnvironment.PerformLayout();
+            this.tabTcpServer.ResumeLayout(false);
+            this.tabTcpServer.PerformLayout();
+            this.tabTcpClient.ResumeLayout(false);
+            this.tabTcpClient.PerformLayout();
+            this.tabUdpServer.ResumeLayout(false);
+            this.tabUdpServer.PerformLayout();
+            this.tabUdpClient.ResumeLayout(false);
+            this.tabUdpClient.PerformLayout();
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabEnvironment;
+        private System.Windows.Forms.TextBox txtEnvironmentInfo;
+        private System.Windows.Forms.Button btnGetEnvironmentInfo;
+        private System.Windows.Forms.TabPage tabTcpServer;
+        private System.Windows.Forms.TextBox txtTcpServerPort;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button btnStopTcpServer;
+        private System.Windows.Forms.Button btnStartTcpServer;
+        private System.Windows.Forms.TextBox txtTcpServerLog;
+        private System.Windows.Forms.TabPage tabTcpClient;
+        private System.Windows.Forms.TextBox txtTcpMessage;
+        private System.Windows.Forms.Button btnSendTcpMessage;
+        private System.Windows.Forms.TextBox txtTcpServerIP;
+        private System.Windows.Forms.TextBox txtTcpServerPortClient;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btnDisconnectTcp;
+        private System.Windows.Forms.Button btnConnectTcp;
+        private System.Windows.Forms.TextBox txtTcpClientLog;
+        private System.Windows.Forms.TabPage tabUdpServer;
+        private System.Windows.Forms.TextBox txtUdpServerPort;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button btnStopUdpServer;
+        private System.Windows.Forms.Button btnStartUdpServer;
+        private System.Windows.Forms.TextBox txtUdpServerLog;
+        private System.Windows.Forms.TabPage tabUdpClient;
+        private System.Windows.Forms.TextBox txtUdpMessage;
+        private System.Windows.Forms.Button btnSendUdpMessage;
+        private System.Windows.Forms.TextBox txtUdpServerIP;
+        private System.Windows.Forms.TextBox txtUdpServerPortClient;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Button btnDisconnectUdp;
+        private System.Windows.Forms.Button btnConnectUdp;
+        private System.Windows.Forms.TextBox txtUdpClientLog;
+    }
+}
+

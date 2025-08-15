@@ -1,0 +1,1414 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Http;
+using System.Net.Mail;
+using System.IO;
+using System.Diagnostics;
+
+namespace BaiTapCuoiKy
+{
+    // Buổi 07: Bảo mật mạng với SSL/TLS
+    public partial class SecurityControl : UserControl
+    {
+        public SecurityControl()
+        {
+            InitializeComponent();
+            SetupSecurityUI();
+        }
+
+        private void SetupSecurityUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 07: BẢO MẬT MẠNG VỚI SSL/TLS",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // SSL/TLS Demo Panel
+            GroupBox sslGroup = new GroupBox
+            {
+                Text = "SSL/TLS DEMONSTRATION",
+                Location = new Point(20, 60),
+                Size = new Size(760, 520),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            Button btnHttpsRequest = new Button
+            {
+                Text = "Test HTTPS Request",
+                Location = new Point(20, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightGreen
+            };
+
+            Button btnCertificateInfo = new Button
+            {
+                Text = "Get Certificate Info",
+                Location = new Point(180, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightBlue
+            };
+
+            Button btnSslServer = new Button
+            {
+                Text = "Start SSL Server",
+                Location = new Point(340, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightCoral
+            };
+
+            Button btnEncryptDecrypt = new Button
+            {
+                Text = "Encrypt/Decrypt Demo",
+                Location = new Point(500, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightYellow
+            };
+
+            TextBox txtSslLog = new TextBox
+            {
+                Name = "txtSslLog",
+                Location = new Point(20, 90),
+                Size = new Size(720, 410),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // Event handlers
+            btnHttpsRequest.Click += BtnHttpsRequest_Click;
+            btnCertificateInfo.Click += BtnCertificateInfo_Click;
+            btnSslServer.Click += BtnSslServer_Click;
+            btnEncryptDecrypt.Click += BtnEncryptDecrypt_Click;
+
+            sslGroup.Controls.AddRange(new Control[] { 
+                btnHttpsRequest, btnCertificateInfo, btnSslServer, btnEncryptDecrypt, txtSslLog 
+            });
+
+            this.Controls.AddRange(new Control[] { titleLabel, sslGroup });
+        }
+
+        private async void BtnHttpsRequest_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtSslLog", true)[0] as TextBox;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Testing HTTPS request...\r\n");
+                
+                using (var handler = new HttpClientHandler())
+                {
+                    handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => {
+                        txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Certificate Subject: {cert.Subject}\r\n");
+                        txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Certificate Issuer: {cert.Issuer}\r\n");
+                        txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] SSL Errors: {errors}\r\n");
+                        return true;
+                    };
+
+                    using (var client = new HttpClient(handler))
+                    {
+                        var response = await client.GetAsync("https://httpbin.org/get");
+                        var content = await response.Content.ReadAsStringAsync();
+                        
+                        txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] HTTPS Response Status: {response.StatusCode}\r\n");
+                        txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Response Headers:\r\n");
+                        
+                        foreach (var header in response.Headers)
+                        {
+                            txtLog.AppendText($"  {header.Key}: {string.Join(", ", header.Value)}\r\n");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] HTTPS Error: {ex.Message}\r\n");
+            }
+        }
+
+        private async void BtnCertificateInfo_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtSslLog", true)[0] as TextBox;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Getting certificate information...\r\n");
+                
+                using (var client = new TcpClient())
+                {
+                    await client.ConnectAsync("www.google.com", 443);
+                    
+                    using (var sslStream = new SslStream(client.GetStream()))
+                    {
+                        await sslStream.AuthenticateAsClientAsync("www.google.com");
+                        
+                        var cert = sslStream.RemoteCertificate as X509Certificate2;
+                        if (cert != null)
+                        {
+                            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Certificate Details:\r\n");
+                            txtLog.AppendText($"  Subject: {cert.Subject}\r\n");
+                            txtLog.AppendText($"  Issuer: {cert.Issuer}\r\n");
+                            txtLog.AppendText($"  Valid From: {cert.NotBefore}\r\n");
+                            txtLog.AppendText($"  Valid To: {cert.NotAfter}\r\n");
+                            txtLog.AppendText($"  Thumbprint: {cert.Thumbprint}\r\n");
+                            txtLog.AppendText($"  Has Private Key: {cert.HasPrivateKey}\r\n");
+                            txtLog.AppendText($"  Key Algorithm: {cert.PublicKey.Oid.FriendlyName}\r\n");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Certificate Error: {ex.Message}\r\n");
+            }
+        }
+
+        private void BtnSslServer_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtSslLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] SSL Server demo requires certificate setup\r\n");
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] In production, you would:\r\n");
+            txtLog.AppendText($"  1. Create/obtain SSL certificate\r\n");
+            txtLog.AppendText($"  2. Install certificate in certificate store\r\n");
+            txtLog.AppendText($"  3. Use SslStream.AuthenticateAsServer()\r\n");
+            txtLog.AppendText($"  4. Handle SSL handshake and encrypted communication\r\n");
+        }
+
+        private void BtnEncryptDecrypt_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtSslLog", true)[0] as TextBox;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Encryption/Decryption demo...\r\n");
+                
+                string plainText = "This is a secret message!";
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Original: {plainText}\r\n");
+                
+                // Simple Base64 encoding demo (not real encryption)
+                byte[] bytes = Encoding.UTF8.GetBytes(plainText);
+                string encoded = Convert.ToBase64String(bytes);
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Encoded: {encoded}\r\n");
+                
+                // Decode back
+                byte[] decodedBytes = Convert.FromBase64String(encoded);
+                string decoded = Encoding.UTF8.GetString(decodedBytes);
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Decoded: {decoded}\r\n");
+                
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Note: This is Base64 encoding, not encryption!\r\n");
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] For real encryption, use AES, RSA, etc.\r\n");
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Encryption Error: {ex.Message}\r\n");
+            }
+        }
+    }
+
+    // Buổi 08: Broadcast & Multicast
+    public partial class BroadcastControl : UserControl
+    {
+        private UdpClient broadcastClient;
+        private UdpClient multicastClient;
+        private bool isListening = false;
+
+        public BroadcastControl()
+        {
+            InitializeComponent();
+            SetupBroadcastUI();
+        }
+
+        private void SetupBroadcastUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 08: BROADCAST & MULTICAST",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // Broadcast Panel
+            GroupBox broadcastGroup = new GroupBox
+            {
+                Text = "BROADCAST COMMUNICATION",
+                Location = new Point(20, 60),
+                Size = new Size(370, 250),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            Button btnSendBroadcast = new Button
+            {
+                Text = "Send Broadcast",
+                Location = new Point(20, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.LightGreen
+            };
+
+            Button btnListenBroadcast = new Button
+            {
+                Text = "Listen Broadcast",
+                Location = new Point(150, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.LightBlue
+            };
+
+            TextBox txtBroadcastMessage = new TextBox
+            {
+                Name = "txtBroadcastMessage",
+                Text = "Hello Broadcast!",
+                Location = new Point(20, 90),
+                Size = new Size(320, 25)
+            };
+
+            TextBox txtBroadcastLog = new TextBox
+            {
+                Name = "txtBroadcastLog",
+                Location = new Point(20, 130),
+                Size = new Size(320, 100),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // Multicast Panel
+            GroupBox multicastGroup = new GroupBox
+            {
+                Text = "MULTICAST COMMUNICATION",
+                Location = new Point(410, 60),
+                Size = new Size(370, 250),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            Button btnJoinMulticast = new Button
+            {
+                Text = "Join Multicast",
+                Location = new Point(20, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.LightCoral
+            };
+
+            Button btnSendMulticast = new Button
+            {
+                Text = "Send Multicast",
+                Location = new Point(150, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.LightYellow
+            };
+
+            TextBox txtMulticastAddress = new TextBox
+            {
+                Name = "txtMulticastAddress",
+                Text = "224.1.1.1",
+                Location = new Point(20, 90),
+                Size = new Size(100, 25)
+            };
+
+            TextBox txtMulticastPort = new TextBox
+            {
+                Name = "txtMulticastPort",
+                Text = "8000",
+                Location = new Point(130, 90),
+                Size = new Size(80, 25)
+            };
+
+            TextBox txtMulticastMessage = new TextBox
+            {
+                Name = "txtMulticastMessage",
+                Text = "Hello Multicast!",
+                Location = new Point(220, 90),
+                Size = new Size(120, 25)
+            };
+
+            TextBox txtMulticastLog = new TextBox
+            {
+                Name = "txtMulticastLog",
+                Location = new Point(20, 130),
+                Size = new Size(320, 100),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // Information Panel
+            GroupBox infoGroup = new GroupBox
+            {
+                Text = "BROADCAST & MULTICAST INFORMATION",
+                Location = new Point(20, 330),
+                Size = new Size(760, 250),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtInfo = new TextBox
+            {
+                Location = new Point(20, 30),
+                Size = new Size(720, 200),
+                Multiline = true,
+                ReadOnly = true,
+                Font = new Font("Arial", 10),
+                Text = GetBroadcastMulticastInfo()
+            };
+
+            // Event handlers
+            btnSendBroadcast.Click += BtnSendBroadcast_Click;
+            btnListenBroadcast.Click += BtnListenBroadcast_Click;
+            btnJoinMulticast.Click += BtnJoinMulticast_Click;
+            btnSendMulticast.Click += BtnSendMulticast_Click;
+
+            broadcastGroup.Controls.AddRange(new Control[] { 
+                btnSendBroadcast, btnListenBroadcast, txtBroadcastMessage, txtBroadcastLog 
+            });
+            
+            multicastGroup.Controls.AddRange(new Control[] { 
+                btnJoinMulticast, btnSendMulticast, txtMulticastAddress, txtMulticastPort, txtMulticastMessage, txtMulticastLog 
+            });
+
+            infoGroup.Controls.Add(txtInfo);
+
+            this.Controls.AddRange(new Control[] { titleLabel, broadcastGroup, multicastGroup, infoGroup });
+        }
+
+        private string GetBroadcastMulticastInfo()
+        {
+            return @"BROADCAST COMMUNICATION:
+- Gửi dữ liệu tới tất cả thiết bị trong cùng subnet
+- Sử dụng địa chỉ broadcast (VD: 192.168.1.255)
+- Chỉ hoạt động trong LAN
+- Có thể gây tắc nghẽn mạng nếu sử dụng quá nhiều
+
+MULTICAST COMMUNICATION:
+- Gửi dữ liệu tới một nhóm thiết bị đã đăng ký
+- Sử dụng địa chỉ IP Class D (224.0.0.0 - 239.255.255.255)
+- Hiệu quả hơn broadcast cho nhóm lớn
+- Hỗ trợ truyền qua router (nếu được cấu hình)
+
+MULTICAST ADDRESSES:
+- 224.0.0.1: All Hosts
+- 224.0.0.2: All Routers
+- 224.0.0.22: IGMP
+- 224.1.1.1: Custom application multicast
+
+APPLICATIONS:
+- Video streaming
+- Online gaming
+- Stock price updates
+- Network discovery protocols";
+        }
+
+        private async void BtnSendBroadcast_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtMessage = this.Controls.Find("txtBroadcastMessage", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtBroadcastLog", true)[0] as TextBox;
+
+                using (var client = new UdpClient())
+                {
+                    client.EnableBroadcast = true;
+                    var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, 8001);
+                    
+                    byte[] data = Encoding.UTF8.GetBytes(txtMessage.Text);
+                    await client.SendAsync(data, data.Length, broadcastEndPoint);
+                    
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Broadcasted: {txtMessage.Text}\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Broadcast error: {ex.Message}");
+            }
+        }
+
+        private async void BtnListenBroadcast_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtLog = this.Controls.Find("txtBroadcastLog", true)[0] as TextBox;
+                
+                if (broadcastClient == null)
+                {
+                    broadcastClient = new UdpClient(8001);
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Listening for broadcasts on port 8001...\r\n");
+                    
+                    _ = Task.Run(async () => {
+                        while (broadcastClient != null)
+                        {
+                            try
+                            {
+                                var result = await broadcastClient.ReceiveAsync();
+                                string message = Encoding.UTF8.GetString(result.Buffer);
+                                
+                                this.Invoke(new Action(() => {
+                                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Received broadcast from {result.RemoteEndPoint}: {message}\r\n");
+                                }));
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                break;
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    broadcastClient.Close();
+                    broadcastClient = null;
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Stopped listening for broadcasts\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Broadcast listen error: {ex.Message}");
+            }
+        }
+
+        private async void BtnJoinMulticast_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtAddress = this.Controls.Find("txtMulticastAddress", true)[0] as TextBox;
+                var txtPort = this.Controls.Find("txtMulticastPort", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtMulticastLog", true)[0] as TextBox;
+
+                if (multicastClient == null)
+                {
+                    IPAddress multicastAddress = IPAddress.Parse(txtAddress.Text);
+                    int port = int.Parse(txtPort.Text);
+                    
+                    multicastClient = new UdpClient(port);
+                    multicastClient.JoinMulticastGroup(multicastAddress);
+                    
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Joined multicast group {multicastAddress}:{port}\r\n");
+                    
+                    _ = Task.Run(async () => {
+                        while (multicastClient != null)
+                        {
+                            try
+                            {
+                                var result = await multicastClient.ReceiveAsync();
+                                string message = Encoding.UTF8.GetString(result.Buffer);
+                                
+                                this.Invoke(new Action(() => {
+                                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Multicast from {result.RemoteEndPoint}: {message}\r\n");
+                                }));
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                break;
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    multicastClient.Close();
+                    multicastClient = null;
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Left multicast group\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Multicast error: {ex.Message}");
+            }
+        }
+
+        private async void BtnSendMulticast_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtAddress = this.Controls.Find("txtMulticastAddress", true)[0] as TextBox;
+                var txtPort = this.Controls.Find("txtMulticastPort", true)[0] as TextBox;
+                var txtMessage = this.Controls.Find("txtMulticastMessage", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtMulticastLog", true)[0] as TextBox;
+
+                using (var client = new UdpClient())
+                {
+                    IPAddress multicastAddress = IPAddress.Parse(txtAddress.Text);
+                    int port = int.Parse(txtPort.Text);
+                    var endPoint = new IPEndPoint(multicastAddress, port);
+                    
+                    byte[] data = Encoding.UTF8.GetBytes(txtMessage.Text);
+                    await client.SendAsync(data, data.Length, endPoint);
+                    
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Sent multicast: {txtMessage.Text}\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Multicast send error: {ex.Message}");
+            }
+        }
+    }
+
+    // Buổi 09: Giao thức HTTP - Email
+    public partial class HttpEmailControl : UserControl
+    {
+        public HttpEmailControl()
+        {
+            InitializeComponent();
+            SetupHttpEmailUI();
+        }
+
+        private void SetupHttpEmailUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 09: GIAO THỨC HTTP - EMAIL",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // HTTP Panel
+            GroupBox httpGroup = new GroupBox
+            {
+                Text = "HTTP CLIENT OPERATIONS",
+                Location = new Point(20, 60),
+                Size = new Size(370, 300),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            Button btnHttpGet = new Button
+            {
+                Text = "HTTP GET",
+                Location = new Point(20, 40),
+                Size = new Size(80, 30),
+                BackColor = Color.LightGreen
+            };
+
+            Button btnHttpPost = new Button
+            {
+                Text = "HTTP POST",
+                Location = new Point(110, 40),
+                Size = new Size(80, 30),
+                BackColor = Color.LightBlue
+            };
+
+            Button btnHttpHeaders = new Button
+            {
+                Text = "View Headers",
+                Location = new Point(200, 40),
+                Size = new Size(100, 30),
+                BackColor = Color.LightYellow
+            };
+
+            TextBox txtHttpUrl = new TextBox
+            {
+                Name = "txtHttpUrl",
+                Text = "https://httpbin.org/get",
+                Location = new Point(20, 80),
+                Size = new Size(320, 25)
+            };
+
+            TextBox txtHttpLog = new TextBox
+            {
+                Name = "txtHttpLog",
+                Location = new Point(20, 115),
+                Size = new Size(320, 165),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 8)
+            };
+
+            // Email Panel
+            GroupBox emailGroup = new GroupBox
+            {
+                Text = "EMAIL OPERATIONS",
+                Location = new Point(410, 60),
+                Size = new Size(370, 300),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtEmailTo = new TextBox
+            {
+                Name = "txtEmailTo",
+                PlaceholderText = "To email address",
+                Location = new Point(20, 40),
+                Size = new Size(200, 25)
+            };
+
+            TextBox txtEmailSubject = new TextBox
+            {
+                Name = "txtEmailSubject",
+                PlaceholderText = "Email subject",
+                Location = new Point(20, 75),
+                Size = new Size(200, 25)
+            };
+
+            TextBox txtEmailBody = new TextBox
+            {
+                Name = "txtEmailBody",
+                PlaceholderText = "Email body",
+                Location = new Point(20, 110),
+                Size = new Size(200, 80),
+                Multiline = true
+            };
+
+            Button btnSendEmail = new Button
+            {
+                Text = "Send Email",
+                Location = new Point(240, 110),
+                Size = new Size(100, 40),
+                BackColor = Color.LightCoral
+            };
+
+            TextBox txtEmailLog = new TextBox
+            {
+                Name = "txtEmailLog",
+                Location = new Point(20, 205),
+                Size = new Size(320, 75),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // Information Panel
+            GroupBox infoGroup = new GroupBox
+            {
+                Text = "HTTP & EMAIL PROTOCOL INFORMATION",
+                Location = new Point(20, 380),
+                Size = new Size(760, 200),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtProtocolInfo = new TextBox
+            {
+                Location = new Point(20, 30),
+                Size = new Size(720, 150),
+                Multiline = true,
+                ReadOnly = true,
+                Font = new Font("Arial", 10),
+                Text = GetProtocolInfo()
+            };
+
+            // Event handlers
+            btnHttpGet.Click += BtnHttpGet_Click;
+            btnHttpPost.Click += BtnHttpPost_Click;
+            btnHttpHeaders.Click += BtnHttpHeaders_Click;
+            btnSendEmail.Click += BtnSendEmail_Click;
+
+            httpGroup.Controls.AddRange(new Control[] { 
+                btnHttpGet, btnHttpPost, btnHttpHeaders, txtHttpUrl, txtHttpLog 
+            });
+            
+            emailGroup.Controls.AddRange(new Control[] { 
+                txtEmailTo, txtEmailSubject, txtEmailBody, btnSendEmail, txtEmailLog 
+            });
+
+            infoGroup.Controls.Add(txtProtocolInfo);
+
+            this.Controls.AddRange(new Control[] { titleLabel, httpGroup, emailGroup, infoGroup });
+        }
+
+        private string GetProtocolInfo()
+        {
+            return @"HTTP PROTOCOL:
+- HTTP Methods: GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+- Status Codes: 200 (OK), 404 (Not Found), 500 (Server Error), etc.
+- Headers: Content-Type, Authorization, User-Agent, Accept
+- HTTPS: HTTP over SSL/TLS for secure communication
+
+EMAIL PROTOCOLS:
+- SMTP (Simple Mail Transfer Protocol): Port 25, 587, 465
+- POP3 (Post Office Protocol): Port 110, 995 (SSL)
+- IMAP (Internet Message Access Protocol): Port 143, 993 (SSL)
+
+SMTP COMMANDS:
+- HELO/EHLO: Identify client
+- MAIL FROM: Specify sender
+- RCPT TO: Specify recipient
+- DATA: Send message content
+- QUIT: Close connection
+
+EMAIL HEADERS:
+- From, To, CC, BCC
+- Subject, Date
+- Message-ID, References
+- Content-Type, Content-Encoding";
+        }
+
+        private async void BtnHttpGet_Click(object sender, EventArgs e)
+        {
+            var txtUrl = this.Controls.Find("txtHttpUrl", true)[0] as TextBox;
+            var txtLog = this.Controls.Find("txtHttpLog", true)[0] as TextBox;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] GET {txtUrl.Text}\r\n");
+                
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync(txtUrl.Text);
+                    var content = await response.Content.ReadAsStringAsync();
+                    
+                    txtLog.AppendText($"Status: {response.StatusCode}\r\n");
+                    txtLog.AppendText($"Content Length: {content.Length}\r\n");
+                    txtLog.AppendText($"Content: {content.Substring(0, Math.Min(200, content.Length))}...\r\n\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"Error: {ex.Message}\r\n\r\n");
+            }
+        }
+
+        private async void BtnHttpPost_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtHttpLog", true)[0] as TextBox;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] POST https://httpbin.org/post\r\n");
+                
+                using (var client = new HttpClient())
+                {
+                    var postData = new StringContent("{\"key\":\"value\"}", Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("https://httpbin.org/post", postData);
+                    var content = await response.Content.ReadAsStringAsync();
+                    
+                    txtLog.AppendText($"Status: {response.StatusCode}\r\n");
+                    txtLog.AppendText($"Response: {content.Substring(0, Math.Min(200, content.Length))}...\r\n\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"Error: {ex.Message}\r\n\r\n");
+            }
+        }
+
+        private async void BtnHttpHeaders_Click(object sender, EventArgs e)
+        {
+            var txtUrl = this.Controls.Find("txtHttpUrl", true)[0] as TextBox;
+            var txtLog = this.Controls.Find("txtHttpLog", true)[0] as TextBox;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Headers for {txtUrl.Text}\r\n");
+                
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync(txtUrl.Text);
+                    
+                    txtLog.AppendText("Response Headers:\r\n");
+                    foreach (var header in response.Headers)
+                    {
+                        txtLog.AppendText($"  {header.Key}: {string.Join(", ", header.Value)}\r\n");
+                    }
+                    
+                    txtLog.AppendText("Content Headers:\r\n");
+                    foreach (var header in response.Content.Headers)
+                    {
+                        txtLog.AppendText($"  {header.Key}: {string.Join(", ", header.Value)}\r\n");
+                    }
+                    txtLog.AppendText("\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"Error: {ex.Message}\r\n\r\n");
+            }
+        }
+
+        private async void BtnSendEmail_Click(object sender, EventArgs e)
+        {
+            var txtTo = this.Controls.Find("txtEmailTo", true)[0] as TextBox;
+            var txtSubject = this.Controls.Find("txtEmailSubject", true)[0] as TextBox;
+            var txtBody = this.Controls.Find("txtEmailBody", true)[0] as TextBox;
+            var txtLog = this.Controls.Find("txtEmailLog", true)[0] as TextBox;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Email sending simulation...\r\n");
+                
+                // Simulate email sending (requires SMTP configuration)
+                txtLog.AppendText($"To: {txtTo.Text}\r\n");
+                txtLog.AppendText($"Subject: {txtSubject.Text}\r\n");
+                txtLog.AppendText($"Body: {txtBody.Text}\r\n");
+                txtLog.AppendText("Note: SMTP configuration required for actual sending\r\n\r\n");
+                
+                // For demonstration only - real implementation would use SmtpClient:
+                /*
+                using (var client = new SmtpClient("smtp.gmail.com", 587))
+                {
+                    client.EnableSsl = true;
+                    client.Credentials = new NetworkCredential("your-email", "your-password");
+                    
+                    var mail = new MailMessage();
+                    mail.From = new MailAddress("your-email@gmail.com");
+                    mail.To.Add(txtTo.Text);
+                    mail.Subject = txtSubject.Text;
+                    mail.Body = txtBody.Text;
+                    
+                    await client.SendMailAsync(mail);
+                }
+                */
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"Error: {ex.Message}\r\n\r\n");
+            }
+        }
+    }
+
+    // Buổi 10: WebSocket - gRPC
+    public partial class WebSocketControl : UserControl
+    {
+        public WebSocketControl()
+        {
+            InitializeComponent();
+            SetupWebSocketUI();
+        }
+
+        private void SetupWebSocketUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 10: WEBSOCKET - gRPC",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // WebSocket Panel
+            GroupBox wsGroup = new GroupBox
+            {
+                Text = "WEBSOCKET DEMONSTRATION",
+                Location = new Point(20, 60),
+                Size = new Size(370, 300),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtWsUrl = new TextBox
+            {
+                Name = "txtWsUrl",
+                Text = "wss://echo.websocket.org",
+                Location = new Point(20, 40),
+                Size = new Size(200, 25)
+            };
+
+            Button btnWsConnect = new Button
+            {
+                Text = "Connect",
+                Location = new Point(230, 40),
+                Size = new Size(80, 30),
+                BackColor = Color.LightGreen
+            };
+
+            Button btnWsDisconnect = new Button
+            {
+                Text = "Disconnect",
+                Location = new Point(230, 80),
+                Size = new Size(80, 30),
+                BackColor = Color.LightCoral
+            };
+
+            TextBox txtWsMessage = new TextBox
+            {
+                Name = "txtWsMessage",
+                Text = "Hello WebSocket!",
+                Location = new Point(20, 80),
+                Size = new Size(150, 25)
+            };
+
+            Button btnWsSend = new Button
+            {
+                Text = "Send",
+                Location = new Point(180, 80),
+                Size = new Size(40, 30),
+                BackColor = Color.LightBlue
+            };
+
+            TextBox txtWsLog = new TextBox
+            {
+                Name = "txtWsLog",
+                Location = new Point(20, 120),
+                Size = new Size(320, 160),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // gRPC Panel
+            GroupBox grpcGroup = new GroupBox
+            {
+                Text = "gRPC DEMONSTRATION",
+                Location = new Point(410, 60),
+                Size = new Size(370, 300),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            Button btnGrpcTest = new Button
+            {
+                Text = "Test gRPC Call",
+                Location = new Point(20, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.LightYellow
+            };
+
+            Button btnGrpcStream = new Button
+            {
+                Text = "Test Streaming",
+                Location = new Point(150, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.LightPink
+            };
+
+            TextBox txtGrpcLog = new TextBox
+            {
+                Name = "txtGrpcLog",
+                Location = new Point(20, 90),
+                Size = new Size(320, 190),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // Information Panel
+            GroupBox infoGroup = new GroupBox
+            {
+                Text = "WEBSOCKET & gRPC INFORMATION",
+                Location = new Point(20, 380),
+                Size = new Size(760, 200),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtTechInfo = new TextBox
+            {
+                Location = new Point(20, 30),
+                Size = new Size(720, 150),
+                Multiline = true,
+                ReadOnly = true,
+                Font = new Font("Arial", 10),
+                Text = GetTechInfo()
+            };
+
+            // Event handlers
+            btnWsConnect.Click += BtnWsConnect_Click;
+            btnWsDisconnect.Click += BtnWsDisconnect_Click;
+            btnWsSend.Click += BtnWsSend_Click;
+            btnGrpcTest.Click += BtnGrpcTest_Click;
+            btnGrpcStream.Click += BtnGrpcStream_Click;
+
+            wsGroup.Controls.AddRange(new Control[] { 
+                txtWsUrl, btnWsConnect, btnWsDisconnect, txtWsMessage, btnWsSend, txtWsLog 
+            });
+            
+            grpcGroup.Controls.AddRange(new Control[] { 
+                btnGrpcTest, btnGrpcStream, txtGrpcLog 
+            });
+
+            infoGroup.Controls.Add(txtTechInfo);
+
+            this.Controls.AddRange(new Control[] { titleLabel, wsGroup, grpcGroup, infoGroup });
+        }
+
+        private string GetTechInfo()
+        {
+            return @"WEBSOCKET:
+- Full-duplex communication over single TCP connection
+- Upgrade from HTTP to WebSocket protocol
+- Real-time bidirectional data exchange
+- Lower overhead than HTTP polling
+- Perfect for chat, gaming, live updates
+
+WEBSOCKET HANDSHAKE:
+1. Client sends HTTP upgrade request
+2. Server responds with 101 Switching Protocols
+3. Connection upgraded to WebSocket
+4. Binary/text frames exchanged
+
+gRPC (Google Remote Procedure Call):
+- High-performance RPC framework
+- Uses HTTP/2 for transport
+- Protocol Buffers for serialization
+- Supports streaming (unary, server, client, bidirectional)
+- Cross-platform and language independent
+
+gRPC FEATURES:
+- Type-safe API contracts
+- Automatic code generation
+- Load balancing and authentication
+- Streaming support
+- Deadline/cancellation support
+
+COMPARISON:
+WebSocket: Real-time web apps, games, chat
+gRPC: Microservices, API communication, high-performance systems";
+        }
+
+        private void BtnWsConnect_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtWsLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] WebSocket connection simulation\r\n");
+            txtLog.AppendText("Note: Requires WebSocket client library (e.g., ClientWebSocket)\r\n");
+            txtLog.AppendText("Would connect to: wss://echo.websocket.org\r\n\r\n");
+        }
+
+        private void BtnWsDisconnect_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtWsLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] WebSocket disconnected\r\n\r\n");
+        }
+
+        private void BtnWsSend_Click(object sender, EventArgs e)
+        {
+            var txtMessage = this.Controls.Find("txtWsMessage", true)[0] as TextBox;
+            var txtLog = this.Controls.Find("txtWsLog", true)[0] as TextBox;
+            
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Sent: {txtMessage.Text}\r\n");
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Echo: {txtMessage.Text}\r\n\r\n");
+        }
+
+        private void BtnGrpcTest_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtGrpcLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] gRPC Unary Call simulation\r\n");
+            txtLog.AppendText("Note: Requires gRPC packages and .proto definitions\r\n");
+            txtLog.AppendText("Example: var client = new GreeterClient(channel);\r\n");
+            txtLog.AppendText("var response = client.SayHello(new HelloRequest());\r\n\r\n");
+        }
+
+        private void BtnGrpcStream_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtGrpcLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] gRPC Streaming simulation\r\n");
+            txtLog.AppendText("Server Streaming: Multiple responses for one request\r\n");
+            txtLog.AppendText("Client Streaming: Multiple requests for one response\r\n");
+            txtLog.AppendText("Bidirectional: Multiple requests and responses\r\n\r\n");
+        }
+    }
+
+    // Wireshark Integration
+    public partial class WiresharkControl : UserControl
+    {
+        public WiresharkControl()
+        {
+            InitializeComponent();
+            SetupWiresharkUI();
+        }
+
+        private void SetupWiresharkUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "WIRESHARK NETWORK ANALYSIS",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // Wireshark Control Panel
+            GroupBox controlGroup = new GroupBox
+            {
+                Text = "WIRESHARK CONTROL",
+                Location = new Point(20, 60),
+                Size = new Size(760, 150),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            Button btnStartCapture = new Button
+            {
+                Text = "Start Capture",
+                Location = new Point(20, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.Green,
+                ForeColor = Color.White
+            };
+
+            Button btnStopCapture = new Button
+            {
+                Text = "Stop Capture",
+                Location = new Point(150, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.Red,
+                ForeColor = Color.White
+            };
+
+            Button btnOpenWireshark = new Button
+            {
+                Text = "Open Wireshark",
+                Location = new Point(280, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.Blue,
+                ForeColor = Color.White
+            };
+
+            Button btnGetInterfaces = new Button
+            {
+                Text = "Get Interfaces",
+                Location = new Point(410, 40),
+                Size = new Size(120, 35),
+                BackColor = Color.Orange,
+                ForeColor = Color.White
+            };
+
+            ComboBox cmbInterfaces = new ComboBox
+            {
+                Name = "cmbInterfaces",
+                Location = new Point(20, 90),
+                Size = new Size(300, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            Label lblStatus = new Label
+            {
+                Name = "lblWiresharkStatus",
+                Text = "Status: Ready",
+                Location = new Point(340, 95),
+                Size = new Size(200, 25),
+                Font = new Font("Arial", 10)
+            };
+
+            // Analysis Panel
+            GroupBox analysisGroup = new GroupBox
+            {
+                Text = "NETWORK ANALYSIS & FILTERS",
+                Location = new Point(20, 230),
+                Size = new Size(760, 350),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtFilter = new TextBox
+            {
+                Name = "txtWiresharkFilter",
+                Text = "tcp.port == 80",
+                Location = new Point(20, 40),
+                Size = new Size(400, 25)
+            };
+
+            Button btnApplyFilter = new Button
+            {
+                Text = "Apply Filter",
+                Location = new Point(430, 40),
+                Size = new Size(100, 30),
+                BackColor = Color.LightBlue
+            };
+
+            TextBox txtAnalysisLog = new TextBox
+            {
+                Name = "txtAnalysisLog",
+                Location = new Point(20, 80),
+                Size = new Size(720, 200),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            Button btnAnalyzeTcp = new Button
+            {
+                Text = "Analyze TCP",
+                Location = new Point(20, 290),
+                Size = new Size(100, 30),
+                BackColor = Color.LightGreen
+            };
+
+            Button btnAnalyzeUdp = new Button
+            {
+                Text = "Analyze UDP",
+                Location = new Point(130, 290),
+                Size = new Size(100, 30),
+                BackColor = Color.LightYellow
+            };
+
+            Button btnAnalyzeHttp = new Button
+            {
+                Text = "Analyze HTTP",
+                Location = new Point(240, 290),
+                Size = new Size(100, 30),
+                BackColor = Color.LightCoral
+            };
+
+            // Event handlers
+            btnStartCapture.Click += BtnStartCapture_Click;
+            btnStopCapture.Click += BtnStopCapture_Click;
+            btnOpenWireshark.Click += BtnOpenWireshark_Click;
+            btnGetInterfaces.Click += BtnGetInterfaces_Click;
+            btnApplyFilter.Click += BtnApplyFilter_Click;
+            btnAnalyzeTcp.Click += BtnAnalyzeTcp_Click;
+            btnAnalyzeUdp.Click += BtnAnalyzeUdp_Click;
+            btnAnalyzeHttp.Click += BtnAnalyzeHttp_Click;
+
+            controlGroup.Controls.AddRange(new Control[] { 
+                btnStartCapture, btnStopCapture, btnOpenWireshark, btnGetInterfaces, cmbInterfaces, lblStatus 
+            });
+            
+            analysisGroup.Controls.AddRange(new Control[] { 
+                txtFilter, btnApplyFilter, txtAnalysisLog, btnAnalyzeTcp, btnAnalyzeUdp, btnAnalyzeHttp 
+            });
+
+            this.Controls.AddRange(new Control[] { titleLabel, controlGroup, analysisGroup });
+
+            // Initialize with common filters
+            var txtLog = txtAnalysisLog;
+            txtLog.Text = GetWiresharkInfo();
+        }
+
+        private string GetWiresharkInfo()
+        {
+            return @"WIRESHARK NETWORK ANALYSIS TOOL
+
+COMMON WIRESHARK FILTERS:
+• tcp.port == 80          - HTTP traffic
+• tcp.port == 443         - HTTPS traffic  
+• udp.port == 53          - DNS queries
+• ip.addr == 192.168.1.1  - Specific IP address
+• tcp.flags.syn == 1      - TCP SYN packets
+• http.request.method == GET - HTTP GET requests
+• ssl.handshake.type == 1 - SSL handshakes
+
+PROTOCOL ANALYSIS:
+• TCP: Connection establishment, data transfer, termination
+• UDP: Connectionless communication patterns
+• HTTP: Request/response analysis, headers examination
+• SSL/TLS: Certificate validation, encryption analysis
+• DNS: Query/response patterns, resolution time
+
+PERFORMANCE METRICS:
+• Round-trip time (RTT)
+• Bandwidth utilization
+• Packet loss detection
+• Connection establishment time
+• Application response time
+
+SECURITY ANALYSIS:
+• Malformed packet detection
+• Suspicious traffic patterns
+• Protocol anomalies
+• Certificate validation issues
+• Encrypted vs plaintext analysis";
+        }
+
+        private void BtnStartCapture_Click(object sender, EventArgs e)
+        {
+            var lblStatus = this.Controls.Find("lblWiresharkStatus", true)[0] as Label;
+            var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+            
+            lblStatus.Text = "Status: Capturing...";
+            txtLog.AppendText($"\r\n[{DateTime.Now:HH:mm:ss}] Started packet capture\r\n");
+            txtLog.AppendText("Note: This is a simulation. Real implementation would use:\r\n");
+            txtLog.AppendText("- WinPcap/Npcap libraries\r\n");
+            txtLog.AppendText("- Raw socket programming\r\n");
+            txtLog.AppendText("- Wireshark command line tools\r\n");
+        }
+
+        private void BtnStopCapture_Click(object sender, EventArgs e)
+        {
+            var lblStatus = this.Controls.Find("lblWiresharkStatus", true)[0] as Label;
+            var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+            
+            lblStatus.Text = "Status: Stopped";
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Stopped packet capture\r\n");
+        }
+
+        private void BtnOpenWireshark_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Try to launch Wireshark if installed
+                Process.Start("wireshark.exe");
+            }
+            catch (Exception)
+            {
+                var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Wireshark not found. Please install Wireshark.\r\n");
+                txtLog.AppendText("Download from: https://www.wireshark.org/\r\n");
+            }
+        }
+
+        private void BtnGetInterfaces_Click(object sender, EventArgs e)
+        {
+            var cmbInterfaces = this.Controls.Find("cmbInterfaces", true)[0] as ComboBox;
+            var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+            
+            cmbInterfaces.Items.Clear();
+            cmbInterfaces.Items.AddRange(new string[] {
+                "Ethernet",
+                "Wi-Fi",
+                "Loopback",
+                "Bluetooth",
+                "VPN"
+            });
+            
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Network interfaces loaded\r\n");
+        }
+
+        private void BtnApplyFilter_Click(object sender, EventArgs e)
+        {
+            var txtFilter = this.Controls.Find("txtWiresharkFilter", true)[0] as TextBox;
+            var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+            
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Applied filter: {txtFilter.Text}\r\n");
+        }
+
+        private void BtnAnalyzeTcp_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] TCP Analysis:\r\n");
+            txtLog.AppendText("• Three-way handshake: SYN -> SYN-ACK -> ACK\r\n");
+            txtLog.AppendText("• Data transfer with acknowledgments\r\n");
+            txtLog.AppendText("• Window size and flow control\r\n");
+            txtLog.AppendText("• Connection termination: FIN -> ACK\r\n");
+        }
+
+        private void BtnAnalyzeUdp_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] UDP Analysis:\r\n");
+            txtLog.AppendText("• Connectionless protocol\r\n");
+            txtLog.AppendText("• No acknowledgments or retransmissions\r\n");
+            txtLog.AppendText("• Lower overhead than TCP\r\n");
+            txtLog.AppendText("• Used for DNS, DHCP, streaming\r\n");
+        }
+
+        private void BtnAnalyzeHttp_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtAnalysisLog", true)[0] as TextBox;
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] HTTP Analysis:\r\n");
+            txtLog.AppendText("• Request methods: GET, POST, PUT, DELETE\r\n");
+            txtLog.AppendText("• Response codes: 200, 404, 500, etc.\r\n");
+            txtLog.AppendText("• Headers analysis: User-Agent, Content-Type\r\n");
+            txtLog.AppendText("• Performance: Load time, response size\r\n");
+        }
+    }
+}

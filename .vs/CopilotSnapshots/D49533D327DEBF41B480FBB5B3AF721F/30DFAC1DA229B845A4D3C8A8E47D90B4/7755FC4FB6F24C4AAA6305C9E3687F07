@@ -1,0 +1,831 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Http;
+using System.Net.Mail;
+using System.IO;
+
+namespace BaiTapCuoiKy
+{
+    // Buổi 04: Lập trình Socket - UDP Client/Server
+    public partial class UdpControl : UserControl
+    {
+        private UdpClient udpServer;
+        private UdpClient udpClient;
+        private bool isServerRunning = false;
+        private IPEndPoint serverEndPoint;
+
+        public UdpControl()
+        {
+            InitializeComponent();
+            SetupUdpUI();
+        }
+
+        private void SetupUdpUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 04: LẬP TRÌNH SOCKET - UDP CLIENT/SERVER",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // UDP Server Panel
+            GroupBox serverGroup = new GroupBox
+            {
+                Text = "UDP SERVER",
+                Location = new Point(20, 60),
+                Size = new Size(370, 520),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtServerPort = new TextBox
+            {
+                Name = "txtUdpServerPort",
+                Text = "9090",
+                Location = new Point(20, 40),
+                Size = new Size(100, 25)
+            };
+
+            Button btnStartUdpServer = new Button
+            {
+                Text = "Start UDP Server",
+                Location = new Point(140, 40),
+                Size = new Size(120, 30),
+                BackColor = Color.Green,
+                ForeColor = Color.White
+            };
+
+            Button btnStopUdpServer = new Button
+            {
+                Text = "Stop Server",
+                Location = new Point(270, 40),
+                Size = new Size(80, 30),
+                BackColor = Color.Red,
+                ForeColor = Color.White
+            };
+
+            TextBox txtUdpServerLog = new TextBox
+            {
+                Name = "txtUdpServerLog",
+                Location = new Point(20, 80),
+                Size = new Size(330, 420),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // UDP Client Panel
+            GroupBox clientGroup = new GroupBox
+            {
+                Text = "UDP CLIENT",
+                Location = new Point(410, 60),
+                Size = new Size(370, 520),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtUdpClientIP = new TextBox
+            {
+                Name = "txtUdpClientIP",
+                Text = "127.0.0.1",
+                Location = new Point(20, 40),
+                Size = new Size(100, 25)
+            };
+
+            TextBox txtUdpClientPort = new TextBox
+            {
+                Name = "txtUdpClientPort",
+                Text = "9090",
+                Location = new Point(130, 40),
+                Size = new Size(80, 25)
+            };
+
+            Button btnConnectUdp = new Button
+            {
+                Text = "Connect",
+                Location = new Point(220, 40),
+                Size = new Size(80, 30),
+                BackColor = Color.Green,
+                ForeColor = Color.White
+            };
+
+            TextBox txtUdpClientLog = new TextBox
+            {
+                Name = "txtUdpClientLog",
+                Location = new Point(20, 80),
+                Size = new Size(330, 340),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            TextBox txtUdpMessage = new TextBox
+            {
+                Name = "txtUdpMessage",
+                Location = new Point(20, 440),
+                Size = new Size(230, 25)
+            };
+
+            Button btnSendUdp = new Button
+            {
+                Text = "Send UDP",
+                Location = new Point(260, 440),
+                Size = new Size(90, 30),
+                BackColor = Color.Blue,
+                ForeColor = Color.White
+            };
+
+            // Event handlers
+            btnStartUdpServer.Click += BtnStartUdpServer_Click;
+            btnStopUdpServer.Click += BtnStopUdpServer_Click;
+            btnConnectUdp.Click += BtnConnectUdp_Click;
+            btnSendUdp.Click += BtnSendUdp_Click;
+
+            serverGroup.Controls.AddRange(new Control[] { 
+                txtServerPort, btnStartUdpServer, btnStopUdpServer, txtUdpServerLog 
+            });
+            
+            clientGroup.Controls.AddRange(new Control[] { 
+                txtUdpClientIP, txtUdpClientPort, btnConnectUdp, txtUdpClientLog, txtUdpMessage, btnSendUdp 
+            });
+
+            this.Controls.AddRange(new Control[] { titleLabel, serverGroup, clientGroup });
+        }
+
+        private async void BtnStartUdpServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtPort = this.Controls.Find("txtUdpServerPort", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtUdpServerLog", true)[0] as TextBox;
+                
+                int port = int.Parse(txtPort.Text);
+                udpServer = new UdpClient(port);
+                isServerRunning = true;
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] UDP Server started on port {port}\r\n");
+
+                // Start listening for UDP packets
+                _ = Task.Run(async () => {
+                    while (isServerRunning)
+                    {
+                        try
+                        {
+                            var result = await udpServer.ReceiveAsync();
+                            string message = Encoding.UTF8.GetString(result.Buffer);
+                            
+                            this.Invoke(new Action(() => {
+                                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] From {result.RemoteEndPoint}: {message}\r\n");
+                            }));
+
+                            // Echo back to client
+                            string echo = $"Echo: {message}";
+                            byte[] echoData = Encoding.UTF8.GetBytes(echo);
+                            await udpServer.SendAsync(echoData, echoData.Length, result.RemoteEndPoint);
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            this.Invoke(new Action(() => {
+                                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Server error: {ex.Message}\r\n");
+                            }));
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting UDP server: {ex.Message}");
+            }
+        }
+
+        private void BtnStopUdpServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                isServerRunning = false;
+                udpServer?.Close();
+
+                var txtLog = this.Controls.Find("txtUdpServerLog", true)[0] as TextBox;
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] UDP Server stopped\r\n");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error stopping UDP server: {ex.Message}");
+            }
+        }
+
+        private async void BtnConnectUdp_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtIP = this.Controls.Find("txtUdpClientIP", true)[0] as TextBox;
+                var txtPort = this.Controls.Find("txtUdpClientPort", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtUdpClientLog", true)[0] as TextBox;
+
+                serverEndPoint = new IPEndPoint(IPAddress.Parse(txtIP.Text), int.Parse(txtPort.Text));
+                udpClient = new UdpClient();
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] UDP Client ready to send to {serverEndPoint}\r\n");
+
+                // Start listening for responses
+                _ = Task.Run(async () => {
+                    try
+                    {
+                        while (udpClient != null)
+                        {
+                            var result = await udpClient.ReceiveAsync();
+                            string message = Encoding.UTF8.GetString(result.Buffer);
+                            
+                            this.Invoke(new Action(() => {
+                                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Received: {message}\r\n");
+                            }));
+                        }
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Client closed
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Invoke(new Action(() => {
+                            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Client error: {ex.Message}\r\n");
+                        }));
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error setting up UDP client: {ex.Message}");
+            }
+        }
+
+        private async void BtnSendUdp_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtMessage = this.Controls.Find("txtUdpMessage", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtUdpClientLog", true)[0] as TextBox;
+
+                if (udpClient == null || serverEndPoint == null)
+                {
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Please connect first\r\n");
+                    return;
+                }
+
+                string message = txtMessage.Text;
+                if (string.IsNullOrEmpty(message)) return;
+
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                await udpClient.SendAsync(data, data.Length, serverEndPoint);
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Sent: {message}\r\n");
+                txtMessage.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error sending UDP message: {ex.Message}");
+            }
+        }
+    }
+
+    // Buổi 05: Mô hình lập trình bất đồng bộ
+    public partial class AsyncControl : UserControl
+    {
+        public AsyncControl()
+        {
+            InitializeComponent();
+            SetupAsyncUI();
+        }
+
+        private void SetupAsyncUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 05: MÔ HÌNH LẬP TRÌNH BẤT ĐỒNG BỘ",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // Async Examples Panel
+            GroupBox asyncGroup = new GroupBox
+            {
+                Text = "ASYNC/AWAIT EXAMPLES",
+                Location = new Point(20, 60),
+                Size = new Size(760, 520),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            Button btnAsyncDownload = new Button
+            {
+                Text = "Async File Download",
+                Location = new Point(20, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightBlue
+            };
+
+            Button btnParallelTasks = new Button
+            {
+                Text = "Parallel Tasks",
+                Location = new Point(180, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightGreen
+            };
+
+            Button btnCancellationDemo = new Button
+            {
+                Text = "Cancellation Demo",
+                Location = new Point(340, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightCoral
+            };
+
+            Button btnProgressDemo = new Button
+            {
+                Text = "Progress Reporting",
+                Location = new Point(500, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.LightYellow
+            };
+
+            ProgressBar progressBar = new ProgressBar
+            {
+                Name = "progressBar",
+                Location = new Point(20, 90),
+                Size = new Size(720, 25)
+            };
+
+            TextBox txtAsyncLog = new TextBox
+            {
+                Name = "txtAsyncLog",
+                Location = new Point(20, 130),
+                Size = new Size(720, 370),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 10)
+            };
+
+            // Event handlers
+            btnAsyncDownload.Click += BtnAsyncDownload_Click;
+            btnParallelTasks.Click += BtnParallelTasks_Click;
+            btnCancellationDemo.Click += BtnCancellationDemo_Click;
+            btnProgressDemo.Click += BtnProgressDemo_Click;
+
+            asyncGroup.Controls.AddRange(new Control[] { 
+                btnAsyncDownload, btnParallelTasks, btnCancellationDemo, btnProgressDemo, progressBar, txtAsyncLog 
+            });
+
+            this.Controls.AddRange(new Control[] { titleLabel, asyncGroup });
+        }
+
+        private async void BtnAsyncDownload_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtAsyncLog", true)[0] as TextBox;
+            var progressBar = this.Controls.Find("progressBar", true)[0] as ProgressBar;
+            
+            try
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Starting async download...\r\n");
+                
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync("https://httpbin.org/delay/3");
+                    var content = await response.Content.ReadAsStringAsync();
+                    
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Download completed. Size: {content.Length} bytes\r\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Download error: {ex.Message}\r\n");
+            }
+        }
+
+        private async void BtnParallelTasks_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtAsyncLog", true)[0] as TextBox;
+            
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Starting parallel tasks...\r\n");
+            
+            var tasks = new[]
+            {
+                Task.Run(async () => {
+                    await Task.Delay(1000);
+                    return "Task 1 completed";
+                }),
+                Task.Run(async () => {
+                    await Task.Delay(2000);
+                    return "Task 2 completed";
+                }),
+                Task.Run(async () => {
+                    await Task.Delay(1500);
+                    return "Task 3 completed";
+                })
+            };
+
+            var results = await Task.WhenAll(tasks);
+            
+            foreach (var result in results)
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {result}\r\n");
+            }
+        }
+
+        private async void BtnCancellationDemo_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtAsyncLog", true)[0] as TextBox;
+            
+            using (var cts = new System.Threading.CancellationTokenSource())
+            {
+                cts.CancelAfter(2000); // Cancel after 2 seconds
+                
+                try
+                {
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Starting long-running task (will be cancelled)...\r\n");
+                    
+                    await Task.Run(async () => {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            cts.Token.ThrowIfCancellationRequested();
+                            await Task.Delay(500, cts.Token);
+                            
+                            this.Invoke(new Action(() => {
+                                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Task step {i + 1}\r\n");
+                            }));
+                        }
+                    }, cts.Token);
+                    
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Task completed normally\r\n");
+                }
+                catch (OperationCanceledException)
+                {
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Task was cancelled!\r\n");
+                }
+            }
+        }
+
+        private async void BtnProgressDemo_Click(object sender, EventArgs e)
+        {
+            var txtLog = this.Controls.Find("txtAsyncLog", true)[0] as TextBox;
+            var progressBar = this.Controls.Find("progressBar", true)[0] as ProgressBar;
+            
+            var progress = new Progress<int>(value => {
+                progressBar.Value = value;
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Progress: {value}%\r\n");
+            });
+
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Starting progress demo...\r\n");
+            progressBar.Value = 0;
+
+            await Task.Run(async () => {
+                for (int i = 0; i <= 100; i += 10)
+                {
+                    await Task.Delay(200);
+                    ((IProgress<int>)progress).Report(i);
+                }
+            });
+            
+            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Progress demo completed!\r\n");
+        }
+    }
+
+    // Buổi 06: Mô hình Multi-Client Server
+    public partial class MultiClientControl : UserControl
+    {
+        private TcpListener tcpListener;
+        private List<ClientHandler> clients = new List<ClientHandler>();
+        private bool isServerRunning = false;
+
+        public MultiClientControl()
+        {
+            InitializeComponent();
+            SetupMultiClientUI();
+        }
+
+        private void SetupMultiClientUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 06: MÔ HÌNH MULTI-CLIENT SERVER",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // Server Control Panel
+            GroupBox serverGroup = new GroupBox
+            {
+                Text = "MULTI-CLIENT SERVER CONTROL",
+                Location = new Point(20, 60),
+                Size = new Size(760, 150),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtServerPort = new TextBox
+            {
+                Name = "txtMultiServerPort",
+                Text = "8888",
+                Location = new Point(20, 40),
+                Size = new Size(100, 25)
+            };
+
+            Button btnStartMultiServer = new Button
+            {
+                Text = "Start Multi-Client Server",
+                Location = new Point(140, 40),
+                Size = new Size(180, 35),
+                BackColor = Color.Green,
+                ForeColor = Color.White
+            };
+
+            Button btnStopMultiServer = new Button
+            {
+                Text = "Stop Server",
+                Location = new Point(340, 40),
+                Size = new Size(100, 35),
+                BackColor = Color.Red,
+                ForeColor = Color.White
+            };
+
+            Button btnBroadcast = new Button
+            {
+                Text = "Broadcast Message",
+                Location = new Point(460, 40),
+                Size = new Size(150, 35),
+                BackColor = Color.Blue,
+                ForeColor = Color.White
+            };
+
+            Label lblClientCount = new Label
+            {
+                Name = "lblClientCount",
+                Text = "Connected Clients: 0",
+                Location = new Point(20, 90),
+                Size = new Size(200, 25),
+                Font = new Font("Arial", 11, FontStyle.Bold)
+            };
+
+            TextBox txtBroadcastMessage = new TextBox
+            {
+                Name = "txtBroadcastMessage",
+                Location = new Point(240, 90),
+                Size = new Size(300, 25)
+            };
+
+            // Server Log
+            GroupBox logGroup = new GroupBox
+            {
+                Text = "SERVER LOG & CLIENT MANAGEMENT",
+                Location = new Point(20, 230),
+                Size = new Size(760, 350),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtMultiServerLog = new TextBox
+            {
+                Name = "txtMultiServerLog",
+                Location = new Point(20, 30),
+                Size = new Size(720, 300),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            // Event handlers
+            btnStartMultiServer.Click += BtnStartMultiServer_Click;
+            btnStopMultiServer.Click += BtnStopMultiServer_Click;
+            btnBroadcast.Click += BtnBroadcast_Click;
+
+            serverGroup.Controls.AddRange(new Control[] { 
+                txtServerPort, btnStartMultiServer, btnStopMultiServer, btnBroadcast, lblClientCount, txtBroadcastMessage 
+            });
+            
+            logGroup.Controls.Add(txtMultiServerLog);
+
+            this.Controls.AddRange(new Control[] { titleLabel, serverGroup, logGroup });
+        }
+
+        private async void BtnStartMultiServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtPort = this.Controls.Find("txtMultiServerPort", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtMultiServerLog", true)[0] as TextBox;
+                
+                int port = int.Parse(txtPort.Text);
+                tcpListener = new TcpListener(IPAddress.Any, port);
+                tcpListener.Start();
+                isServerRunning = true;
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Multi-Client Server started on port {port}\r\n");
+
+                // Accept clients asynchronously
+                _ = Task.Run(async () => {
+                    while (isServerRunning)
+                    {
+                        try
+                        {
+                            var tcpClient = await tcpListener.AcceptTcpClientAsync();
+                            var clientHandler = new ClientHandler(tcpClient, clients.Count + 1);
+                            clients.Add(clientHandler);
+                            
+                            this.Invoke(new Action(() => {
+                                var lblCount = this.Controls.Find("lblClientCount", true)[0] as Label;
+                                lblCount.Text = $"Connected Clients: {clients.Count}";
+                                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Client {clientHandler.ClientId} connected from {tcpClient.Client.RemoteEndPoint}\r\n");
+                            }));
+
+                            // Handle client messages
+                            clientHandler.OnMessageReceived += (id, message) => {
+                                this.Invoke(new Action(() => {
+                                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Client {id}: {message}\r\n");
+                                    
+                                    // Broadcast to other clients
+                                    foreach (var client in clients.Where(c => c.ClientId != id))
+                                    {
+                                        client.SendMessage($"Client {id}: {message}");
+                                    }
+                                }));
+                            };
+
+                            clientHandler.OnDisconnected += (id) => {
+                                this.Invoke(new Action(() => {
+                                    clients.RemoveAll(c => c.ClientId == id);
+                                    var lblCount = this.Controls.Find("lblClientCount", true)[0] as Label;
+                                    lblCount.Text = $"Connected Clients: {clients.Count}";
+                                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Client {id} disconnected\r\n");
+                                }));
+                            };
+
+                            // Start handling this client
+                            _ = Task.Run(() => clientHandler.StartHandling());
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            break;
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting multi-client server: {ex.Message}");
+            }
+        }
+
+        private void BtnStopMultiServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                isServerRunning = false;
+                tcpListener?.Stop();
+                
+                foreach (var client in clients)
+                {
+                    client.Disconnect();
+                }
+                clients.Clear();
+
+                var txtLog = this.Controls.Find("txtMultiServerLog", true)[0] as TextBox;
+                var lblCount = this.Controls.Find("lblClientCount", true)[0] as Label;
+                
+                lblCount.Text = "Connected Clients: 0";
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Multi-Client Server stopped\r\n");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error stopping server: {ex.Message}");
+            }
+        }
+
+        private void BtnBroadcast_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtMessage = this.Controls.Find("txtBroadcastMessage", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtMultiServerLog", true)[0] as TextBox;
+                
+                string message = txtMessage.Text;
+                if (string.IsNullOrEmpty(message)) return;
+
+                foreach (var client in clients)
+                {
+                    client.SendMessage($"[SERVER BROADCAST]: {message}");
+                }
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Broadcasted: {message}\r\n");
+                txtMessage.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error broadcasting: {ex.Message}");
+            }
+        }
+    }
+
+    public class ClientHandler
+    {
+        public int ClientId { get; }
+        public event Action<int, string> OnMessageReceived;
+        public event Action<int> OnDisconnected;
+
+        private TcpClient tcpClient;
+        private NetworkStream stream;
+        private bool isConnected = true;
+
+        public ClientHandler(TcpClient client, int id)
+        {
+            tcpClient = client;
+            ClientId = id;
+            stream = client.GetStream();
+        }
+
+        public async Task StartHandling()
+        {
+            var buffer = new byte[4096];
+            
+            try
+            {
+                while (isConnected && tcpClient.Connected)
+                {
+                    int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead > 0)
+                    {
+                        string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        OnMessageReceived?.Invoke(ClientId, message);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Client disconnected
+            }
+            finally
+            {
+                Disconnect();
+            }
+        }
+
+        public async void SendMessage(string message)
+        {
+            try
+            {
+                if (isConnected && stream != null)
+                {
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+                    await stream.WriteAsync(data, 0, data.Length);
+                }
+            }
+            catch (Exception)
+            {
+                Disconnect();
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (isConnected)
+            {
+                isConnected = false;
+                stream?.Close();
+                tcpClient?.Close();
+                OnDisconnected?.Invoke(ClientId);
+            }
+        }
+    }
+}

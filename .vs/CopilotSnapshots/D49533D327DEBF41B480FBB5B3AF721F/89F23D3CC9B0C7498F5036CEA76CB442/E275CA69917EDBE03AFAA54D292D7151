@@ -1,0 +1,176 @@
+﻿using System;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Text;
+
+namespace BaiTapCuoiKy
+{
+    public static class SocketEnvironment
+    {
+        /// <summary>
+        /// Cài đặt và kiểm tra môi trường Socket
+        /// </summary>
+        public static string GetEnvironmentInfo()
+        {
+            StringBuilder info = new StringBuilder();
+            
+            info.AppendLine("=== SOCKET ENVIRONMENT INFORMATION ===");
+            info.AppendLine($"Machine Name: {Environment.MachineName}");
+            info.AppendLine($"OS Version: {Environment.OSVersion}");
+            info.AppendLine($".NET Framework Version: {Environment.Version}");
+            info.AppendLine();
+            
+            // Network interfaces
+            info.AppendLine("=== NETWORK INTERFACES ===");
+            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (NetworkInterface ni in interfaces)
+            {
+                if (ni.OperationalStatus == OperationalStatus.Up)
+                {
+                    info.AppendLine($"Interface: {ni.Name}");
+                    info.AppendLine($"  Type: {ni.NetworkInterfaceType}");
+                    info.AppendLine($"  Status: {ni.OperationalStatus}");
+                    
+                    IPInterfaceProperties properties = ni.GetIPProperties();
+                    foreach (UnicastIPAddressInformation ip in properties.UnicastAddresses)
+                    {
+                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            info.AppendLine($"  IPv4: {ip.Address}");
+                        }
+                    }
+                    info.AppendLine();
+                }
+            }
+            
+            // Socket capabilities
+            info.AppendLine("=== SOCKET CAPABILITIES ===");
+            info.AppendLine($"IPv4 Support: {Socket.OSSupportsIPv4}");
+            info.AppendLine($"IPv6 Support: {Socket.OSSupportsIPv6}");
+            info.AppendLine();
+            
+            return info.ToString();
+        }
+
+        /// <summary>
+        /// Giới thiệu về Socket Programming
+        /// </summary>
+        public static string GetSocketIntroduction()
+        {
+            StringBuilder intro = new StringBuilder();
+            
+            intro.AppendLine("=== GIỚI THIỆU SOCKET PROGRAMMING ===");
+            intro.AppendLine();
+            intro.AppendLine("Socket là một endpoint của communication link giữa hai chương trình");
+            intro.AppendLine("chạy trên network. Socket programming cho phép các ứng dụng giao tiếp");
+            intro.AppendLine("với nhau qua mạng.");
+            intro.AppendLine();
+            
+            intro.AppendLine("=== CÁC LOẠI SOCKET CHÍNH ===");
+            intro.AppendLine();
+            intro.AppendLine("1. TCP SOCKET (Transmission Control Protocol):");
+            intro.AppendLine("   - Connection-oriented protocol");
+            intro.AppendLine("   - Đảm bảo độ tin cậy và thứ tự của dữ liệu");
+            intro.AppendLine("   - Sử dụng cho các ứng dụng cần độ tin cậy cao");
+            intro.AppendLine("   - VD: Web browsing, Email, File transfer");
+            intro.AppendLine();
+            
+            intro.AppendLine("2. UDP SOCKET (User Datagram Protocol):");
+            intro.AppendLine("   - Connectionless protocol");
+            intro.AppendLine("   - Nhanh hơn TCP nhưng không đảm bảo độ tin cậy");
+            intro.AppendLine("   - Sử dụng cho các ứng dụng real-time");
+            intro.AppendLine("   - VD: Video streaming, Online gaming, DNS");
+            intro.AppendLine();
+            
+            intro.AppendLine("=== KIẾN TRÚC CLIENT-SERVER ===");
+            intro.AppendLine();
+            intro.AppendLine("SERVER:");
+            intro.AppendLine("- Lắng nghe kết nối từ client");
+            intro.AppendLine("- Xử lý nhiều client đồng thời");
+            intro.AppendLine("- Cung cấp dịch vụ cho client");
+            intro.AppendLine();
+            
+            intro.AppendLine("CLIENT:");
+            intro.AppendLine("- Khởi tạo kết nối đến server");
+            intro.AppendLine("- Gửi request và nhận response");
+            intro.AppendLine("- Sử dụng dịch vụ từ server");
+            intro.AppendLine();
+            
+            intro.AppendLine("=== CÁC BƯỚC LẬP TRÌNH SOCKET ===");
+            intro.AppendLine();
+            intro.AppendLine("TCP SERVER:");
+            intro.AppendLine("1. Tạo socket");
+            intro.AppendLine("2. Bind socket với địa chỉ và port");
+            intro.AppendLine("3. Listen cho kết nối");
+            intro.AppendLine("4. Accept kết nối từ client");
+            intro.AppendLine("5. Trao đổi dữ liệu");
+            intro.AppendLine("6. Đóng kết nối");
+            intro.AppendLine();
+            
+            intro.AppendLine("TCP CLIENT:");
+            intro.AppendLine("1. Tạo socket");
+            intro.AppendLine("2. Connect đến server");
+            intro.AppendLine("3. Trao đổi dữ liệu");
+            intro.AppendLine("4. Đóng kết nối");
+            intro.AppendLine();
+            
+            intro.AppendLine("UDP SERVER/CLIENT:");
+            intro.AppendLine("1. Tạo socket");
+            intro.AppendLine("2. Bind địa chỉ (cho server)");
+            intro.AppendLine("3. SendTo/ReceiveFrom data");
+            intro.AppendLine("4. Đóng socket");
+            intro.AppendLine();
+            
+            return intro.ToString();
+        }
+
+        /// <summary>
+        /// Kiểm tra port có sẵn sàng không
+        /// </summary>
+        public static bool IsPortAvailable(int port)
+        {
+            try
+            {
+                TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
+                tcpListener.Start();
+                tcpListener.Stop();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Lấy local IP address
+        /// </summary>
+        public static string GetLocalIPAddress()
+        {
+            string localIP = "127.0.0.1";
+            try
+            {
+                IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (IPAddress ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        localIP = ip.ToString();
+                        break;
+                    }
+                }
+            }
+            catch { }
+            return localIP;
+        }
+
+        /// <summary>
+        /// Kiểm tra kết nối mạng
+        /// </summary>
+        public static bool IsNetworkAvailable()
+        {
+            return NetworkInterface.GetIsNetworkAvailable();
+        }
+    }
+}

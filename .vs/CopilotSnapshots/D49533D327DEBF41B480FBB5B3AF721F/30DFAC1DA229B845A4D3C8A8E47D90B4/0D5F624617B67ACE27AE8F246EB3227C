@@ -1,0 +1,583 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    // Buổi 02: Cài đặt Môi trường & Giới thiệu Socket
+    public partial class EnvironmentControl : UserControl
+    {
+        public EnvironmentControl()
+        {
+            SetupEnvironmentUI();
+        }
+
+        private void SetupEnvironmentUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            // Title
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 02: CÀI ĐẶT MÔI TRƯỜNG & GIỚI THIỆU SOCKET",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // Environment Info Panel
+            Panel envPanel = new Panel
+            {
+                Location = new Point(20, 60),
+                Size = new Size(760, 200),
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.AliceBlue
+            };
+
+            TextBox envInfo = new TextBox
+            {
+                Location = new Point(10, 10),
+                Size = new Size(740, 180),
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                Font = new Font("Consolas", 10)
+            };
+
+            Button btnGetEnvInfo = new Button
+            {
+                Text = "Lấy Thông Tin Môi Trường",
+                Location = new Point(20, 280),
+                Size = new Size(200, 40),
+                BackColor = Color.LightBlue,
+                Font = new Font("Arial", 10, FontStyle.Bold)
+            };
+
+            btnGetEnvInfo.Click += (s, e) => {
+                envInfo.Text = GetEnvironmentInfo();
+            };
+
+            // Socket Introduction Panel
+            Panel socketPanel = new Panel
+            {
+                Location = new Point(20, 340),
+                Size = new Size(760, 240),
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.LightYellow
+            };
+
+            Label socketLabel = new Label
+            {
+                Text = "GIỚI THIỆU SOCKET PROGRAMMING",
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Location = new Point(10, 10),
+                Size = new Size(740, 20)
+            };
+
+            TextBox socketInfo = new TextBox
+            {
+                Location = new Point(10, 40),
+                Size = new Size(740, 190),
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                Font = new Font("Arial", 10),
+                Text = GetSocketIntroduction()
+            };
+
+            envPanel.Controls.Add(envInfo);
+            socketPanel.Controls.AddRange(new Control[] { socketLabel, socketInfo });
+            
+            this.Controls.AddRange(new Control[] { 
+                titleLabel, envPanel, btnGetEnvInfo, socketPanel 
+            });
+        }
+
+        private string GetEnvironmentInfo()
+        {
+            StringBuilder info = new StringBuilder();
+            
+            info.AppendLine("=== THÔNG TIN MÔI TRƯỜNG MẠNG ===");
+            info.AppendLine($"Máy tính: {Environment.MachineName}");
+            info.AppendLine($"Hệ điều hành: {Environment.OSVersion}");
+            info.AppendLine($".NET Framework: {Environment.Version}");
+            info.AppendLine();
+
+            info.AppendLine("=== THÔNG TIN NETWORK INTERFACES ===");
+            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus == OperationalStatus.Up)
+                {
+                    info.AppendLine($"Interface: {ni.Name}");
+                    info.AppendLine($"Type: {ni.NetworkInterfaceType}");
+                    info.AppendLine($"Speed: {ni.Speed / 1000000} Mbps");
+                    
+                    foreach (UnicastIPAddressInformation ip in ni.GetIPProperties().UnicastAddresses)
+                    {
+                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            info.AppendLine($"IPv4: {ip.Address}");
+                        }
+                    }
+                    info.AppendLine();
+                }
+            }
+
+            info.AppendLine("=== SOCKET SUPPORT ===");
+            info.AppendLine($"Socket.OSSupportsIPv4: {Socket.OSSupportsIPv4}");
+            info.AppendLine($"Socket.OSSupportsIPv6: {Socket.OSSupportsIPv6}");
+            
+            return info.ToString();
+        }
+
+        private string GetSocketIntroduction()
+        {
+            return @"SOCKET LÀ GÌ?
+Socket là một endpoint trong communication, cho phép 2 máy tính giao tiếp qua mạng.
+
+CÁC LOẠI SOCKET CHÍNH:
+1. TCP Socket (Stream Socket):
+   - Reliable, connection-oriented
+   - Đảm bảo thứ tự và toàn vẹn dữ liệu
+   - Sử dụng cho HTTP, FTP, Email
+
+2. UDP Socket (Datagram Socket):
+   - Unreliable, connectionless
+   - Nhanh hơn TCP
+   - Sử dụng cho Game, Video streaming
+
+ADDRESS FAMILIES:
+- AddressFamily.InterNetwork (IPv4)
+- AddressFamily.InterNetworkV6 (IPv6)
+
+SOCKET TYPES:
+- SocketType.Stream (TCP)
+- SocketType.Dgram (UDP)
+
+PROTOCOLS:
+- ProtocolType.Tcp
+- ProtocolType.Udp
+
+CÁC BƯỚC LẬP TRÌNH SOCKET:
+1. Tạo Socket
+2. Bind (Server) / Connect (Client)
+3. Listen/Accept (Server) / Send/Receive
+4. Close Socket";
+        }
+    }
+
+    // Buổi 03: Lập trình Socket - TCP Client/Server
+    public partial class TcpControl : UserControl
+    {
+        private TcpListener tcpListener;
+        private List<TcpClient> clients = new List<TcpClient>();
+        private bool isServerRunning = false;
+
+        public TcpControl()
+        {
+            SetupTcpUI();
+        }
+
+        private void SetupTcpUI()
+        {
+            this.Size = new Size(800, 600);
+            this.BackColor = Color.White;
+
+            // Title
+            Label titleLabel = new Label
+            {
+                Text = "BUỔI 03: LẬP TRÌNH SOCKET - TCP CLIENT/SERVER",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.DarkBlue,
+                Location = new Point(20, 20),
+                Size = new Size(760, 30)
+            };
+
+            // Server Panel
+            GroupBox serverGroup = new GroupBox
+            {
+                Text = "TCP SERVER",
+                Location = new Point(20, 60),
+                Size = new Size(370, 520),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtServerPort = new TextBox
+            {
+                Name = "txtServerPort",
+                Text = "8080",
+                Location = new Point(20, 40),
+                Size = new Size(100, 25)
+            };
+
+            Button btnStartServer = new Button
+            {
+                Text = "Start Server",
+                Location = new Point(140, 40),
+                Size = new Size(100, 30),
+                BackColor = Color.Green,
+                ForeColor = Color.White
+            };
+
+            Button btnStopServer = new Button
+            {
+                Text = "Stop Server",
+                Location = new Point(250, 40),
+                Size = new Size(100, 30),
+                BackColor = Color.Red,
+                ForeColor = Color.White
+            };
+
+            TextBox txtServerLog = new TextBox
+            {
+                Name = "txtServerLog",
+                Location = new Point(20, 80),
+                Size = new Size(330, 350),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            TextBox txtServerMessage = new TextBox
+            {
+                Name = "txtServerMessage",
+                Location = new Point(20, 450),
+                Size = new Size(230, 25)
+            };
+
+            Button btnSendToAll = new Button
+            {
+                Text = "Send to All",
+                Location = new Point(260, 450),
+                Size = new Size(90, 30),
+                BackColor = Color.Blue,
+                ForeColor = Color.White
+            };
+
+            // Client Panel
+            GroupBox clientGroup = new GroupBox
+            {
+                Text = "TCP CLIENT",
+                Location = new Point(410, 60),
+                Size = new Size(370, 520),
+                Font = new Font("Arial", 12, FontStyle.Bold)
+            };
+
+            TextBox txtClientIP = new TextBox
+            {
+                Name = "txtClientIP",
+                Text = "127.0.0.1",
+                Location = new Point(20, 40),
+                Size = new Size(100, 25)
+            };
+
+            TextBox txtClientPort = new TextBox
+            {
+                Name = "txtClientPort",
+                Text = "8080",
+                Location = new Point(130, 40),
+                Size = new Size(80, 25)
+            };
+
+            Button btnConnect = new Button
+            {
+                Text = "Connect",
+                Location = new Point(220, 40),
+                Size = new Size(80, 30),
+                BackColor = Color.Green,
+                ForeColor = Color.White
+            };
+
+            Button btnDisconnect = new Button
+            {
+                Text = "Disconnect",
+                Location = new Point(220, 80),
+                Size = new Size(80, 30),
+                BackColor = Color.Red,
+                ForeColor = Color.White
+            };
+
+            TextBox txtClientLog = new TextBox
+            {
+                Name = "txtClientLog",
+                Location = new Point(20, 120),
+                Size = new Size(330, 310),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9)
+            };
+
+            TextBox txtClientMessage = new TextBox
+            {
+                Name = "txtClientMessage",
+                Location = new Point(20, 450),
+                Size = new Size(230, 25)
+            };
+
+            Button btnSendMessage = new Button
+            {
+                Text = "Send",
+                Location = new Point(260, 450),
+                Size = new Size(90, 30),
+                BackColor = Color.Blue,
+                ForeColor = Color.White
+            };
+
+            // Event handlers
+            btnStartServer.Click += BtnStartServer_Click;
+            btnStopServer.Click += BtnStopServer_Click;
+            btnSendToAll.Click += BtnSendToAll_Click;
+            btnConnect.Click += BtnConnect_Click;
+            btnDisconnect.Click += BtnDisconnect_Click;
+            btnSendMessage.Click += BtnSendMessage_Click;
+
+            // Add controls
+            serverGroup.Controls.AddRange(new Control[] { 
+                txtServerPort, btnStartServer, btnStopServer, txtServerLog, txtServerMessage, btnSendToAll 
+            });
+            
+            clientGroup.Controls.AddRange(new Control[] { 
+                txtClientIP, txtClientPort, btnConnect, btnDisconnect, txtClientLog, txtClientMessage, btnSendMessage 
+            });
+
+            this.Controls.AddRange(new Control[] { titleLabel, serverGroup, clientGroup });
+        }
+
+        private async void BtnStartServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtPort = this.Controls.Find("txtServerPort", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtServerLog", true)[0] as TextBox;
+                
+                int port = int.Parse(txtPort.Text);
+                tcpListener = new TcpListener(IPAddress.Any, port);
+                tcpListener.Start();
+                isServerRunning = true;
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] TCP Server started on port {port}\r\n");
+
+                // Accept clients asynchronously
+                _ = Task.Run(async () => {
+                    while (isServerRunning)
+                    {
+                        try
+                        {
+                            var client = await tcpListener.AcceptTcpClientAsync();
+                            clients.Add(client);
+                            
+                            this.Invoke(new Action(() => {
+                                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Client connected: {client.Client.RemoteEndPoint}\r\n");
+                            }));
+
+                            // Handle client in separate task
+                            _ = Task.Run(() => HandleClient(client));
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            break;
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting server: {ex.Message}");
+            }
+        }
+
+        private void BtnStopServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                isServerRunning = false;
+                tcpListener?.Stop();
+                
+                foreach (var client in clients)
+                {
+                    client?.Close();
+                }
+                clients.Clear();
+
+                var txtLog = this.Controls.Find("txtServerLog", true)[0] as TextBox;
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] TCP Server stopped\r\n");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error stopping server: {ex.Message}");
+            }
+        }
+
+        private async void HandleClient(TcpClient client)
+        {
+            var buffer = new byte[4096];
+            var stream = client.GetStream();
+            
+            try
+            {
+                while (client.Connected)
+                {
+                    int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead > 0)
+                    {
+                        string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        
+                        this.Invoke(new Action(() => {
+                            var txtLog = this.Controls.Find("txtServerLog", true)[0] as TextBox;
+                            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Received: {message}\r\n");
+                        }));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Invoke(new Action(() => {
+                    var txtLog = this.Controls.Find("txtServerLog", true)[0] as TextBox;
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Client error: {ex.Message}\r\n");
+                }));
+            }
+            finally
+            {
+                clients.Remove(client);
+                client?.Close();
+            }
+        }
+
+        private async void BtnSendToAll_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtMessage = this.Controls.Find("txtServerMessage", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtServerLog", true)[0] as TextBox;
+                
+                string message = txtMessage.Text;
+                if (string.IsNullOrEmpty(message)) return;
+
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                
+                foreach (var client in clients.ToList())
+                {
+                    try
+                    {
+                        await client.GetStream().WriteAsync(data, 0, data.Length);
+                    }
+                    catch
+                    {
+                        clients.Remove(client);
+                    }
+                }
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Sent to all: {message}\r\n");
+                txtMessage.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error sending message: {ex.Message}");
+            }
+        }
+
+        private TcpClient currentClient;
+
+        private async void BtnConnect_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtIP = this.Controls.Find("txtClientIP", true)[0] as TextBox;
+                var txtPort = this.Controls.Find("txtClientPort", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtClientLog", true)[0] as TextBox;
+
+                currentClient = new TcpClient();
+                await currentClient.ConnectAsync(txtIP.Text, int.Parse(txtPort.Text));
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Connected to {txtIP.Text}:{txtPort.Text}\r\n");
+
+                // Start receiving messages
+                _ = Task.Run(async () => {
+                    var buffer = new byte[4096];
+                    var stream = currentClient.GetStream();
+                    
+                    try
+                    {
+                        while (currentClient.Connected)
+                        {
+                            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                            if (bytesRead > 0)
+                            {
+                                string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                                
+                                this.Invoke(new Action(() => {
+                                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Received: {message}\r\n");
+                                }));
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Invoke(new Action(() => {
+                            txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Connection error: {ex.Message}\r\n");
+                        }));
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error connecting: {ex.Message}");
+            }
+        }
+
+        private void BtnDisconnect_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                currentClient?.Close();
+                var txtLog = this.Controls.Find("txtClientLog", true)[0] as TextBox;
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Disconnected\r\n");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error disconnecting: {ex.Message}");
+            }
+        }
+
+        private async void BtnSendMessage_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var txtMessage = this.Controls.Find("txtClientMessage", true)[0] as TextBox;
+                var txtLog = this.Controls.Find("txtClientLog", true)[0] as TextBox;
+
+                if (currentClient == null || !currentClient.Connected)
+                {
+                    txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Not connected to server\r\n");
+                    return;
+                }
+
+                string message = txtMessage.Text;
+                if (string.IsNullOrEmpty(message)) return;
+
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                await currentClient.GetStream().WriteAsync(data, 0, data.Length);
+
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Sent: {message}\r\n");
+                txtMessage.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error sending message: {ex.Message}");
+            }
+        }
+    }
+}

@@ -1,0 +1,1120 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Drawing.Drawing2D;
+
+namespace BaiTapCuoiKy
+{
+    public partial class Form1 : Form
+    {
+        private bool isLoggedIn = false;
+        private string currentUser = "";
+        private Panel gameMainPanel;
+        private Panel gameWaitingPanel;
+        private Panel gamePlayingPanel;
+        private bool isInGame = false;
+        private bool isGameStarted = false;
+        private List<string> players = new List<string>();
+        private Random random = new Random();
+        private Timer gameTimer;
+        private int timeLeft = 60;
+        private int currentRound = 1;
+        private int totalRounds = 3;
+        private int playerScore = 0;
+        private string currentWord = "";
+        private bool isDrawing = false;
+        private List<string> wordBank = new List<string> 
+        { 
+            "MÈO", "CHÓ", "CÂY", "HOA", "MẶT TRỜI", "NGÔI SAO", "XE HƠI", 
+            "NHÀ", "SÁCH", "TÁO", "CHUỐI", "CÁ", "CHIM", "TRĂNG" 
+        };
+
+        // Drawing variables
+        private Bitmap drawingBitmap;
+        private Graphics drawingGraphics;
+        private bool drawing = false;
+        private Point lastPoint;
+        private Pen currentPen;
+        private Color currentColor = Color.Black;
+        private int brushSize = 3;
+
+        // Game history
+        private int lastGameScore = 0;
+        private int totalGamesPlayed = 0;
+        private int highestScore = 0;
+        private DateTime lastPlayedDate = DateTime.Now;
+
+        public Form1()
+        {
+            InitializeComponent();
+            LoadGameHistory();
+            ShowLoginForm();
+        }
+
+        private void LoadGameHistory()
+        {
+            // Load game history from settings or file (mock data for demo)
+            lastGameScore = Properties.Settings.Default.LastGameScore;
+            totalGamesPlayed = Properties.Settings.Default.TotalGamesPlayed;
+            highestScore = Properties.Settings.Default.HighestScore;
+            if (Properties.Settings.Default.LastPlayedDate != DateTime.MinValue)
+                lastPlayedDate = Properties.Settings.Default.LastPlayedDate;
+        }
+
+        private void SaveGameHistory()
+        {
+            Properties.Settings.Default.LastGameScore = lastGameScore;
+            Properties.Settings.Default.TotalGamesPlayed = totalGamesPlayed;
+            Properties.Settings.Default.HighestScore = highestScore;
+            Properties.Settings.Default.LastPlayedDate = lastPlayedDate;
+            Properties.Settings.Default.Save();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            if (isLoggedIn)
+            {
+                InitializeGameInterface();
+            }
+        }
+
+        private void ShowLoginForm()
+        {
+            // Hide main interface and show login
+            this.Controls.Clear();
+            LoginForm loginForm = new LoginForm();
+            loginForm.LoginSuccessful += (username) => {
+                isLoggedIn = true;
+                currentUser = username;
+                InitializeGameInterface();
+            };
+            
+            loginForm.TopLevel = false;
+            loginForm.FormBorderStyle = FormBorderStyle.None;
+            loginForm.Dock = DockStyle.Fill;
+            this.Controls.Add(loginForm);
+            loginForm.Show();
+        }
+
+        private void InitializeGameInterface()
+        {
+            this.Controls.Clear();
+            this.Size = new Size(1400, 800);
+            this.BackColor = Color.FromArgb(45, 125, 245); // Blue gradient background
+            this.Text = "DrawMaster - Multiplayer Drawing Game";
+            
+            CreateGameInterface();
+        }
+
+        private void CreateGameInterface()
+        {
+            // Main game panel
+            gameMainPanel = new Panel
+            {
+                Size = new Size(1200, 700),
+                Location = new Point((this.Width - 1200) / 2, (this.Height - 700) / 2),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+            
+            // Add rounded corners effect
+            gameMainPanel.Paint += (s, e) => {
+                var rect = new Rectangle(0, 0, gameMainPanel.Width, gameMainPanel.Height);
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, rect);
+                }
+                // Draw rounded border
+                using (var pen = new Pen(Color.FromArgb(200, 200, 200), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 1, 1, gameMainPanel.Width - 2, gameMainPanel.Height - 2);
+                }
+            };
+
+            this.Controls.Add(gameMainPanel);
+            
+            // Show initial screen with history and rules first
+            CreateInitialScreen();
+        }
+
+        private void CreateInitialScreen()
+        {
+            gameMainPanel.Controls.Clear();
+            
+            // Header with game title
+            Panel headerPanel = new Panel
+            {
+                Size = new Size(1200, 80),
+                Location = new Point(0, 0),
+                BackColor = Color.FromArgb(45, 125, 245)
+            };
+
+            Label titleLabel = new Label
+            {
+                Text = "DrawMaster",
+                Font = new Font("Segoe UI", 28, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 20),
+                Size = new Size(300, 50),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            // User info in header
+            Panel userPanel = new Panel
+            {
+                Size = new Size(200, 50),
+                Location = new Point(950, 15),
+                BackColor = Color.FromArgb(255, 255, 255, 50)
+            };
+
+            PictureBox userAvatar = new PictureBox
+            {
+                Size = new Size(40, 40),
+                Location = new Point(5, 5),
+                BackColor = Color.FromArgb(255, 193, 7),
+                SizeMode = PictureBoxSizeMode.CenterImage
+            };
+
+            userAvatar.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var brush = new SolidBrush(Color.FromArgb(255, 193, 7)))
+                {
+                    e.Graphics.FillEllipse(brush, 0, 0, 40, 40);
+                }
+                using (var pen = new Pen(Color.White, 2))
+                {
+                    // Eyes
+                    e.Graphics.DrawEllipse(pen, 12, 12, 4, 4);
+                    e.Graphics.DrawEllipse(pen, 24, 12, 4, 4);
+                    // Smile
+                    e.Graphics.DrawArc(pen, 12, 18, 16, 10, 0, 180);
+                }
+            };
+
+            Label userNameLabel = new Label
+            {
+                Text = currentUser,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 5),
+                Size = new Size(145, 20)
+            };
+
+            Label userScoreLabel = new Label
+            {
+                Text = $"{playerScore} điểm",
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.White,
+                Location = new Point(50, 25),
+                Size = new Size(145, 20)
+            };
+
+            userPanel.Controls.AddRange(new Control[] { userAvatar, userNameLabel, userScoreLabel });
+            headerPanel.Controls.AddRange(new Control[] { titleLabel, userPanel });
+
+            // Main content area
+            Panel contentPanel = new Panel
+            {
+                Size = new Size(1200, 620),
+                Location = new Point(0, 80),
+                BackColor = Color.White
+            };
+
+            // Left panel - Game history
+            Panel historyPanel = new Panel
+            {
+                Size = new Size(350, 620),
+                Location = new Point(0, 0),
+                BackColor = Color.FromArgb(248, 250, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            CreateGameHistoryPanel(historyPanel);
+
+            // Right panel - Game rules with image
+            Panel rulesPanel = new Panel
+            {
+                Size = new Size(850, 620),
+                Location = new Point(350, 0),
+                BackColor = Color.White
+            };
+
+            CreateGameRulesPanel(rulesPanel);
+
+            contentPanel.Controls.AddRange(new Control[] { historyPanel, rulesPanel });
+            gameMainPanel.Controls.AddRange(new Control[] { headerPanel, contentPanel });
+        }
+
+        private void CreateGameHistoryPanel(Panel parentPanel)
+        {
+            Label historyTitle = new Label
+            {
+                Text = "LỊCH SỬ GAME",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(20, 20),
+                Size = new Size(310, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Last game score panel
+            Panel lastGamePanel = new Panel
+            {
+                Size = new Size(310, 120),
+                Location = new Point(20, 60),
+                BackColor = Color.FromArgb(255, 248, 220),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label lastGameTitle = new Label
+            {
+                Text = "🎮 TRẬN CUỐI",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(255, 140, 0),
+                Location = new Point(10, 10),
+                Size = new Size(290, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label lastScoreLabel = new Label
+            {
+                Text = $"Điểm số: {lastGameScore}",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(10, 40),
+                Size = new Size(290, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label lastDateLabel = new Label
+            {
+                Text = $"Ngày chơi: {lastPlayedDate:dd/MM/yyyy}",
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.Gray,
+                Location = new Point(10, 75),
+                Size = new Size(290, 20),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label lastTimeLabel = new Label
+            {
+                Text = $"Lúc: {lastPlayedDate:HH:mm}",
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.Gray,
+                Location = new Point(10, 95),
+                Size = new Size(290, 20),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            lastGamePanel.Controls.AddRange(new Control[] { lastGameTitle, lastScoreLabel, lastDateLabel, lastTimeLabel });
+
+            // Statistics panel
+            Panel statsPanel = new Panel
+            {
+                Size = new Size(310, 180),
+                Location = new Point(20, 190),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(10, 10),
+                Size = new Size(290, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label totalGamesLabel = new Label
+            {
+                Text = $"Tổng số trận: {totalGamesPlayed}",
+                Font = new Font("Segoe UI", 12),
+                ForeColor = Color.Black,
+                Location = new Point(20, 45),
+                Size = new Size(270, 25)
+            };
+
+            Label highScoreLabel = new Label
+            {
+                Text = $"Điểm cao nhất: {highestScore}",
+                Font = new Font("Segoe UI", 12),
+                ForeColor = Color.Black,
+                Location = new Point(20, 75),
+                Size = new Size(270, 25)
+            };
+
+            Label avgScoreLabel = new Label
+            {
+                Text = $"Điểm trung bình: {(totalGamesPlayed > 0 ? Math.Round((double)highestScore / totalGamesPlayed, 1) : 0)}",
+                Font = new Font("Segoe UI", 12),
+                ForeColor = Color.Black,
+                Location = new Point(20, 105),
+                Size = new Size(270, 25)
+            };
+
+            Label rankLabel = new Label
+            {
+                Text = GetPlayerRank(),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(255, 140, 0),
+                Location = new Point(20, 135),
+                Size = new Size(270, 25)
+            };
+
+            statsPanel.Controls.AddRange(new Control[] { statsTitle, totalGamesLabel, highScoreLabel, avgScoreLabel, rankLabel });
+
+            // Achievement panel
+            Panel achievementPanel = new Panel
+            {
+                Size = new Size(310, 100),
+                Location = new Point(20, 380),
+                BackColor = Color.FromArgb(255, 248, 220),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label achievementTitle = new Label
+            {
+                Text = "🏆 THÀNH TÍCH",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(255, 140, 0),
+                Location = new Point(10, 10),
+                Size = new Size(290, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label achievementText = new Label
+            {
+                Text = GetLatestAchievement(),
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.Black,
+                Location = new Point(15, 40),
+                Size = new Size(280, 50),
+                TextAlign = ContentAlignment.TopCenter
+            };
+
+            achievementPanel.Controls.AddRange(new Control[] { achievementTitle, achievementText });
+
+            // Start game button
+            Button startGameBtn = new Button
+            {
+                Text = "🎮 BẮT ĐẦU CHƠI",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                BackColor = Color.FromArgb(34, 139, 34),
+                ForeColor = Color.White,
+                Size = new Size(310, 50),
+                Location = new Point(20, 500),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            startGameBtn.FlatAppearance.BorderSize = 0;
+            startGameBtn.Click += (s, e) => CreateWaitingRoom();
+
+            parentPanel.Controls.AddRange(new Control[] { historyTitle, lastGamePanel, statsPanel, achievementPanel, startGameBtn });
+        }
+
+        private void CreateGameRulesPanel(Panel parentPanel)
+        {
+            // Rules header with curved banner
+            Panel rulesHeaderPanel = new Panel
+            {
+                Size = new Size(600, 80),
+                Location = new Point(125, 50),
+                BackColor = Color.Transparent
+            };
+
+            rulesHeaderPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Draw curved banner background
+                using (var brush = new SolidBrush(Color.FromArgb(45, 125, 245)))
+                {
+                    GraphicsPath path = new GraphicsPath();
+                    path.AddArc(0, 0, 40, 40, 180, 90);
+                    path.AddLine(20, 0, 580, 0);
+                    path.AddArc(560, 0, 40, 40, 270, 90);
+                    path.AddLine(600, 20, 600, 60);
+                    path.AddArc(560, 40, 40, 40, 0, 90);
+                    path.AddLine(580, 80, 20, 80);
+                    path.AddArc(0, 40, 40, 40, 90, 90);
+                    path.CloseFigure();
+                    
+                    e.Graphics.FillPath(brush, path);
+                }
+            };
+
+            Label rulesTitle = new Label
+            {
+                Text = "LUẬT CHƠI",
+                Font = new Font("Segoe UI", 24, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(220, 25),
+                Size = new Size(160, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            rulesHeaderPanel.Controls.Add(rulesTitle);
+
+            // Game info panel
+            Panel gameInfoPanel = new Panel
+            {
+                Size = new Size(700, 120),
+                Location = new Point(75, 150),
+                BackColor = Color.FromArgb(248, 250, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label topicLabel = new Label
+            {
+                Text = "Chủ đề:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.Gray,
+                Location = new Point(50, 20),
+                Size = new Size(80, 25)
+            };
+
+            Label topicValue = new Label
+            {
+                Text = "Tổng quát",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(130, 20),
+                Size = new Size(120, 25)
+            };
+
+            Label targetLabel = new Label
+            {
+                Text = "Mục tiêu:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.Gray,
+                Location = new Point(280, 20),
+                Size = new Size(80, 25)
+            };
+
+            Label targetValue = new Label
+            {
+                Text = "70 các điểm",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(370, 20),
+                Size = new Size(120, 25)
+            };
+
+            Label languageLabel = new Label
+            {
+                Text = "Ngôn ngữ:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.Gray,
+                Location = new Point(520, 20),
+                Size = new Size(90, 25)
+            };
+
+            Label languageValue = new Label
+            {
+                Text = "Tiếng Việt",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(610, 20),
+                Size = new Size(80, 25)
+            };
+
+            gameInfoPanel.Controls.AddRange(new Control[] { 
+                topicLabel, topicValue, targetLabel, targetValue, languageLabel, languageValue 
+            });
+
+            // Rules illustration with circular design
+            Panel illustrationPanel = new Panel
+            {
+                Size = new Size(200, 200),
+                Location = new Point(325, 290),
+                BackColor = Color.Transparent
+            };
+
+            illustrationPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Draw main circle
+                using (var brush = new SolidBrush(Color.FromArgb(255, 193, 7)))
+                {
+                    e.Graphics.FillEllipse(brush, 25, 25, 150, 150);
+                }
+                
+                // Draw border rings
+                using (var pen1 = new Pen(Color.FromArgb(45, 125, 245), 8))
+                using (var pen2 = new Pen(Color.FromArgb(255, 140, 0), 4))
+                {
+                    e.Graphics.DrawEllipse(pen1, 15, 15, 170, 170);
+                    e.Graphics.DrawEllipse(pen2, 35, 35, 130, 130);
+                }
+                
+                // Draw symbols
+                using (var brush = new SolidBrush(Color.White))
+                using (var font = new Font("Segoe UI", 24, FontStyle.Bold))
+                {
+                    e.Graphics.DrawString("&", font, brush, 65, 50);
+                    e.Graphics.DrawString("A", font, brush, 45, 90);
+                    e.Graphics.DrawString("7", font, brush, 120, 90);
+                    e.Graphics.DrawString("#", font, brush, 90, 130);
+                }
+                
+                // Draw prohibition line
+                using (var pen = new Pen(Color.Red, 6))
+                {
+                    e.Graphics.DrawLine(pen, 60, 60, 140, 140);
+                }
+            };
+
+            Label rulesText = new Label
+            {
+                Text = "Không vẽ chữ cái, số, và ký hiệu, ok?",
+                Font = new Font("Segoe UI", 16),
+                ForeColor = Color.Gray,
+                Location = new Point(225, 510),
+                Size = new Size(400, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Confirm button
+            Button confirmButton = new Button
+            {
+                Text = "✓ XÁC NHẬN",
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
+                BackColor = Color.FromArgb(255, 165, 0),
+                ForeColor = Color.White,
+                Size = new Size(250, 55),
+                Location = new Point(300, 560),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            confirmButton.FlatAppearance.BorderSize = 0;
+            confirmButton.Click += (s, e) => CreateWaitingRoom();
+
+            parentPanel.Controls.AddRange(new Control[] { 
+                rulesHeaderPanel, gameInfoPanel, illustrationPanel, rulesText, confirmButton 
+            });
+        }
+
+        private string GetPlayerRank()
+        {
+            if (highestScore >= 200) return "🏆 Cao thủ";
+            if (highestScore >= 150) return "🥈 Chuyên gia";
+            if (highestScore >= 100) return "🥉 Thành thạo";
+            if (highestScore >= 50) return "📈 Tiến bộ";
+            return "🌟 Mới bắt đầu";
+        }
+
+        private string GetLatestAchievement()
+        {
+            if (totalGamesPlayed >= 10) return "🎯 Đã chơi 10 trận!\nBạn là người chơi tích cực!";
+            if (highestScore >= 100) return "💯 Đạt 100 điểm!\nKỹ năng vẽ tuyệt vời!";
+            if (totalGamesPlayed >= 5) return "🎮 Đã chơi 5 trận!\nTiếp tục phát huy!";
+            if (totalGamesPlayed >= 1) return "🌟 Trận đầu tiên!\nChào mừng đến với DrawMaster!";
+            return "🎨 Sẵn sàng bắt đầu\ncuộc phiêu lưu vẽ tranh!";
+        }
+
+        private void CreateWaitingRoom()
+        {
+            gameMainPanel.Controls.Clear();
+            
+            // Header with game title  
+            Panel headerPanel = new Panel
+            {
+                Size = new Size(1200, 80),
+                Location = new Point(0, 0),
+                BackColor = Color.FromArgb(45, 125, 245)
+            };
+
+            Label titleLabel = new Label
+            {
+                Text = "DrawMaster",
+                Font = new Font("Segoe UI", 28, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 20),
+                Size = new Size(300, 50),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            // User info in header
+            Panel userPanel = new Panel
+            {
+                Size = new Size(200, 50),
+                Location = new Point(950, 15),
+                BackColor = Color.FromArgb(255, 255, 255, 50)
+            };
+
+            PictureBox userAvatar = new PictureBox
+            {
+                Size = new Size(40, 40),
+                Location = new Point(5, 5),
+                BackColor = Color.FromArgb(255, 193, 7),
+                SizeMode = PictureBoxSizeMode.CenterImage
+            };
+
+            userAvatar.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var brush = new SolidBrush(Color.FromArgb(255, 193, 7)))
+                {
+                    e.Graphics.FillEllipse(brush, 0, 0, 40, 40);
+                }
+                using (var pen = new Pen(Color.White, 2))
+                {
+                    // Eyes
+                    e.Graphics.DrawEllipse(pen, 12, 12, 4, 4);
+                    e.Graphics.DrawEllipse(pen, 24, 12, 4, 4);
+                    // Smile
+                    e.Graphics.DrawArc(pen, 12, 18, 16, 10, 0, 180);
+                }
+            };
+
+            Label userNameLabel = new Label
+            {
+                Text = currentUser,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 5),
+                Size = new Size(145, 20)
+            };
+
+            Label userScoreLabel = new Label
+            {
+                Text = $"{playerScore} điểm",
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.White,
+                Location = new Point(50, 25),
+                Size = new Size(145, 20)
+            };
+
+            userPanel.Controls.AddRange(new Control[] { userAvatar, userNameLabel, userScoreLabel });
+            headerPanel.Controls.AddRange(new Control[] { titleLabel, userPanel });
+
+            // Main content area - like image 1 layout
+            Panel contentPanel = new Panel
+            {
+                Size = new Size(1200, 620),
+                Location = new Point(0, 80),
+                BackColor = Color.White
+            };
+
+            // Left panel - Players list
+            Panel playersPanel = new Panel
+            {
+                Size = new Size(350, 620),
+                Location = new Point(0, 0),
+                BackColor = Color.FromArgb(248, 250, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label playersTitle = new Label
+            {
+                Text = "NGƯỜI CHƠI",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(20, 20),
+                Size = new Size(310, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Players list
+            Panel playersListPanel = new Panel
+            {
+                Size = new Size(310, 560),
+                Location = new Point(20, 50),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                AutoScroll = true
+            };
+
+            // Add current user and sample players
+            players.Clear();
+            players.Add(currentUser);
+            AddPlayerToList(playersListPanel, currentUser, 0, true);
+
+            // Add sample players
+            for (int i = 1; i <= 3; i++)
+            {
+                string playerName = "Trống";
+                players.Add(playerName);
+                AddPlayerToList(playersListPanel, playerName, i, false);
+            }
+
+            playersPanel.Controls.AddRange(new Control[] { playersTitle, playersListPanel });
+
+            // Right panel - Simple waiting area (like image 1)
+            Panel waitingPanel = new Panel
+            {
+                Size = new Size(850, 620),
+                Location = new Point(350, 0),
+                BackColor = Color.White
+            };
+
+            CreateSimpleWaitingArea(waitingPanel);
+
+            contentPanel.Controls.AddRange(new Control[] { playersPanel, waitingPanel });
+            gameMainPanel.Controls.AddRange(new Control[] { headerPanel, contentPanel });
+        }
+
+        private void CreateSimpleWaitingArea(Panel parentPanel)
+        {
+            parentPanel.Controls.Clear();
+
+            // Simple "ĐANG CHỜ" title banner
+            Panel titleBanner = new Panel
+            {
+                Size = new Size(400, 60),
+                Location = new Point(225, 80),
+                BackColor = Color.FromArgb(45, 125, 245)
+            };
+
+            Label waitingTitle = new Label
+            {
+                Text = "ĐANG CHỜ",
+                Font = new Font("Segoe UI", 24, FontStyle.Bold),
+                ForeColor = Color.FromArgb(255, 193, 7),
+                Location = new Point(0, 0),
+                Size = new Size(400, 60),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            titleBanner.Controls.Add(waitingTitle);
+
+            // Simple character illustration
+            Panel characterPanel = new Panel
+            {
+                Size = new Size(150, 150),
+                Location = new Point(350, 170),
+                BackColor = Color.Transparent
+            };
+
+            characterPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Draw simple character like image 1
+                using (var brush = new SolidBrush(Color.FromArgb(45, 125, 245)))
+                {
+                    // Body
+                    e.Graphics.FillRectangle(brush, 50, 75, 50, 50);
+                    // Head  
+                    e.Graphics.FillEllipse(brush, 60, 25, 30, 30);
+                }
+                
+                // Timer icon
+                using (var brush = new SolidBrush(Color.FromArgb(255, 193, 7)))
+                {
+                    e.Graphics.FillEllipse(brush, 25, 50, 25, 25);
+                }
+                
+                // Simple face
+                using (var pen = new Pen(Color.White, 2))
+                {
+                    // Eyes
+                    e.Graphics.DrawEllipse(pen, 68, 35, 3, 3);
+                    e.Graphics.DrawEllipse(pen, 78, 35, 3, 3);
+                    // Smile
+                    e.Graphics.DrawArc(pen, 68, 40, 14, 8, 0, 180);
+                }
+            };
+
+            // Simple waiting message
+            Label waitingMessage = new Label
+            {
+                Text = "Đang chờ người chơi",
+                Font = new Font("Segoe UI", 16),
+                ForeColor = Color.Gray,
+                Location = new Point(300, 340),
+                Size = new Size(250, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Simple rules panel (minimal like image 1)
+            Panel simpleRulesPanel = new Panel
+            {
+                Size = new Size(600, 120),
+                Location = new Point(125, 400),
+                BackColor = Color.FromArgb(248, 250, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label rulesLabel = new Label
+            {
+                Text = "LUẬT",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(280, 15),
+                Size = new Size(40, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label rulesInfo = new Label
+            {
+                Text = "Chủ đề: Tổng quát            Mục tiêu: 70 các điểm            Ngôn ngữ: Tiếng Việt\n\nKhông vẽ chữ cái, số, và ký hiệu, ok?",
+                Font = new Font("Segoe UI", 11),
+                ForeColor = Color.Black,
+                Location = new Point(30, 45),
+                Size = new Size(540, 60),
+                TextAlign = ContentAlignment.TopCenter
+            };
+
+            simpleRulesPanel.Controls.AddRange(new Control[] { rulesLabel, rulesInfo });
+
+            // Chat tabs area (like image 1)
+            Panel chatTabsPanel = new Panel
+            {
+                Size = new Size(600, 60),
+                Location = new Point(125, 540),
+                BackColor = Color.White
+            };
+
+            // Tab buttons
+            Button answerTab = new Button
+            {
+                Text = "TRẢ LỜI",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BackColor = Color.FromArgb(45, 125, 245),
+                ForeColor = Color.White,
+                Size = new Size(120, 35),
+                Location = new Point(180, 10),
+                FlatStyle = FlatStyle.Flat
+            };
+
+            Button chatTab = new Button
+            {
+                Text = "TRÒ CHUYỆN",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BackColor = Color.FromArgb(45, 125, 245),
+                ForeColor = Color.White,
+                Size = new Size(120, 35),
+                Location = new Point(300, 10),
+                FlatStyle = FlatStyle.Flat
+            };
+
+            answerTab.FlatAppearance.BorderSize = 0;
+            chatTab.FlatAppearance.BorderSize = 0;
+
+            // Input areas
+            TextBox drawingInput = new TextBox
+            {
+                Text = "Đang chờ...",
+                Font = new Font("Segoe UI", 11),
+                Size = new Size(200, 25),
+                Location = new Point(50, 580),
+                Enabled = false,
+                BackColor = Color.FromArgb(240, 240, 240),
+                ForeColor = Color.Gray
+            };
+
+            TextBox chatInput = new TextBox
+            {
+                Text = "Chat ở đây...",
+                Font = new Font("Segoe UI", 11),
+                Size = new Size(200, 25),
+                Location = new Point(350, 580),
+                ForeColor = Color.Gray
+            };
+
+            // Add placeholder text behavior for chat input
+            chatInput.GotFocus += (s, e) => {
+                if (chatInput.Text == "Chat ở đây...")
+                {
+                    chatInput.Text = "";
+                    chatInput.ForeColor = Color.Black;
+                }
+            };
+
+            chatInput.LostFocus += (s, e) => {
+                if (string.IsNullOrWhiteSpace(chatInput.Text))
+                {
+                    chatInput.Text = "Chat ở đây...";
+                    chatInput.ForeColor = Color.Gray;
+                }
+            };
+
+            // Start game button (replace confirm button)
+            Button startGameBtn = new Button
+            {
+                Text = "BẮT ĐẦU GAME",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                BackColor = Color.FromArgb(34, 139, 34),
+                ForeColor = Color.White,
+                Size = new Size(200, 50),
+                Location = new Point(325, 450),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            startGameBtn.FlatAppearance.BorderSize = 0;
+            startGameBtn.Click += StartGame_Click;
+
+            chatTabsPanel.Controls.AddRange(new Control[] { answerTab, chatTab });
+
+            parentPanel.Controls.AddRange(new Control[] { 
+                titleBanner, characterPanel, waitingMessage, simpleRulesPanel, 
+                chatTabsPanel, drawingInput, chatInput, startGameBtn 
+            });
+        }
+
+        private void StartGame_Click(object sender, EventArgs e)
+        {
+            isGameStarted = true;
+            CreateGamePlayingInterface();
+        }
+
+        private void StartGameTimer()
+        {
+            timeLeft = 60;
+            gameTimer = new Timer();
+            gameTimer.Interval = 1000;
+            gameTimer.Tick += (s, e) => {
+                timeLeft--;
+                
+                if (timeLeft <= 0)
+                {
+                    gameTimer.Stop();
+                    NextRound();
+                }
+            };
+            gameTimer.Start();
+        }
+
+        private void SelectRandomWord()
+        {
+            currentWord = wordBank[random.Next(wordBank.Count)];
+            isDrawing = true;
+        }
+
+        private void NextRound()
+        {
+            gameTimer?.Stop();
+            currentRound++;
+            
+            if (currentRound > totalRounds)
+            {
+                EndGame();
+            }
+            else
+            {
+                // Reset for next round
+                timeLeft = 60;
+                SelectRandomWord();
+                StartGameTimer();
+            }
+        }
+
+        private void EndGame()
+        {
+            gameTimer?.Stop();
+            
+            // Update game history
+            lastGameScore = playerScore;
+            totalGamesPlayed++;
+            if (playerScore > highestScore)
+                highestScore = playerScore;
+            lastPlayedDate = DateTime.Now;
+            SaveGameHistory();
+            
+            MessageBox.Show($"Trò chơi kết thúc!\nĐiểm số của bạn: {playerScore}\nCảm ơn bạn đã chơi DrawMaster!", 
+                "Kết thúc game", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            
+            // Reset game and return to initial screen
+            currentRound = 1;
+            playerScore = 0;
+            isGameStarted = false;
+            CreateInitialScreen();
+        }
+
+        private void AddPlayerToList(Panel parentPanel, string playerName, int index, bool isCurrentUser)
+        {
+            Panel playerPanel = new Panel
+            {
+                Size = new Size(290, 60),
+                Location = new Point(10, 10 + (index * 70)),
+                BackColor = isCurrentUser ? Color.FromArgb(255, 248, 220) : Color.FromArgb(245, 245, 245),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            PictureBox avatar = new PictureBox
+            {
+                Size = new Size(40, 40),
+                Location = new Point(10, 10),
+                BackColor = isCurrentUser ? Color.FromArgb(255, 193, 7) : Color.FromArgb(150, 150, 150),
+                SizeMode = PictureBoxSizeMode.CenterImage
+            };
+
+            avatar.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                Color avatarColor = isCurrentUser ? Color.FromArgb(255, 193, 7) : Color.FromArgb(150, 150, 150);
+                using (var brush = new SolidBrush(avatarColor))
+                {
+                    e.Graphics.FillEllipse(brush, 0, 0, 40, 40);
+                }
+                using (var pen = new Pen(Color.White, 2))
+                {
+                    // Eyes
+                    e.Graphics.DrawEllipse(pen, 12, 12, 4, 4);
+                    e.Graphics.DrawEllipse(pen, 24, 12, 4, 4);
+                    // Smile
+                    e.Graphics.DrawArc(pen, 12, 18, 16, 10, 0, 180);
+                }
+            };
+
+            Label nameLabel = new Label
+            {
+                Text = playerName,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = playerName == "Trống" ? Color.Gray : Color.Black,
+                Location = new Point(60, 10),
+                Size = new Size(220, 25)
+            };
+
+            Label scoreLabel = new Label
+            {
+                Text = playerName == "Trống" ? "" : "0 điểm",
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.Gray,
+                Location = new Point(60, 40),
+                Size = new Size(100, 20)
+            };
+
+            // Trophy icon for top players
+            if (score > 15)
+            {
+                Label trophyLabel = new Label
+                {
+                    Text = "🏆",
+                    Font = new Font("Segoe UI", 16),
+                    Location = new Point(280, 20),
+                    Size = new Size(30, 30)
+                };
+                playerPanel.Controls.Add(trophyLabel);
+            }
+
+            playerPanel.Controls.AddRange(new Control[] { avatar, nameLabel, scoreLabel });
+            parentPanel.Controls.Add(playerPanel);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            
+            // Draw gradient background
+            using (var brush = new LinearGradientBrush(
+                this.ClientRectangle,
+                Color.FromArgb(45, 125, 245),
+                Color.FromArgb(30, 90, 200),
+                LinearGradientMode.Vertical))
+            {
+                e.Graphics.FillRectangle(brush, this.ClientRectangle);
+            }
+        }
+    }
+}

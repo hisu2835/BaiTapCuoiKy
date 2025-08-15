@@ -1,0 +1,124 @@
+﻿# Socket Programming - Bài Tập Cuối Kỳ
+
+## Mô tả dự án
+
+Dự án này đã được nâng cấp để bao gồm đầy đủ các tính năng lập trình Socket bao gồm:
+
+### 1. Cài đặt Môi trường & Giới thiệu Socket
+
+Lớp `SocketEnvironment` cung cấp:
+- **Thông tin môi trường mạng**: Hiển thị các network interfaces, địa chỉ IP
+- **Giới thiệu Socket**: Kiến thức cơ bản về TCP/UDP, Client/Server
+- **Kiểm tra môi trường**: Kiểm tra port, địa chỉ IP, kết nối mạng
+
+### 2. Lập trình Socket - TCP Client/Server
+
+#### TCP Server (`TcpServer.cs`)
+- **Tính năng**: 
+  - Khởi động/dừng server trên port tùy chỉnh
+  - Xử lý nhiều client đồng thời (multi-threading)
+  - Echo messages từ client
+  - Event-driven logging
+- **Phương thức chính**:
+  - `StartServer(int port)`: Khởi động server
+  - `StopServer()`: Dừng server
+  - Events: `OnMessageReceived`, `OnServerStatusChanged`
+
+#### TCP Client (`TcpClient.cs`)
+- **Tính năng**:
+  - Kết nối đến TCP server
+  - Gửi/nhận messages bất đồng bộ
+  - Auto-reconnection handling
+  - Real-time message logging
+- **Phương thức chính**:
+  - `ConnectAsync(string serverIP, int port)`: Kết nối đến server
+  - `SendMessageAsync(string message)`: Gửi tin nhắn
+  - `Disconnect()`: Ngắt kết nối
+
+### 3. Lập trình Socket - UDP Client/Server
+
+#### UDP Server (`UdpServer.cs`)
+- **Tính năng**:
+  - Connectionless communication
+  - Echo messages từ bất kỳ client nào
+  - Xử lý multiple clients
+  - Logging chi tiết
+- **Phương thức chính**:
+  - `StartServer(int port)`: Khởi động UDP server
+  - `StopServer()`: Dừng server
+  - `SendMessage(string message, IPEndPoint clientEndPoint)`: Gửi tin nhắn đến client cụ thể
+
+#### UDP Client (`UdpClient.cs`)
+- **Tính năng**:
+  - Gửi/nhận UDP packets
+  - Không cần maintain connection
+  - Fast communication
+  - Background listening
+- **Phương thức chính**:
+  - `ConnectAsync(string serverIP, int port)`: Chuẩn bị giao tiếp UDP
+  - `SendMessageAsync(string message)`: Gửi UDP packet
+  - `Disconnect()`: Dọn dẹp resources
+
+## Giao diện người dùng
+
+Ứng dụng Windows Forms với 5 tabs:
+
+### 1. Socket Environment
+- Hiển thị thông tin môi trường mạng
+- Giới thiệu các khái niệm Socket programming
+- Kiểm tra system capabilities
+
+### 2. TCP Server
+- Khởi động/dừng TCP server
+- Cấu hình port
+- Theo dõi client connections và messages
+
+### 3. TCP Client
+- Kết nối đến TCP server
+- Gửi messages real-time
+- Hiển thị responses từ server
+
+### 4. UDP Server
+- Khởi động/dừng UDP server
+- Nhận và echo UDP packets
+- Logging từ multiple clients
+
+### 5. UDP Client
+- Gửi UDP packets đến server
+- Nhận responses
+- Fast communication testing
+
+## Tính năng nâng cao
+
+1. **Multi-threading**: Server xử lý nhiều client đồng thời
+2. **Event-driven architecture**: Real-time updates qua events
+3. **Error handling**: Comprehensive exception handling
+4. **Resource management**: Proper cleanup khi đóng ứng dụng
+5. **Cross-thread UI updates**: Thread-safe UI operations
+6. **Network diagnostics**: Kiểm tra network interfaces và capabilities
+
+## Cách sử dụng
+
+1. **Khởi động môi trường**:
+   - Mở tab "Socket Environment"
+   - Click "Get Environment Info" để xem thông tin hệ thống
+
+2. **Test TCP Communication**:
+   - Mở tab "TCP Server", khởi động server (port 8080)
+   - Mở tab "TCP Client", connect đến 127.0.0.1:8080
+   - Gửi messages và xem echo responses
+
+3. **Test UDP Communication**:
+   - Mở tab "UDP Server", khởi động server (port 8081)
+   - Mở tab "UDP Client", connect đến 127.0.0.1:8081
+   - Gửi UDP packets và xem responses
+
+## Kiến trúc kỹ thuật
+
+- **Framework**: .NET Framework 4.7.2
+- **Pattern**: Event-driven, Observer pattern
+- **Threading**: Background threads cho server operations
+- **UI**: Windows Forms với TabControl
+- **Networking**: System.Net.Sockets namespace
+
+Dự án này cung cấp một ví dụ hoàn chỉnh về lập trình Socket trong .NET, phù hợp cho việc học tập và thực hành các khái niệm mạng máy tính.

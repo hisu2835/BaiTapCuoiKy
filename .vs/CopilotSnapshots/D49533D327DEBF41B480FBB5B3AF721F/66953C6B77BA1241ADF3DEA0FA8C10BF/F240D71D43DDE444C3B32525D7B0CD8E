@@ -1,0 +1,414 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    public partial class Form1 : Form
+    {
+        private int currentScore = 0;
+        private int highScore = 0;
+        private int currentLevel = 1;
+        private int lives = 3;
+        private int gameTime = 0;
+        private bool isGameRunning = false;
+        private string currentGame = "";
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            InitializeGame();
+        }
+
+        private void InitializeGame()
+        {
+            // Set initial values
+            UpdateScore(0);
+            UpdateLevel(1);
+            UpdateLives(3);
+            UpdateTime(0);
+            
+            // Initialize UI state
+            lblGameStatus.Text = "Chọn một game để bắt đầu chơi!";
+            btnPauseGame.Enabled = false;
+            btnResetGame.Enabled = false;
+            
+            // Set window properties
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+        }
+
+        #region Game Selection Events
+
+        private void btnTicTacToe_Click(object sender, EventArgs e)
+        {
+            SelectGame("Tic Tac Toe");
+            InitializeTicTacToe();
+        }
+
+        private void btnSnakeGame_Click(object sender, EventArgs e)
+        {
+            SelectGame("Snake Game");
+            InitializeSnakeGame();
+        }
+
+        private void btnMemoryGame_Click(object sender, EventArgs e)
+        {
+            SelectGame("Memory Game");
+            InitializeMemoryGame();
+        }
+
+        private void btnPuzzleGame_Click(object sender, EventArgs e)
+        {
+            SelectGame("Puzzle Game");
+            InitializePuzzleGame();
+        }
+
+        #endregion
+
+        #region Game Control Events
+
+        private void btnStartGame_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(currentGame))
+            {
+                StartGame();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một game trước!", "Thông báo", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void btnPauseGame_Click(object sender, EventArgs e)
+        {
+            if (isGameRunning)
+            {
+                PauseGame();
+            }
+            else
+            {
+                ResumeGame();
+            }
+        }
+
+        private void btnResetGame_Click(object sender, EventArgs e)
+        {
+            ResetGame();
+        }
+
+        #endregion
+
+        #region Utility Events
+
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Cài đặt game:\n• Âm thanh: Bật/Tắt\n• Độ khó: Dễ/Trung bình/Khó\n• Màn hình: Toàn màn hình/Cửa sổ",
+                "Cài đặt", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnHelp_Click(object sender, EventArgs e)
+        {
+            string helpText = "HƯỚNG DẪN GAME CENTER:\n\n";
+            helpText += "🎮 TIC TAC TOE: Chơi X-O với máy tính\n";
+            helpText += "🐍 SNAKE GAME: Điều khiển con rắn ăn mồi\n";
+            helpText += "🧠 MEMORY GAME: Ghi nhớ và ghép đôi thẻ\n";
+            helpText += "🧩 PUZZLE GAME: Xếp hình hoàn thành tranh\n\n";
+            helpText += "Điều khiển:\n";
+            helpText += "• Start: Bắt đầu game\n";
+            helpText += "• Pause: Tạm dừng/Tiếp tục\n";
+            helpText += "• Reset: Khởi động lại game\n\n";
+            helpText += "Chúc bạn chơi vui vẻ! 🎊";
+
+            MessageBox.Show(helpText, "Hướng dẫn", MessageBoxButtons.OK, MessageBoxIcon.Question);
+        }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Bạn có chắc muốn thoát game?", "Xác nhận thoát",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            
+            if (result == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
+        }
+
+        #endregion
+
+        #region Game Logic Methods
+
+        private void SelectGame(string gameName)
+        {
+            currentGame = gameName;
+            lblGameStatus.Text = $"Đã chọn: {gameName}";
+            btnStartGame.Enabled = true;
+            btnResetGame.Enabled = true;
+            
+            // Update status bar
+            toolStripStatusLabel1.Text = $"Game được chọn: {gameName}";
+            
+            // Reset game stats
+            ResetGame();
+        }
+
+        private void StartGame()
+        {
+            isGameRunning = true;
+            timerGame.Start();
+            
+            btnStartGame.Enabled = false;
+            btnPauseGame.Enabled = true;
+            btnPauseGame.Text = "Pause";
+            
+            lblGameStatus.Text = $"Đang chơi: {currentGame}";
+            toolStripStatusLabel1.Text = "Đang chơi...";
+            
+            // Start specific game logic based on current game
+            switch (currentGame)
+            {
+                case "Tic Tac Toe":
+                    StartTicTacToe();
+                    break;
+                case "Snake Game":
+                    StartSnakeGame();
+                    break;
+                case "Memory Game":
+                    StartMemoryGame();
+                    break;
+                case "Puzzle Game":
+                    StartPuzzleGame();
+                    break;
+            }
+        }
+
+        private void PauseGame()
+        {
+            isGameRunning = false;
+            timerGame.Stop();
+            
+            btnPauseGame.Text = "Resume";
+            lblGameStatus.Text = $"Tạm dừng: {currentGame}";
+            toolStripStatusLabel1.Text = "Tạm dừng";
+        }
+
+        private void ResumeGame()
+        {
+            isGameRunning = true;
+            timerGame.Start();
+            
+            btnPauseGame.Text = "Pause";
+            lblGameStatus.Text = $"Đang chơi: {currentGame}";
+            toolStripStatusLabel1.Text = "Đang chơi...";
+        }
+
+        private void ResetGame()
+        {
+            isGameRunning = false;
+            timerGame.Stop();
+            
+            // Reset UI
+            btnStartGame.Enabled = true;
+            btnPauseGame.Enabled = false;
+            btnPauseGame.Text = "Pause";
+            
+            // Reset game stats
+            UpdateScore(0);
+            UpdateLevel(1);
+            UpdateLives(3);
+            UpdateTime(0);
+            
+            // Clear game area
+            panelGameArea.Controls.Clear();
+            panelGameArea.Controls.Add(lblGameStatus);
+            
+            if (!string.IsNullOrEmpty(currentGame))
+            {
+                lblGameStatus.Text = $"{currentGame} - Nhấn Start để chơi";
+                toolStripStatusLabel1.Text = "Sẵn sàng";
+            }
+        }
+
+        #endregion
+
+        #region UI Update Methods
+
+        private void UpdateScore(int score)
+        {
+            currentScore = score;
+            lblScore.Text = $"Score: {currentScore}";
+            
+            if (currentScore > highScore)
+            {
+                highScore = currentScore;
+                lblHighScore.Text = $"High Score: {highScore}";
+            }
+        }
+
+        private void UpdateLevel(int level)
+        {
+            currentLevel = level;
+            lblLevel.Text = $"Level: {currentLevel}";
+            progressBarLevel.Value = Math.Min((level - 1) * 10, 100);
+        }
+
+        private void UpdateLives(int livesCount)
+        {
+            lives = livesCount;
+            lblLivesValue.Text = lives.ToString();
+            
+            if (lives <= 0)
+            {
+                GameOver();
+            }
+        }
+
+        private void UpdateTime(int seconds)
+        {
+            gameTime = seconds;
+            int minutes = gameTime / 60;
+            int secs = gameTime % 60;
+            lblTimeValue.Text = $"{minutes:00}:{secs:00}";
+        }
+
+        private void GameOver()
+        {
+            isGameRunning = false;
+            timerGame.Stop();
+            
+            lblGameStatus.Text = "GAME OVER!";
+            toolStripStatusLabel1.Text = "Game Over";
+            
+            MessageBox.Show($"Game Over!\n\nĐiểm số: {currentScore}\nThời gian: {lblTimeValue.Text}\nLevel đạt được: {currentLevel}",
+                "Game Over", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            
+            ResetGame();
+        }
+
+        #endregion
+
+        #region Timer Event
+
+        private void timerGame_Tick(object sender, EventArgs e)
+        {
+            if (isGameRunning)
+            {
+                gameTime++;
+                UpdateTime(gameTime);
+                
+                // Update progress bar as visual feedback
+                toolStripProgressBar1.Value = (gameTime % 10) * 10;
+                
+                // Example: Increase level every 30 seconds
+                if (gameTime % 30 == 0 && gameTime > 0)
+                {
+                    UpdateLevel(currentLevel + 1);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Individual Game Initialization Methods
+
+        private void InitializeTicTacToe()
+        {
+            panelGameArea.Controls.Clear();
+            panelGameArea.Controls.Add(lblGameStatus);
+            
+            // Create a 3x3 grid for Tic Tac Toe
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    Button btn = new Button
+                    {
+                        Size = new Size(60, 60),
+                        Location = new Point(150 + j * 65, 50 + i * 65),
+                        Font = new Font("Arial", 20, FontStyle.Bold),
+                        Tag = $"{i},{j}"
+                    };
+                    btn.Click += TicTacToeButton_Click;
+                    panelGameArea.Controls.Add(btn);
+                }
+            }
+        }
+
+        private void InitializeSnakeGame()
+        {
+            lblGameStatus.Text = "Snake Game - Sử dụng phím mũi tên để điều khiển";
+        }
+
+        private void InitializeMemoryGame()
+        {
+            lblGameStatus.Text = "Memory Game - Nhớ và ghép đôi các thẻ giống nhau";
+        }
+
+        private void InitializePuzzleGame()
+        {
+            lblGameStatus.Text = "Puzzle Game - Xếp các mảnh ghép hoàn thành hình";
+        }
+
+        #endregion
+
+        #region Individual Game Logic
+
+        private void StartTicTacToe()
+        {
+            lblGameStatus.Text = "Tic Tac Toe - Lượt của bạn (X)";
+        }
+
+        private void StartSnakeGame()
+        {
+            lblGameStatus.Text = "Snake Game đang chạy...";
+        }
+
+        private void StartMemoryGame()
+        {
+            lblGameStatus.Text = "Memory Game đang chạy...";
+        }
+
+        private void StartPuzzleGame()
+        {
+            lblGameStatus.Text = "Puzzle Game đang chạy...";
+        }
+
+        private void TicTacToeButton_Click(object sender, EventArgs e)
+        {
+            if (isGameRunning)
+            {
+                Button btn = sender as Button;
+                if (string.IsNullOrEmpty(btn.Text))
+                {
+                    btn.Text = "X";
+                    btn.ForeColor = Color.Blue;
+                    UpdateScore(currentScore + 10);
+                    
+                    // Simple AI response (just find first empty button)
+                    foreach (Control control in panelGameArea.Controls)
+                    {
+                        if (control is Button aiBtn && string.IsNullOrEmpty(aiBtn.Text))
+                        {
+                            aiBtn.Text = "O";
+                            aiBtn.ForeColor = Color.Red;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion
+    }
+}

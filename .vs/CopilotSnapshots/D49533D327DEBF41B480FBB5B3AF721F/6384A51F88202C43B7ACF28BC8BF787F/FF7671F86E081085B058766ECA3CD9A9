@@ -1,0 +1,688 @@
+﻿namespace BaiTapCuoiKy
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.panelDrawing = new System.Windows.Forms.Panel();
+            this.btnClearCanvas = new System.Windows.Forms.Button();
+            this.panelTools = new System.Windows.Forms.Panel();
+            this.lblBrushSize = new System.Windows.Forms.Label();
+            this.trackBarBrushSize = new System.Windows.Forms.TrackBar();
+            this.btnColorRed = new System.Windows.Forms.Button();
+            this.btnColorBlue = new System.Windows.Forms.Button();
+            this.btnColorGreen = new System.Windows.Forms.Button();
+            this.btnColorYellow = new System.Windows.Forms.Button();
+            this.btnColorBlack = new System.Windows.Forms.Button();
+            this.btnColorWhite = new System.Windows.Forms.Button();
+            this.lblSelectedColor = new System.Windows.Forms.Label();
+            this.panelSelectedColor = new System.Windows.Forms.Panel();
+            this.btnEraser = new System.Windows.Forms.Button();
+            this.btnPencil = new System.Windows.Forms.Button();
+            this.panelChat = new System.Windows.Forms.Panel();
+            this.lblChat = new System.Windows.Forms.Label();
+            this.listBoxChat = new System.Windows.Forms.ListBox();
+            this.txtChatInput = new System.Windows.Forms.TextBox();
+            this.btnSendMessage = new System.Windows.Forms.Button();
+            this.panelPlayers = new System.Windows.Forms.Panel();
+            this.lblPlayers = new System.Windows.Forms.Label();
+            this.listBoxPlayers = new System.Windows.Forms.ListBox();
+            this.btnJoinGame = new System.Windows.Forms.Button();
+            this.btnCreateRoom = new System.Windows.Forms.Button();
+            this.txtPlayerName = new System.Windows.Forms.TextBox();
+            this.lblPlayerName = new System.Windows.Forms.Label();
+            this.panelGameInfo = new System.Windows.Forms.Panel();
+            this.lblCurrentWord = new System.Windows.Forms.Label();
+            this.lblWordToGuess = new System.Windows.Forms.Label();
+            this.lblTimer = new System.Windows.Forms.Label();
+            this.lblTimeLeft = new System.Windows.Forms.Label();
+            this.lblRound = new System.Windows.Forms.Label();
+            this.lblCurrentRound = new System.Windows.Forms.Label();
+            this.lblScore = new System.Windows.Forms.Label();
+            this.lblPlayerScore = new System.Windows.Forms.Label();
+            this.progressBarTime = new System.Windows.Forms.ProgressBar();
+            this.timerGame = new System.Windows.Forms.Timer(this.components);
+            this.btnStartGame = new System.Windows.Forms.Button();
+            this.btnLeaveGame = new System.Windows.Forms.Button();
+            this.statusStripGame = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.lblGameStatus = new System.Windows.Forms.Label();
+            this.txtRoomCode = new System.Windows.Forms.TextBox();
+            this.lblRoomCode = new System.Windows.Forms.Label();
+            this.panelTools.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarBrushSize)).BeginInit();
+            this.panelChat.SuspendLayout();
+            this.panelPlayers.SuspendLayout();
+            this.panelGameInfo.SuspendLayout();
+            this.statusStripGame.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // lblTitle
+            // 
+            this.lblTitle.AutoSize = true;
+            this.lblTitle.Font = new System.Drawing.Font("Arial", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTitle.ForeColor = System.Drawing.Color.DarkSlateBlue;
+            this.lblTitle.Location = new System.Drawing.Point(350, 10);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(300, 32);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "MULTIPLAYER DRAWING GUESS";
+            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // panelDrawing
+            // 
+            this.panelDrawing.BackColor = System.Drawing.Color.White;
+            this.panelDrawing.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelDrawing.Cursor = System.Windows.Forms.Cursors.Cross;
+            this.panelDrawing.Location = new System.Drawing.Point(20, 60);
+            this.panelDrawing.Name = "panelDrawing";
+            this.panelDrawing.Size = new System.Drawing.Size(600, 400);
+            this.panelDrawing.TabIndex = 1;
+            this.panelDrawing.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseDown);
+            this.panelDrawing.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseMove);
+            this.panelDrawing.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseUp);
+            this.panelDrawing.Paint += new System.Windows.Forms.PaintEventHandler(this.panelDrawing_Paint);
+            // 
+            // btnClearCanvas
+            // 
+            this.btnClearCanvas.BackColor = System.Drawing.Color.IndianRed;
+            this.btnClearCanvas.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.btnClearCanvas.ForeColor = System.Drawing.Color.White;
+            this.btnClearCanvas.Location = new System.Drawing.Point(540, 470);
+            this.btnClearCanvas.Name = "btnClearCanvas";
+            this.btnClearCanvas.Size = new System.Drawing.Size(80, 30);
+            this.btnClearCanvas.TabIndex = 2;
+            this.btnClearCanvas.Text = "Clear";
+            this.btnClearCanvas.UseVisualStyleBackColor = false;
+            this.btnClearCanvas.Click += new System.EventHandler(this.btnClearCanvas_Click);
+            // 
+            // panelTools
+            // 
+            this.panelTools.BackColor = System.Drawing.Color.LightGray;
+            this.panelTools.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelTools.Controls.Add(this.lblBrushSize);
+            this.panelTools.Controls.Add(this.trackBarBrushSize);
+            this.panelTools.Controls.Add(this.btnColorRed);
+            this.panelTools.Controls.Add(this.btnColorBlue);
+            this.panelTools.Controls.Add(this.btnColorGreen);
+            this.panelTools.Controls.Add(this.btnColorYellow);
+            this.panelTools.Controls.Add(this.btnColorBlack);
+            this.panelTools.Controls.Add(this.btnColorWhite);
+            this.panelTools.Controls.Add(this.lblSelectedColor);
+            this.panelTools.Controls.Add(this.panelSelectedColor);
+            this.panelTools.Controls.Add(this.btnEraser);
+            this.panelTools.Controls.Add(this.btnPencil);
+            this.panelTools.Location = new System.Drawing.Point(20, 470);
+            this.panelTools.Name = "panelTools";
+            this.panelTools.Size = new System.Drawing.Size(500, 80);
+            this.panelTools.TabIndex = 3;
+            // 
+            // lblBrushSize
+            // 
+            this.lblBrushSize.AutoSize = true;
+            this.lblBrushSize.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold);
+            this.lblBrushSize.Location = new System.Drawing.Point(350, 10);
+            this.lblBrushSize.Name = "lblBrushSize";
+            this.lblBrushSize.Size = new System.Drawing.Size(70, 15);
+            this.lblBrushSize.TabIndex = 11;
+            this.lblBrushSize.Text = "Brush Size:";
+            // 
+            // trackBarBrushSize
+            // 
+            this.trackBarBrushSize.Location = new System.Drawing.Point(350, 25);
+            this.trackBarBrushSize.Maximum = 20;
+            this.trackBarBrushSize.Minimum = 1;
+            this.trackBarBrushSize.Name = "trackBarBrushSize";
+            this.trackBarBrushSize.Size = new System.Drawing.Size(120, 45);
+            this.trackBarBrushSize.TabIndex = 10;
+            this.trackBarBrushSize.Value = 3;
+            this.trackBarBrushSize.ValueChanged += new System.EventHandler(this.trackBarBrushSize_ValueChanged);
+            // 
+            // btnColorRed
+            // 
+            this.btnColorRed.BackColor = System.Drawing.Color.Red;
+            this.btnColorRed.Location = new System.Drawing.Point(110, 40);
+            this.btnColorRed.Name = "btnColorRed";
+            this.btnColorRed.Size = new System.Drawing.Size(30, 30);
+            this.btnColorRed.TabIndex = 9;
+            this.btnColorRed.UseVisualStyleBackColor = false;
+            this.btnColorRed.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorBlue
+            // 
+            this.btnColorBlue.BackColor = System.Drawing.Color.Blue;
+            this.btnColorBlue.Location = new System.Drawing.Point(150, 40);
+            this.btnColorBlue.Name = "btnColorBlue";
+            this.btnColorBlue.Size = new System.Drawing.Size(30, 30);
+            this.btnColorBlue.TabIndex = 8;
+            this.btnColorBlue.UseVisualStyleBackColor = false;
+            this.btnColorBlue.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorGreen
+            // 
+            this.btnColorGreen.BackColor = System.Drawing.Color.Green;
+            this.btnColorGreen.Location = new System.Drawing.Point(190, 40);
+            this.btnColorGreen.Name = "btnColorGreen";
+            this.btnColorGreen.Size = new System.Drawing.Size(30, 30);
+            this.btnColorGreen.TabIndex = 7;
+            this.btnColorGreen.UseVisualStyleBackColor = false;
+            this.btnColorGreen.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorYellow
+            // 
+            this.btnColorYellow.BackColor = System.Drawing.Color.Yellow;
+            this.btnColorYellow.Location = new System.Drawing.Point(230, 40);
+            this.btnColorYellow.Name = "btnColorYellow";
+            this.btnColorYellow.Size = new System.Drawing.Size(30, 30);
+            this.btnColorYellow.TabIndex = 6;
+            this.btnColorYellow.UseVisualStyleBackColor = false;
+            this.btnColorYellow.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorBlack
+            // 
+            this.btnColorBlack.BackColor = System.Drawing.Color.Black;
+            this.btnColorBlack.Location = new System.Drawing.Point(110, 10);
+            this.btnColorBlack.Name = "btnColorBlack";
+            this.btnColorBlack.Size = new System.Drawing.Size(30, 30);
+            this.btnColorBlack.TabIndex = 5;
+            this.btnColorBlack.UseVisualStyleBackColor = false;
+            this.btnColorBlack.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorWhite
+            // 
+            this.btnColorWhite.BackColor = System.Drawing.Color.White;
+            this.btnColorWhite.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.btnColorWhite.Location = new System.Drawing.Point(150, 10);
+            this.btnColorWhite.Name = "btnColorWhite";
+            this.btnColorWhite.Size = new System.Drawing.Size(30, 30);
+            this.btnColorWhite.TabIndex = 4;
+            this.btnColorWhite.UseVisualStyleBackColor = false;
+            this.btnColorWhite.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // lblSelectedColor
+            // 
+            this.lblSelectedColor.AutoSize = true;
+            this.lblSelectedColor.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold);
+            this.lblSelectedColor.Location = new System.Drawing.Point(270, 10);
+            this.lblSelectedColor.Name = "lblSelectedColor";
+            this.lblSelectedColor.Size = new System.Drawing.Size(42, 15);
+            this.lblSelectedColor.TabIndex = 3;
+            this.lblSelectedColor.Text = "Color:";
+            // 
+            // panelSelectedColor
+            // 
+            this.panelSelectedColor.BackColor = System.Drawing.Color.Black;
+            this.panelSelectedColor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelSelectedColor.Location = new System.Drawing.Point(270, 30);
+            this.panelSelectedColor.Name = "panelSelectedColor";
+            this.panelSelectedColor.Size = new System.Drawing.Size(40, 40);
+            this.panelSelectedColor.TabIndex = 2;
+            // 
+            // btnEraser
+            // 
+            this.btnEraser.BackColor = System.Drawing.Color.LightPink;
+            this.btnEraser.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.btnEraser.Location = new System.Drawing.Point(10, 40);
+            this.btnEraser.Name = "btnEraser";
+            this.btnEraser.Size = new System.Drawing.Size(80, 30);
+            this.btnEraser.TabIndex = 1;
+            this.btnEraser.Text = "Eraser";
+            this.btnEraser.UseVisualStyleBackColor = false;
+            this.btnEraser.Click += new System.EventHandler(this.btnEraser_Click);
+            // 
+            // btnPencil
+            // 
+            this.btnPencil.BackColor = System.Drawing.Color.LightBlue;
+            this.btnPencil.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.btnPencil.Location = new System.Drawing.Point(10, 10);
+            this.btnPencil.Name = "btnPencil";
+            this.btnPencil.Size = new System.Drawing.Size(80, 30);
+            this.btnPencil.TabIndex = 0;
+            this.btnPencil.Text = "Pencil";
+            this.btnPencil.UseVisualStyleBackColor = false;
+            this.btnPencil.Click += new System.EventHandler(this.btnPencil_Click);
+            // 
+            // panelChat
+            // 
+            this.panelChat.BackColor = System.Drawing.Color.AliceBlue;
+            this.panelChat.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelChat.Controls.Add(this.lblChat);
+            this.panelChat.Controls.Add(this.listBoxChat);
+            this.panelChat.Controls.Add(this.txtChatInput);
+            this.panelChat.Controls.Add(this.btnSendMessage);
+            this.panelChat.Location = new System.Drawing.Point(640, 60);
+            this.panelChat.Name = "panelChat";
+            this.panelChat.Size = new System.Drawing.Size(250, 300);
+            this.panelChat.TabIndex = 4;
+            // 
+            // lblChat
+            // 
+            this.lblChat.AutoSize = true;
+            this.lblChat.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblChat.ForeColor = System.Drawing.Color.DarkBlue;
+            this.lblChat.Location = new System.Drawing.Point(10, 10);
+            this.lblChat.Name = "lblChat";
+            this.lblChat.Size = new System.Drawing.Size(44, 19);
+            this.lblChat.TabIndex = 3;
+            this.lblChat.Text = "Chat";
+            // 
+            // listBoxChat
+            // 
+            this.listBoxChat.Font = new System.Drawing.Font("Arial", 9F);
+            this.listBoxChat.FormattingEnabled = true;
+            this.listBoxChat.ItemHeight = 15;
+            this.listBoxChat.Location = new System.Drawing.Point(10, 35);
+            this.listBoxChat.Name = "listBoxChat";
+            this.listBoxChat.Size = new System.Drawing.Size(230, 214);
+            this.listBoxChat.TabIndex = 2;
+            // 
+            // txtChatInput
+            // 
+            this.txtChatInput.Font = new System.Drawing.Font("Arial", 9F);
+            this.txtChatInput.Location = new System.Drawing.Point(10, 260);
+            this.txtChatInput.Name = "txtChatInput";
+            this.txtChatInput.Size = new System.Drawing.Size(160, 21);
+            this.txtChatInput.TabIndex = 1;
+            this.txtChatInput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtChatInput_KeyPress);
+            // 
+            // btnSendMessage
+            // 
+            this.btnSendMessage.BackColor = System.Drawing.Color.CornflowerBlue;
+            this.btnSendMessage.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold);
+            this.btnSendMessage.ForeColor = System.Drawing.Color.White;
+            this.btnSendMessage.Location = new System.Drawing.Point(180, 258);
+            this.btnSendMessage.Name = "btnSendMessage";
+            this.btnSendMessage.Size = new System.Drawing.Size(60, 25);
+            this.btnSendMessage.TabIndex = 0;
+            this.btnSendMessage.Text = "Send";
+            this.btnSendMessage.UseVisualStyleBackColor = false;
+            this.btnSendMessage.Click += new System.EventHandler(this.btnSendMessage_Click);
+            // 
+            // panelPlayers
+            // 
+            this.panelPlayers.BackColor = System.Drawing.Color.LightYellow;
+            this.panelPlayers.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelPlayers.Controls.Add(this.lblPlayers);
+            this.panelPlayers.Controls.Add(this.listBoxPlayers);
+            this.panelPlayers.Controls.Add(this.btnJoinGame);
+            this.panelPlayers.Controls.Add(this.btnCreateRoom);
+            this.panelPlayers.Controls.Add(this.txtPlayerName);
+            this.panelPlayers.Controls.Add(this.lblPlayerName);
+            this.panelPlayers.Controls.Add(this.txtRoomCode);
+            this.panelPlayers.Controls.Add(this.lblRoomCode);
+            this.panelPlayers.Location = new System.Drawing.Point(900, 60);
+            this.panelPlayers.Name = "panelPlayers";
+            this.panelPlayers.Size = new System.Drawing.Size(200, 300);
+            this.panelPlayers.TabIndex = 5;
+            // 
+            // lblPlayers
+            // 
+            this.lblPlayers.AutoSize = true;
+            this.lblPlayers.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblPlayers.ForeColor = System.Drawing.Color.DarkOrange;
+            this.lblPlayers.Location = new System.Drawing.Point(10, 130);
+            this.lblPlayers.Name = "lblPlayers";
+            this.lblPlayers.Size = new System.Drawing.Size(67, 19);
+            this.lblPlayers.TabIndex = 7;
+            this.lblPlayers.Text = "Players";
+            // 
+            // listBoxPlayers
+            // 
+            this.listBoxPlayers.Font = new System.Drawing.Font("Arial", 9F);
+            this.listBoxPlayers.FormattingEnabled = true;
+            this.listBoxPlayers.ItemHeight = 15;
+            this.listBoxPlayers.Location = new System.Drawing.Point(10, 155);
+            this.listBoxPlayers.Name = "listBoxPlayers";
+            this.listBoxPlayers.Size = new System.Drawing.Size(180, 139);
+            this.listBoxPlayers.TabIndex = 6;
+            // 
+            // btnJoinGame
+            // 
+            this.btnJoinGame.BackColor = System.Drawing.Color.MediumSeaGreen;
+            this.btnJoinGame.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold);
+            this.btnJoinGame.ForeColor = System.Drawing.Color.White;
+            this.btnJoinGame.Location = new System.Drawing.Point(105, 100);
+            this.btnJoinGame.Name = "btnJoinGame";
+            this.btnJoinGame.Size = new System.Drawing.Size(85, 25);
+            this.btnJoinGame.TabIndex = 5;
+            this.btnJoinGame.Text = "Join Game";
+            this.btnJoinGame.UseVisualStyleBackColor = false;
+            this.btnJoinGame.Click += new System.EventHandler(this.btnJoinGame_Click);
+            // 
+            // btnCreateRoom
+            // 
+            this.btnCreateRoom.BackColor = System.Drawing.Color.DodgerBlue;
+            this.btnCreateRoom.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold);
+            this.btnCreateRoom.ForeColor = System.Drawing.Color.White;
+            this.btnCreateRoom.Location = new System.Drawing.Point(10, 100);
+            this.btnCreateRoom.Name = "btnCreateRoom";
+            this.btnCreateRoom.Size = new System.Drawing.Size(85, 25);
+            this.btnCreateRoom.TabIndex = 4;
+            this.btnCreateRoom.Text = "Create Room";
+            this.btnCreateRoom.UseVisualStyleBackColor = false;
+            this.btnCreateRoom.Click += new System.EventHandler(this.btnCreateRoom_Click);
+            // 
+            // txtPlayerName
+            // 
+            this.txtPlayerName.Font = new System.Drawing.Font("Arial", 9F);
+            this.txtPlayerName.Location = new System.Drawing.Point(10, 30);
+            this.txtPlayerName.Name = "txtPlayerName";
+            this.txtPlayerName.Size = new System.Drawing.Size(180, 21);
+            this.txtPlayerName.TabIndex = 3;
+            this.txtPlayerName.Text = "Player1";
+            // 
+            // lblPlayerName
+            // 
+            this.lblPlayerName.AutoSize = true;
+            this.lblPlayerName.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.lblPlayerName.Location = new System.Drawing.Point(10, 10);
+            this.lblPlayerName.Name = "lblPlayerName";
+            this.lblPlayerName.Size = new System.Drawing.Size(91, 16);
+            this.lblPlayerName.TabIndex = 2;
+            this.lblPlayerName.Text = "Player Name:";
+            // 
+            // panelGameInfo
+            // 
+            this.panelGameInfo.BackColor = System.Drawing.Color.LightCyan;
+            this.panelGameInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelGameInfo.Controls.Add(this.lblCurrentWord);
+            this.panelGameInfo.Controls.Add(this.lblWordToGuess);
+            this.panelGameInfo.Controls.Add(this.lblTimer);
+            this.panelGameInfo.Controls.Add(this.lblTimeLeft);
+            this.panelGameInfo.Controls.Add(this.lblRound);
+            this.panelGameInfo.Controls.Add(this.lblCurrentRound);
+            this.panelGameInfo.Controls.Add(this.lblScore);
+            this.panelGameInfo.Controls.Add(this.lblPlayerScore);
+            this.panelGameInfo.Controls.Add(this.progressBarTime);
+            this.panelGameInfo.Location = new System.Drawing.Point(640, 370);
+            this.panelGameInfo.Name = "panelGameInfo";
+            this.panelGameInfo.Size = new System.Drawing.Size(460, 120);
+            this.panelGameInfo.TabIndex = 6;
+            // 
+            // lblCurrentWord
+            // 
+            this.lblCurrentWord.AutoSize = true;
+            this.lblCurrentWord.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
+            this.lblCurrentWord.ForeColor = System.Drawing.Color.DarkGreen;
+            this.lblCurrentWord.Location = new System.Drawing.Point(10, 15);
+            this.lblCurrentWord.Name = "lblCurrentWord";
+            this.lblCurrentWord.Size = new System.Drawing.Size(122, 22);
+            this.lblCurrentWord.TabIndex = 8;
+            this.lblCurrentWord.Text = "Word to draw:";
+            // 
+            // lblWordToGuess
+            // 
+            this.lblWordToGuess.AutoSize = true;
+            this.lblWordToGuess.Font = new System.Drawing.Font("Arial", 16F, System.Drawing.FontStyle.Bold);
+            this.lblWordToGuess.ForeColor = System.Drawing.Color.Red;
+            this.lblWordToGuess.Location = new System.Drawing.Point(140, 15);
+            this.lblWordToGuess.Name = "lblWordToGuess";
+            this.lblWordToGuess.Size = new System.Drawing.Size(171, 26);
+            this.lblWordToGuess.TabIndex = 7;
+            this.lblWordToGuess.Text = "_ _ _ _ _ _ _ _";
+            // 
+            // lblTimer
+            // 
+            this.lblTimer.AutoSize = true;
+            this.lblTimer.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblTimer.Location = new System.Drawing.Point(10, 50);
+            this.lblTimer.Name = "lblTimer";
+            this.lblTimer.Size = new System.Drawing.Size(84, 19);
+            this.lblTimer.TabIndex = 6;
+            this.lblTimer.Text = "Time Left:";
+            // 
+            // lblTimeLeft
+            // 
+            this.lblTimeLeft.AutoSize = true;
+            this.lblTimeLeft.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblTimeLeft.ForeColor = System.Drawing.Color.Red;
+            this.lblTimeLeft.Location = new System.Drawing.Point(100, 50);
+            this.lblTimeLeft.Name = "lblTimeLeft";
+            this.lblTimeLeft.Size = new System.Drawing.Size(54, 19);
+            this.lblTimeLeft.TabIndex = 5;
+            this.lblTimeLeft.Text = "00:60";
+            // 
+            // lblRound
+            // 
+            this.lblRound.AutoSize = true;
+            this.lblRound.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblRound.Location = new System.Drawing.Point(200, 50);
+            this.lblRound.Name = "lblRound";
+            this.lblRound.Size = new System.Drawing.Size(62, 19);
+            this.lblRound.TabIndex = 4;
+            this.lblRound.Text = "Round:";
+            // 
+            // lblCurrentRound
+            // 
+            this.lblCurrentRound.AutoSize = true;
+            this.lblCurrentRound.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblCurrentRound.ForeColor = System.Drawing.Color.Blue;
+            this.lblCurrentRound.Location = new System.Drawing.Point(270, 50);
+            this.lblCurrentRound.Name = "lblCurrentRound";
+            this.lblCurrentRound.Size = new System.Drawing.Size(36, 19);
+            this.lblCurrentRound.TabIndex = 3;
+            this.lblCurrentRound.Text = "1/5";
+            // 
+            // lblScore
+            // 
+            this.lblScore.AutoSize = true;
+            this.lblScore.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblScore.Location = new System.Drawing.Point(330, 50);
+            this.lblScore.Name = "lblScore";
+            this.lblScore.Size = new System.Drawing.Size(58, 19);
+            this.lblScore.TabIndex = 2;
+            this.lblScore.Text = "Score:";
+            // 
+            // lblPlayerScore
+            // 
+            this.lblPlayerScore.AutoSize = true;
+            this.lblPlayerScore.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblPlayerScore.ForeColor = System.Drawing.Color.Green;
+            this.lblPlayerScore.Location = new System.Drawing.Point(390, 50);
+            this.lblPlayerScore.Name = "lblPlayerScore";
+            this.lblPlayerScore.Size = new System.Drawing.Size(18, 19);
+            this.lblPlayerScore.TabIndex = 1;
+            this.lblPlayerScore.Text = "0";
+            // 
+            // progressBarTime
+            // 
+            this.progressBarTime.ForeColor = System.Drawing.Color.Red;
+            this.progressBarTime.Location = new System.Drawing.Point(10, 80);
+            this.progressBarTime.Maximum = 60;
+            this.progressBarTime.Name = "progressBarTime";
+            this.progressBarTime.Size = new System.Drawing.Size(440, 25);
+            this.progressBarTime.TabIndex = 0;
+            this.progressBarTime.Value = 60;
+            // 
+            // timerGame
+            // 
+            this.timerGame.Interval = 1000;
+            this.timerGame.Tick += new System.EventHandler(this.timerGame_Tick);
+            // 
+            // btnStartGame
+            // 
+            this.btnStartGame.BackColor = System.Drawing.Color.ForestGreen;
+            this.btnStartGame.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.btnStartGame.ForeColor = System.Drawing.Color.White;
+            this.btnStartGame.Location = new System.Drawing.Point(640, 500);
+            this.btnStartGame.Name = "btnStartGame";
+            this.btnStartGame.Size = new System.Drawing.Size(100, 40);
+            this.btnStartGame.TabIndex = 7;
+            this.btnStartGame.Text = "Start Game";
+            this.btnStartGame.UseVisualStyleBackColor = false;
+            this.btnStartGame.Click += new System.EventHandler(this.btnStartGame_Click);
+            // 
+            // btnLeaveGame
+            // 
+            this.btnLeaveGame.BackColor = System.Drawing.Color.Crimson;
+            this.btnLeaveGame.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.btnLeaveGame.ForeColor = System.Drawing.Color.White;
+            this.btnLeaveGame.Location = new System.Drawing.Point(750, 500);
+            this.btnLeaveGame.Name = "btnLeaveGame";
+            this.btnLeaveGame.Size = new System.Drawing.Size(100, 40);
+            this.btnLeaveGame.TabIndex = 8;
+            this.btnLeaveGame.Text = "Leave Game";
+            this.btnLeaveGame.UseVisualStyleBackColor = false;
+            this.btnLeaveGame.Click += new System.EventHandler(this.btnLeaveGame_Click);
+            // 
+            // statusStripGame
+            // 
+            this.statusStripGame.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel});
+            this.statusStripGame.Location = new System.Drawing.Point(0, 570);
+            this.statusStripGame.Name = "statusStripGame";
+            this.statusStripGame.Size = new System.Drawing.Size(1120, 22);
+            this.statusStripGame.TabIndex = 9;
+            this.statusStripGame.Text = "statusStrip1";
+            // 
+            // toolStripStatusLabel
+            // 
+            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(118, 17);
+            this.toolStripStatusLabel.Text = "Ready to join a game";
+            // 
+            // lblGameStatus
+            // 
+            this.lblGameStatus.AutoSize = true;
+            this.lblGameStatus.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
+            this.lblGameStatus.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.lblGameStatus.Location = new System.Drawing.Point(860, 510);
+            this.lblGameStatus.Name = "lblGameStatus";
+            this.lblGameStatus.Size = new System.Drawing.Size(240, 22);
+            this.lblGameStatus.TabIndex = 10;
+            this.lblGameStatus.Text = "Waiting for players to join...";
+            // 
+            // txtRoomCode
+            // 
+            this.txtRoomCode.Font = new System.Drawing.Font("Arial", 9F);
+            this.txtRoomCode.Location = new System.Drawing.Point(10, 75);
+            this.txtRoomCode.Name = "txtRoomCode";
+            this.txtRoomCode.Size = new System.Drawing.Size(180, 21);
+            this.txtRoomCode.TabIndex = 9;
+            // 
+            // lblRoomCode
+            // 
+            this.lblRoomCode.AutoSize = true;
+            this.lblRoomCode.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.lblRoomCode.Location = new System.Drawing.Point(10, 55);
+            this.lblRoomCode.Name = "lblRoomCode";
+            this.lblRoomCode.Size = new System.Drawing.Size(90, 16);
+            this.lblRoomCode.TabIndex = 8;
+            this.lblRoomCode.Text = "Room Code:";
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.ClientSize = new System.Drawing.Size(1120, 592);
+            this.Controls.Add(this.lblGameStatus);
+            this.Controls.Add(this.statusStripGame);
+            this.Controls.Add(this.btnLeaveGame);
+            this.Controls.Add(this.btnStartGame);
+            this.Controls.Add(this.panelGameInfo);
+            this.Controls.Add(this.panelPlayers);
+            this.Controls.Add(this.panelChat);
+            this.Controls.Add(this.panelTools);
+            this.Controls.Add(this.btnClearCanvas);
+            this.Controls.Add(this.panelDrawing);
+            this.Controls.Add(this.lblTitle);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Multiplayer Drawing Guess Game";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.panelTools.ResumeLayout(false);
+            this.panelTools.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarBrushSize)).EndInit();
+            this.panelChat.ResumeLayout(false);
+            this.panelChat.PerformLayout();
+            this.panelPlayers.ResumeLayout(false);
+            this.panelPlayers.PerformLayout();
+            this.panelGameInfo.ResumeLayout(false);
+            this.panelGameInfo.PerformLayout();
+            this.statusStripGame.ResumeLayout(false);
+            this.statusStripGame.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.Panel panelDrawing;
+        private System.Windows.Forms.Button btnClearCanvas;
+        private System.Windows.Forms.Panel panelTools;
+        private System.Windows.Forms.Panel panelChat;
+        private System.Windows.Forms.Panel panelPlayers;
+        private System.Windows.Forms.Panel panelGameInfo;
+        private System.Windows.Forms.Timer timerGame;
+        private System.Windows.Forms.Button btnStartGame;
+        private System.Windows.Forms.Button btnLeaveGame;
+        private System.Windows.Forms.StatusStrip statusStripGame;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
+        private System.Windows.Forms.Label lblGameStatus;
+        private System.Windows.Forms.Button btnPencil;
+        private System.Windows.Forms.Button btnEraser;
+        private System.Windows.Forms.Panel panelSelectedColor;
+        private System.Windows.Forms.Label lblSelectedColor;
+        private System.Windows.Forms.Button btnColorWhite;
+        private System.Windows.Forms.Button btnColorBlack;
+        private System.Windows.Forms.Button btnColorYellow;
+        private System.Windows.Forms.Button btnColorGreen;
+        private System.Windows.Forms.Button btnColorBlue;
+        private System.Windows.Forms.Button btnColorRed;
+        private System.Windows.Forms.TrackBar trackBarBrushSize;
+        private System.Windows.Forms.Label lblBrushSize;
+        private System.Windows.Forms.Label lblChat;
+        private System.Windows.Forms.ListBox listBoxChat;
+        private System.Windows.Forms.TextBox txtChatInput;
+        private System.Windows.Forms.Button btnSendMessage;
+        private System.Windows.Forms.Label lblPlayers;
+        private System.Windows.Forms.ListBox listBoxPlayers;
+        private System.Windows.Forms.Button btnJoinGame;
+        private System.Windows.Forms.Button btnCreateRoom;
+        private System.Windows.Forms.TextBox txtPlayerName;
+        private System.Windows.Forms.Label lblPlayerName;
+        private System.Windows.Forms.Label lblCurrentWord;
+        private System.Windows.Forms.Label lblWordToGuess;
+        private System.Windows.Forms.Label lblTimer;
+        private System.Windows.Forms.Label lblTimeLeft;
+        private System.Windows.Forms.Label lblRound;
+        private System.Windows.Forms.Label lblCurrentRound;
+        private System.Windows.Forms.Label lblScore;
+        private System.Windows.Forms.Label lblPlayerScore;
+        private System.Windows.Forms.ProgressBar progressBarTime;
+        private System.Windows.Forms.TextBox txtRoomCode;
+        private System.Windows.Forms.Label lblRoomCode;
+    }
+}
+

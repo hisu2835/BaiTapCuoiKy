@@ -1,0 +1,349 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    public partial class Form1 : Form
+    {
+        private TcpServer _tcpServer;
+        private TcpClient _tcpClient;
+        private UdpServer _udpServer;
+        private UdpClient _udpClient;
+        private WiresharkHelper _wiresharkHelper;
+
+        public Form1()
+        {
+            InitializeComponent();
+            InitializeSocketComponents();
+            InitializeWiresharkComponents();
+        }
+
+        private void InitializeSocketComponents()
+        {
+            // Initialize TCP Server
+            _tcpServer = new TcpServer();
+            _tcpServer.OnMessageReceived += (message) => {
+                if (txtTcpServerLog.InvokeRequired)
+                {
+                    txtTcpServerLog.Invoke(new Action(() => {
+                        txtTcpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtTcpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                }
+            };
+            _tcpServer.OnServerStatusChanged += (status) => {
+                if (txtTcpServerLog.InvokeRequired)
+                {
+                    txtTcpServerLog.Invoke(new Action(() => {
+                        txtTcpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtTcpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                }
+            };
+
+            // Initialize TCP Client
+            _tcpClient = new TcpClient();
+            _tcpClient.OnMessageReceived += (message) => {
+                if (txtTcpClientLog.InvokeRequired)
+                {
+                    txtTcpClientLog.Invoke(new Action(() => {
+                        txtTcpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtTcpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                }
+            };
+            _tcpClient.OnConnectionStatusChanged += (status) => {
+                if (txtTcpClientLog.InvokeRequired)
+                {
+                    txtTcpClientLog.Invoke(new Action(() => {
+                        txtTcpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtTcpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                }
+            };
+
+            // Initialize UDP Server
+            _udpServer = new UdpServer();
+            _udpServer.OnMessageReceived += (message) => {
+                if (txtUdpServerLog.InvokeRequired)
+                {
+                    txtUdpServerLog.Invoke(new Action(() => {
+                        txtUdpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtUdpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                }
+            };
+            _udpServer.OnServerStatusChanged += (status) => {
+                if (txtUdpServerLog.InvokeRequired)
+                {
+                    txtUdpServerLog.Invoke(new Action(() => {
+                        txtUdpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtUdpServerLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                }
+            };
+
+            // Initialize UDP Client
+            _udpClient = new UdpClient();
+            _udpClient.OnMessageReceived += (message) => {
+                if (txtUdpClientLog.InvokeRequired)
+                {
+                    txtUdpClientLog.Invoke(new Action(() => {
+                        txtUdpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtUdpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+                }
+            };
+            _udpClient.OnConnectionStatusChanged += (status) => {
+                if (txtUdpClientLog.InvokeRequired)
+                {
+                    txtUdpClientLog.Invoke(new Action(() => {
+                        txtUdpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtUdpClientLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                }
+            };
+        }
+
+        private void InitializeWiresharkComponents()
+        {
+            _wiresharkHelper = new WiresharkHelper();
+            _wiresharkHelper.OnWiresharkStatusChanged += (status) => {
+                if (txtWiresharkLog.InvokeRequired)
+                {
+                    txtWiresharkLog.Invoke(new Action(() => {
+                        txtWiresharkLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                    }));
+                }
+                else
+                {
+                    txtWiresharkLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {status}\r\n");
+                }
+            };
+
+            // Display initial status
+            if (_wiresharkHelper.IsWiresharkAvailable())
+            {
+                txtWiresharkLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Wireshark integration ready!\r\n");
+            }
+            else
+            {
+                txtWiresharkLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Wireshark not detected. Please install or configure path.\r\n");
+            }
+        }
+
+        #region Environment Tab Events
+        private void btnGetEnvironmentInfo_Click(object sender, EventArgs e)
+        {
+            txtEnvironmentInfo.Clear();
+            txtEnvironmentInfo.AppendText(SocketEnvironment.GetSocketIntroduction());
+            txtEnvironmentInfo.AppendText("\r\n\r\n");
+            txtEnvironmentInfo.AppendText(SocketEnvironment.GetEnvironmentInfo());
+        }
+        #endregion
+
+        #region TCP Server Events
+        private void btnStartTcpServer_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtTcpServerPort.Text, out int port))
+            {
+                _tcpServer.StartServer(port);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid port number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnStopTcpServer_Click(object sender, EventArgs e)
+        {
+            _tcpServer.StopServer();
+        }
+
+        private void btnCaptureTcp_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtTcpServerPort.Text, out int port))
+            {
+                _wiresharkHelper.StartTcpCapture(port);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid port number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        #endregion
+
+        #region TCP Client Events
+        private async void btnConnectTcp_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtTcpServerPortClient.Text, out int port))
+            {
+                await _tcpClient.ConnectAsync(txtTcpServerIP.Text, port);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid port number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnDisconnectTcp_Click(object sender, EventArgs e)
+        {
+            _tcpClient.Disconnect();
+        }
+
+        private async void btnSendTcpMessage_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtTcpMessage.Text))
+            {
+                await _tcpClient.SendMessageAsync(txtTcpMessage.Text);
+                txtTcpMessage.Clear();
+            }
+        }
+        #endregion
+
+        #region UDP Server Events
+        private void btnStartUdpServer_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtUdpServerPort.Text, out int port))
+            {
+                _udpServer.StartServer(port);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid port number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnStopUdpServer_Click(object sender, EventArgs e)
+        {
+            _udpServer.StopServer();
+        }
+
+        private void btnCaptureUdp_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtUdpServerPort.Text, out int port))
+            {
+                _wiresharkHelper.StartUdpCapture(port);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid port number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        #endregion
+
+        #region UDP Client Events
+        private async void btnConnectUdp_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtUdpServerPortClient.Text, out int port))
+            {
+                await _udpClient.ConnectAsync(txtUdpServerIP.Text, port);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid port number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnDisconnectUdp_Click(object sender, EventArgs e)
+        {
+            _udpClient.Disconnect();
+        }
+
+        private async void btnSendUdpMessage_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtUdpMessage.Text))
+            {
+                await _udpClient.SendMessageAsync(txtUdpMessage.Text);
+                txtUdpMessage.Clear();
+            }
+        }
+        #endregion
+
+        #region Wireshark Tab Events
+        private void btnBrowseWireshark_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "Executable files (*.exe)|*.exe|All files (*.*)|*.*";
+                openFileDialog.Title = "Select Wireshark Executable";
+                openFileDialog.FileName = "Wireshark.exe";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    txtWiresharkPath.Text = openFileDialog.FileName;
+                    _wiresharkHelper.SetWiresharkPath(openFileDialog.FileName);
+                }
+            }
+        }
+
+        private void btnStartLoopbackCapture_Click(object sender, EventArgs e)
+        {
+            _wiresharkHelper.StartLoopbackCapture();
+        }
+
+        private void btnStopCapture_Click(object sender, EventArgs e)
+        {
+            _wiresharkHelper.StopCapture();
+        }
+
+        private async void btnGetInterfaces_Click(object sender, EventArgs e)
+        {
+            txtWiresharkLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Getting network interfaces...\r\n");
+            string interfaces = await _wiresharkHelper.GetNetworkInterfaces();
+            txtWiresharkLog.AppendText($"[{DateTime.Now:HH:mm:ss}] Available interfaces:\r\n{interfaces}\r\n");
+        }
+
+        private void btnShowGuide_Click(object sender, EventArgs e)
+        {
+            txtWiresharkLog.Clear();
+            txtWiresharkLog.AppendText(WiresharkHelper.GetWiresharkGuide());
+        }
+        #endregion
+
+        #region Form Events
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            // Clean up resources
+            _tcpServer?.StopServer();
+            _tcpClient?.Disconnect();
+            _udpServer?.StopServer();
+            _udpClient?.Disconnect();
+            _wiresharkHelper?.Dispose();
+            
+            base.OnFormClosing(e);
+        }
+        #endregion
+    }
+}

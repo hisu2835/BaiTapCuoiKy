@@ -52,8 +52,24 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="LoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NetworkControls.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="NetworkControls2.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="NetworkControls3.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -63,6 +79,14 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="BUILD_SUMMARY.md" />
+    <None Include="DRAWMASTER_COMPLETION_SUMMARY.md" />
+    <None Include="DRAWMASTER_GAME_DESIGN.md" />
+    <None Include="GAME_INTERFACE_DESIGN.md" />
+    <None Include="INITIAL_SCREEN_FEATURE.md" />
+    <None Include="MULTIPLAYER_DRAWING_COMPLETE.md" />
+    <None Include="MULTIPLAYER_DRAWING_GAME.md" />
+    <None Include="NETWORK_PROGRAMMING_PLATFORM.md" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -72,6 +96,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="WAITING_ROOM_SIMPLIFIED.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

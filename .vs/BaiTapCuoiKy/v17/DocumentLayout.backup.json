@@ -1,0 +1,341 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|c:\\users\\nitro\\source\\repos\\baitapcuoiky\\baitapcuoiky\\baitapcuoiky\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\form1.resx||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\form1.resx||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|c:\\users\\nitro\\source\\repos\\baitapcuoiky\\baitapcuoiky\\baitapcuoiky\\game_interface_design.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\game_interface_design.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\multiplayer_drawing_game.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\multiplayer_drawing_game.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\build_summary.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\build_summary.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\networkcontrols.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\networkcontrols.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\networkcontrols2.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\networkcontrols2.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\networkcontrols3.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\networkcontrols3.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\network_programming_platform.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\network_programming_platform.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\drawmaster_game_design.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\drawmaster_game_design.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\drawmaster_completion_summary.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\drawmaster_completion_summary.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\properties\\settings.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\properties\\settings.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\properties\\settings.settings||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\properties\\settings.settings||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\initial_screen_feature.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\initial_screen_feature.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\waiting_room_simplified.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\waiting_room_simplified.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\multiplayer_drawing_complete.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\multiplayer_drawing_complete.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Settings.settings",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Properties\\Settings.settings",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Properties\\Settings.settings",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Properties\\Settings.settings",
+              "RelativeToolTip": "BaiTapCuoiKy\\Properties\\Settings.settings",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002767|",
+              "WhenOpened": "2025-08-15T15:09:11.593Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Settings.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Properties\\Settings.Designer.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Properties\\Settings.Designer.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Properties\\Settings.Designer.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\Properties\\Settings.Designer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwB4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-15T15:08:23.219Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "NetworkControls2.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls2.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls2.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls2.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\NetworkControls2.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-15T13:55:27.208Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "NetworkControls.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\NetworkControls.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-15T13:53:52.033Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "LoginForm.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\LoginForm.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\LoginForm.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\LoginForm.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\LoginForm.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-15T13:52:37.876Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Form1.resx",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.resx",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.resx",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.resx",
+              "RelativeToolTip": "BaiTapCuoiKy\\Form1.resx",
+              "ViewState": "AgIAADwAAAAAAAAAAAAAAEUAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
+              "WhenOpened": "2025-08-13T15:32:47.472Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Form1.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.Designer.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.Designer.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.Designer.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\Form1.Designer.cs",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAAAF0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-13T14:13:39.3Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "MULTIPLAYER_DRAWING_COMPLETE.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\MULTIPLAYER_DRAWING_COMPLETE.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\MULTIPLAYER_DRAWING_COMPLETE.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\MULTIPLAYER_DRAWING_COMPLETE.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\MULTIPLAYER_DRAWING_COMPLETE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-15T15:44:21.369Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "WAITING_ROOM_SIMPLIFIED.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\WAITING_ROOM_SIMPLIFIED.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\WAITING_ROOM_SIMPLIFIED.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\WAITING_ROOM_SIMPLIFIED.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\WAITING_ROOM_SIMPLIFIED.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-15T15:26:42.879Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "INITIAL_SCREEN_FEATURE.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\INITIAL_SCREEN_FEATURE.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\INITIAL_SCREEN_FEATURE.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\INITIAL_SCREEN_FEATURE.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\INITIAL_SCREEN_FEATURE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-15T15:12:23.613Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "NetworkControls3.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls3.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls3.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls3.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\NetworkControls3.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-15T13:58:29.708Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "DRAWMASTER_GAME_DESIGN.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\DRAWMASTER_GAME_DESIGN.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\DRAWMASTER_GAME_DESIGN.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\DRAWMASTER_GAME_DESIGN.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\DRAWMASTER_GAME_DESIGN.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-15T14:37:11.848Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "DRAWMASTER_COMPLETION_SUMMARY.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\DRAWMASTER_COMPLETION_SUMMARY.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\DRAWMASTER_COMPLETION_SUMMARY.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\DRAWMASTER_COMPLETION_SUMMARY.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\DRAWMASTER_COMPLETION_SUMMARY.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-15T14:39:52.023Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "MULTIPLAYER_DRAWING_GAME.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\MULTIPLAYER_DRAWING_GAME.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\MULTIPLAYER_DRAWING_GAME.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\MULTIPLAYER_DRAWING_GAME.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\MULTIPLAYER_DRAWING_GAME.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAALoAAACNAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-13T16:55:39.54Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "NETWORK_PROGRAMMING_PLATFORM.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NETWORK_PROGRAMMING_PLATFORM.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\NETWORK_PROGRAMMING_PLATFORM.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NETWORK_PROGRAMMING_PLATFORM.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\NETWORK_PROGRAMMING_PLATFORM.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-15T14:11:09.994Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "GAME_INTERFACE_DESIGN.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GAME_INTERFACE_DESIGN.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\GAME_INTERFACE_DESIGN.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GAME_INTERFACE_DESIGN.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\GAME_INTERFACE_DESIGN.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJIAAABwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-13T16:11:12.487Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "BUILD_SUMMARY.md",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\BUILD_SUMMARY.md",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\BUILD_SUMMARY.md",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\BUILD_SUMMARY.md",
+              "RelativeToolTip": "BaiTapCuoiKy\\BUILD_SUMMARY.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHgAAABRAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-08-13T16:59:48.57Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "App.config",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\App.config",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\App.config",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\App.config",
+              "RelativeToolTip": "BaiTapCuoiKy\\App.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2025-08-13T14:06:27.537Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\Form1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAxwMwBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-13T14:15:29.378Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Program.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Program.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Program.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-13T14:06:23.244Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

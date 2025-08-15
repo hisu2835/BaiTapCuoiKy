@@ -1,0 +1,199 @@
+﻿# Socket Programming with Wireshark - Bài Tập Cuối Kỳ
+
+## Mô tả dự án
+
+Dự án này đã được nâng cấp để bao gồm đầy đủ các tính năng lập trình Socket cùng với tích hợp Wireshark để phân tích network traffic:
+
+### 1. Cài đặt Môi trường & Giới thiệu Socket
+
+Lớp `SocketEnvironment` cung cấp:
+- **Thông tin môi trường mạng**: Hiển thị các network interfaces, địa chỉ IP
+- **Giới thiệu Socket**: Kiến thức cơ bản về TCP/UDP, Client/Server
+- **Kiểm tra môi trường**: Kiểm tra port, địa chỉ IP, kết nối mạng
+
+### 2. Lập trình Socket - TCP Client/Server
+
+#### TCP Server (`TcpServer.cs`)
+- **Tính năng**: 
+  - Khởi động/dừng server trên port tùy chỉnh
+  - Xử lý nhiều client đồng thời (multi-threading)
+  - Echo messages từ client
+  - Event-driven logging
+  - **Tích hợp Wireshark**: Capture TCP traffic button
+- **Phương thức chính**:
+  - `StartServer(int port)`: Khởi động server
+  - `StopServer()`: Dừng server
+  - Events: `OnMessageReceived`, `OnServerStatusChanged`
+
+#### TCP Client (`TcpClient.cs`)
+- **Tính năng**:
+  - Kết nối đến TCP server
+  - Gửi/nhận messages bất đồng bộ
+  - Auto-reconnection handling
+  - Real-time message logging
+- **Phương thức chính**:
+  - `ConnectAsync(string serverIP, int port)`: Kết nối đến server
+  - `SendMessageAsync(string message)`: Gửi tin nhắn
+  - `Disconnect()`: Ngắt kết nối
+
+### 3. Lập trình Socket - UDP Client/Server
+
+#### UDP Server (`UdpServer.cs`)
+- **Tính năng**:
+  - Connectionless communication
+  - Echo messages từ bất kỳ client nào
+  - Xử lý multiple clients
+  - Logging chi tiết
+  - **Tích hợp Wireshark**: Capture UDP traffic button
+- **Phương thức chính**:
+  - `StartServer(int port)`: Khởi động UDP server
+  - `StopServer()`: Dừng server
+  - `SendMessage(string message, IPEndPoint clientEndPoint)`: Gửi tin nhắn đến client cụ thể
+
+#### UDP Client (`UdpClient.cs`)
+- **Tính năng**:
+  - Gửi/nhận UDP packets
+  - Không cần maintain connection
+  - Fast communication
+  - Background listening
+- **Phương thức chính**:
+  - `ConnectAsync(string serverIP, int port)`: Chuẩn bị giao tiếp UDP
+  - `SendMessageAsync(string message)`: Gửi UDP packet
+  - `Disconnect()`: Dọn dẹp resources
+
+### 4. **TÍCH HỢP WIRESHARK** (`WiresharkHelper.cs`) - **MỚI!**
+
+#### Tính năng chính:
+- **Auto-detection**: Tự động phát hiện Wireshark installation
+- **TCP/UDP Capture**: Capture network traffic theo protocol và port cụ thể
+- **Loopback Capture**: Monitor localhost traffic cho testing
+- **Interface Management**: Liệt kê và quản lý network interfaces
+- **Filter Support**: Sử dụng capture filters cho traffic cụ thể
+- **Process Management**: Khởi động/dừng Wireshark processes
+
+#### Phương thức chính:
+- `StartTcpCapture(int port)`: Capture TCP traffic trên port cụ thể
+- `StartUdpCapture(int port)`: Capture UDP traffic trên port cụ thể
+- `StartLoopbackCapture()`: Monitor localhost traffic
+- `GetNetworkInterfaces()`: Lấy danh sách network interfaces
+- `StopCapture()`: Dừng capture hiện tại
+
+## Giao diện người dùng
+
+Ứng dụng Windows Forms với **6 tabs**:
+
+### 1. Socket Environment
+- Hiển thị thông tin môi trường mạng
+- Giới thiệu các khái niệm Socket programming
+- Kiểm tra system capabilities
+
+### 2. TCP Server
+- Khởi động/dừng TCP server
+- Cấu hình port
+- Theo dõi client connections và messages
+- **Button "Capture with Wireshark"**: Khởi động Wireshark để monitor TCP traffic
+
+### 3. TCP Client
+- Kết nối đến TCP server
+- Gửi messages real-time
+- Hiển thị responses từ server
+
+### 4. UDP Server
+- Khởi động/dừng UDP server
+- Nhận và echo UDP packets
+- Logging từ multiple clients
+- **Button "Capture with Wireshark"**: Khởi động Wireshark để monitor UDP traffic
+
+### 5. UDP Client
+- Gửi UDP packets đến server
+- Nhận responses
+- Fast communication testing
+
+### 6. **Wireshark Analysis** - **MỚI!**
+- **Wireshark Path Configuration**: Cấu hình đường dẫn đến Wireshark
+- **Start Loopback Capture**: Monitor localhost traffic
+- **Stop Capture**: Dừng capture hiện tại
+- **Get Interfaces**: Liệt kê network interfaces
+- **Show Guide**: Hiển thị hướng dẫn sử dụng Wireshark
+- **Real-time Logging**: Hiển thị status của Wireshark operations
+
+## **HƯỚNG DẪN SỬ DỤNG WIRESHARK**
+
+### Cài đặt:
+1. Download và cài đặt Wireshark từ https://www.wireshark.org/
+2. Ứng dụng sẽ tự động detect Wireshark hoặc browse để chọn path
+
+### Workflow:
+1. **Khởi động Wireshark capture trước khi test socket**:
+   - Vào tab "Wireshark Analysis"
+   - Click "Start Loopback Capture" để monitor localhost traffic
+   - Hoặc click "Capture with Wireshark" trên TCP/UDP server tabs
+
+2. **Chạy socket communication**:
+   - Khởi động TCP/UDP server
+   - Kết nối client và gửi messages
+
+3. **Phân tích trong Wireshark**:
+   - Quan sát packets real-time
+   - Sử dụng filters: `tcp port 8080`, `udp port 8081`
+   - Follow TCP streams để xem toàn bộ conversation
+
+### Filters hữu ích:
+- `tcp port 8080`: TCP traffic trên port 8080
+- `udp port 8081`: UDP traffic trên port 8081
+- `host 127.0.0.1`: Traffic từ/đến localhost
+- `tcp.stream eq 0`: TCP stream đầu tiên
+
+## Tính năng nâng cao
+
+1. **Multi-threading**: Server xử lý nhiều client đồng thời
+2. **Event-driven architecture**: Real-time updates qua events
+3. **Error handling**: Comprehensive exception handling
+4. **Resource management**: Proper cleanup khi đóng ứng dụng
+5. **Cross-thread UI updates**: Thread-safe UI operations
+6. **Network diagnostics**: Kiểm tra network interfaces và capabilities
+7. **🔥 Wireshark Integration**: Real-time network traffic analysis
+8. **🔥 Automatic Capture**: One-click packet capture cho TCP/UDP traffic
+9. **🔥 Filter Management**: Pre-configured filters cho various protocols
+
+## Cách sử dụng
+
+1. **Khởi động môi trường**:
+   - Mở tab "Socket Environment"
+   - Click "Get Environment Info" để xem thông tin hệ thống
+
+2. **Setup Wireshark**:
+   - Mở tab "Wireshark Analysis"
+   - Kiểm tra Wireshark detection status
+   - Nếu cần, browse để chọn Wireshark path
+
+3. **Test TCP Communication với Wireshark**:
+   - Mở tab "TCP Server", click "Capture with Wireshark"
+   - Khởi động server (port 8080)
+   - Mở tab "TCP Client", connect đến 127.0.0.1:8080
+   - Gửi messages và quan sát packets trong Wireshark
+
+4. **Test UDP Communication với Wireshark**:
+   - Mở tab "UDP Server", click "Capture with Wireshark"
+   - Khởi động server (port 8081)
+   - Mở tab "UDP Client", connect đến 127.0.0.1:8081
+   - Gửi UDP packets và phân tích trong Wireshark
+
+## Kiến trúc kỹ thuật
+
+- **Framework**: .NET Framework 4.7.2
+- **Pattern**: Event-driven, Observer pattern
+- **Threading**: Background threads cho server operations
+- **UI**: Windows Forms với TabControl
+- **Networking**: System.Net.Sockets namespace
+- **🔥 Network Analysis**: Wireshark integration với auto-detection
+- **🔥 Process Management**: Launch và control Wireshark instances
+
+## Yêu cầu hệ thống
+
+- **.NET Framework 4.7.2** hoặc cao hơn
+- **Windows OS** với network interface support
+- **Wireshark** (tùy chọn, để sử dụng network analysis features)
+- **Administrator privileges** (có thể cần thiết cho packet capture)
+
+Dự án này cung cấp một ví dụ hoàn chỉnh về lập trình Socket trong .NET với tích hợp Wireshark để phân tích network traffic, phù hợp cho việc học tập và thực hành các khái niệm mạng máy tính nâng cao.

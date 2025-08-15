@@ -1,0 +1,98 @@
+﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BaiTapCuoiKy
+{
+    public class UdpClient
+    {
+        private System.Net.Sockets.UdpClient _udpClient;
+        private IPEndPoint _serverEndPoint;
+        private bool _isConnected = false;
+
+        public event Action<string> OnMessageReceived;
+        public event Action<string> OnConnectionStatusChanged;
+
+        public Task<bool> ConnectAsync(string serverIP, int port)
+        {
+            try
+            {
+                _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIP), port);
+                _udpClient = new System.Net.Sockets.UdpClient();
+                _isConnected = true;
+                OnConnectionStatusChanged?.Invoke($"UDP Client ready to communicate with {serverIP}:{port}");
+                
+                // Start listening for responses
+                _ = Task.Run(ListenForMessages);
+                return Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                OnConnectionStatusChanged?.Invoke($"Failed to initialize UDP Client: {ex.Message}");
+                return Task.FromResult(false);
+            }
+        }
+
+        public void Disconnect()
+        {
+            try
+            {
+                _isConnected = false;
+                _udpClient?.Dispose();
+                OnConnectionStatusChanged?.Invoke("UDP Client disconnected");
+            }
+            catch (Exception ex)
+            {
+                OnConnectionStatusChanged?.Invoke($"Error disconnecting UDP Client: {ex.Message}");
+            }
+        }
+
+        public async Task SendMessageAsync(string message)
+        {
+            if (!_isConnected || _udpClient == null)
+            {
+                OnConnectionStatusChanged?.Invoke("UDP Client not initialized");
+                return;
+            }
+
+            try
+            {
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                await Task.Run(() => _udpClient.Send(data, data.Length, _serverEndPoint));
+                OnConnectionStatusChanged?.Invoke($"UDP Sent: {message}");
+            }
+            catch (Exception ex)
+            {
+                OnConnectionStatusChanged?.Invoke($"Error sending UDP message: {ex.Message}");
+            }
+        }
+
+        private async Task ListenForMessages()
+        {
+            while (_isConnected && _udpClient != null)
+            {
+                try
+                {
+                    var result = await Task.Run(() => {
+                        IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                        byte[] receivedBytes = _udpClient.Receive(ref remoteEndPoint);
+                        return new { Buffer = receivedBytes, RemoteEndPoint = remoteEndPoint };
+                    });
+                    
+                    string message = Encoding.UTF8.GetString(result.Buffer);
+                    OnMessageReceived?.Invoke($"UDP Received: {message}");
+                }
+                catch (Exception ex)
+                {
+                    if (_isConnected)
+                    {
+                        OnConnectionStatusChanged?.Invoke($"Error receiving UDP message: {ex.Message}");
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
