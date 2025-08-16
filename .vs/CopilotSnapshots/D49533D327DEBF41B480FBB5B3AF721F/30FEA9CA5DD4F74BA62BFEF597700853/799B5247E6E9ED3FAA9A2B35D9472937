@@ -1,0 +1,386 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using BaiTapCuoiKy.Properties;
+
+namespace BaiTapCuoiKy
+{
+    public partial class Form1 : Form
+    {
+        private string currentUser;
+        private bool isInGame = false;
+        private Random random = new Random();
+        
+        // UI Components for the waiting room
+        private Panel welcomePanel;
+        private Label welcomeLabel;
+        private Label userStatsLabel;
+        private Button createRoomButton;
+        private Button joinRoomButton;
+        private Button logoutButton;
+        private TextBox roomCodeTextBox;
+        private Label roomCodeLabel;
+        private Panel gameStatsPanel;
+
+        public Form1() : this("Guest")
+        {
+        }
+
+        public Form1(string username)
+        {
+            InitializeComponent();
+            currentUser = username;
+            SetupWaitingRoom();
+            LoadUserStats();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            toolStripStatusLabel.Text = $"Chào mừng {currentUser} đến với DrawMaster!";
+        }
+
+        private void SetupWaitingRoom()
+        {
+            this.WindowState = FormWindowState.Maximized;
+            this.Text = $"DrawMaster - Chào mừng {currentUser}";
+            
+            CreateWelcomeInterface();
+        }
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame); // Keep status bar
+
+            // Main welcome panel
+            welcomePanel = new Panel
+            {
+                Size = new Size(800, 600),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add shadow effect
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                // Shadow
+                using (var brush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRectangle(brush, 5, 5, welcomePanel.Width, welcomePanel.Height);
+                }
+                // Main panel
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 0, welcomePanel.Width - 5, welcomePanel.Height - 5);
+                }
+                // Border
+                using (var pen = new Pen(Color.FromArgb(45, 125, 245), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 1, 1, welcomePanel.Width - 7, welcomePanel.Height - 7);
+                }
+            };
+
+            // Title
+            Label titleLabel = new Label
+            {
+                Text = "🎨 DRAWMASTER 🎨",
+                Font = new Font("Segoe UI", 32, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(50, 50),
+                Size = new Size(700, 60),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Welcome message
+            welcomeLabel = new Label
+            {
+                Text = $"Chào mừng, {currentUser}!",
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 130),
+                Size = new Size(700, 40),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // User stats panel
+            CreateUserStatsPanel();
+
+            // Game options
+            Label optionsLabel = new Label
+            {
+                Text = "Chọn một tùy chọn để bắt đầu:",
+                Font = new Font("Segoe UI", 14),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 320),
+                Size = new Size(700, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Create room button
+            createRoomButton = new Button
+            {
+                Text = "🏠 TẠO PHÒNG MỚI",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                BackColor = Color.FromArgb(40, 167, 69),
+                ForeColor = Color.White,
+                Size = new Size(300, 60),
+                Location = new Point(100, 370),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            createRoomButton.FlatAppearance.BorderSize = 0;
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Join room section
+            roomCodeLabel = new Label
+            {
+                Text = "Mã phòng:",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(450, 350),
+                Size = new Size(100, 25)
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 14),
+                Location = new Point(450, 375),
+                Size = new Size(200, 35),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6
+            };
+
+            joinRoomButton = new Button
+            {
+                Text = "🚪 THAM GIA PHÒNG",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                BackColor = Color.FromArgb(0, 123, 255),
+                ForeColor = Color.White,
+                Size = new Size(300, 60),
+                Location = new Point(400, 420),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            joinRoomButton.FlatAppearance.BorderSize = 0;
+            joinRoomButton.Click += JoinRoomButton_Click;
+
+            // Logout button
+            logoutButton = new Button
+            {
+                Text = "🚪 ĐĂNG XUẤT",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BackColor = Color.FromArgb(220, 53, 69),
+                ForeColor = Color.White,
+                Size = new Size(150, 40),
+                Location = new Point(325, 520),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            logoutButton.FlatAppearance.BorderSize = 0;
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void CreateUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(600, 120),
+                Location = new Point(100, 180),
+                BackColor = Color.FromArgb(248, 249, 250),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ CỦA BẠN",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(20, 15),
+                Size = new Size(560, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 11),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(20, 50),
+                Size = new Size(560, 60),
+                TextAlign = ContentAlignment.TopCenter
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void LoadUserStats()
+        {
+            var stats = new StringBuilder();
+            stats.AppendLine($"🎮 Tổng số game đã chơi: {Settings.Default.TotalGamesPlayed}");
+            stats.AppendLine($"🏆 Điểm cao nhất: {Settings.Default.HighestScore}");
+            stats.AppendLine($"🎯 Điểm game gần nhất: {Settings.Default.LastGameScore}");
+            
+            if (Settings.Default.LastPlayedDate != DateTime.MinValue)
+            {
+                stats.AppendLine($"📅 Lần chơi cuối: {Settings.Default.LastPlayedDate:dd/MM/yyyy HH:mm}");
+            }
+            else
+            {
+                stats.AppendLine("📅 Lần đầu tiên chơi - Chào mừng bạn!");
+            }
+
+            userStatsLabel.Text = stats.ToString();
+        }
+
+        private void CreateRoomButton_Click(object sender, EventArgs e)
+        {
+            string roomCode = GenerateRoomCode();
+            
+            var result = MessageBox.Show(
+                $"Tạo phòng thành công!\n\nMã phòng: {roomCode}\n\nBạn có muốn bắt đầu game ngay không?\n(Hiện tại đây là phiên bản demo)",
+                "Phòng đã được tạo",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Information
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                StartDemoGame();
+            }
+        }
+
+        private void JoinRoomButton_Click(object sender, EventArgs e)
+        {
+            string roomCode = roomCodeTextBox.Text.Trim().ToUpper();
+            
+            if (string.IsNullOrEmpty(roomCode))
+            {
+                MessageBox.Show("Vui lòng nhập mã phòng!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (roomCode.Length != 6)
+            {
+                MessageBox.Show("Mã phòng phải có 6 ký tự!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Simulate joining room (in a real app, this would connect to a server)
+            var result = MessageBox.Show(
+                $"Đang tham gia phòng: {roomCode}\n\nTìm thấy phòng!\nBạn có muốn tham gia không?\n(Hiện tại đây là phiên bản demo)",
+                "Tìm thấy phòng",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                StartDemoGame();
+            }
+        }
+
+        private void LogoutButton_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Bạn có chắc chắn muốn đăng xuất không?",
+                "Xác nhận đăng xuất",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                this.Close();
+                
+                // Show login form again
+                var loginForm = new LoginForm();
+                loginForm.LoginSuccessful += (username) =>
+                {
+                    var gameForm = new Form1(username);
+                    gameForm.Show();
+                };
+                loginForm.Show();
+            }
+        }
+
+        private void StartDemoGame()
+        {
+            // Update stats
+            Settings.Default.TotalGamesPlayed++;
+            Settings.Default.LastPlayedDate = DateTime.Now;
+            
+            // Generate random score for demo
+            int demoScore = random.Next(50, 200);
+            Settings.Default.LastGameScore = demoScore;
+            
+            if (demoScore > Settings.Default.HighestScore)
+            {
+                Settings.Default.HighestScore = demoScore;
+            }
+            
+            Settings.Default.Save();
+
+            // Show demo game results
+            MessageBox.Show(
+                $"🎉 Demo Game Completed! 🎉\n\n" +
+                $"Bạn đã ghi được: {demoScore} điểm\n" +
+                $"Thời gian chơi: {random.Next(30, 120)} giây\n" +
+                $"Từ đã đoán: {GetRandomWord()}\n\n" +
+                $"Cảm ơn bạn đã chơi DrawMaster!\n" +
+                $"(Đây là phiên bản demo - Game thật sẽ có đầy đủ tính năng vẽ và multiplayer)",
+                "Kết quả game",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
+            // Refresh stats
+            LoadUserStats();
+        }
+
+        private string GenerateRoomCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private string GetRandomWord()
+        {
+            string[] words = { "CAT", "DOG", "HOUSE", "TREE", "CAR", "BOOK", "APPLE", "STAR", "FISH", "BIRD" };
+            return words[random.Next(words.Length)];
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+            Application.Exit();
+        }
+    }
+}
