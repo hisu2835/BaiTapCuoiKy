@@ -1,0 +1,320 @@
+﻿namespace BaiTapCuoiKy
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            this.SuspendLayout();
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
+            this.ClientSize = new System.Drawing.Size(1200, 700);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Network Programming Platform - Comprehensive Learning System";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+    }
+
+    partial class LoginForm
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // LoginForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(1200, 700);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Name = "LoginForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Network Programming Platform - Login";
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+    }
+
+    // UserControl Designer stubs for all network controls
+    partial class EnvironmentControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "EnvironmentControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class TcpControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "TcpControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class UdpControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "UdpControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class AsyncControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "AsyncControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class MultiClientControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "MultiClientControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class SecurityControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "SecurityControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class BroadcastControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "BroadcastControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class HttpEmailControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "HttpEmailControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class WebSocketControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "WebSocketControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+
+    partial class WiresharkControl
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.Name = "WiresharkControl";
+            this.Size = new System.Drawing.Size(800, 600);
+            this.ResumeLayout(false);
+        }
+    }
+}
+

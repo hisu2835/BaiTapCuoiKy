@@ -1,0 +1,415 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Net.Http;
+using System.Diagnostics;
+
+namespace BaiTapCuoiKy
+{
+    public partial class LoginForm : Form
+    {
+        public event Action<string> LoginSuccessful;
+        private Panel mainPanel;
+        private Panel leftPanel;
+        private Panel rightPanel;
+        private bool isLoginMode = true;
+
+        public LoginForm()
+        {
+            InitializeComponent();
+            SetupModernUI();
+        }
+
+        private void SetupModernUI()
+        {
+            // Form properties
+            this.Size = new Size(1200, 700);
+            this.BackColor = Color.FromArgb(45, 125, 245); // Modern blue gradient
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.None;
+
+            CreateMainLayout();
+        }
+
+        private void CreateMainLayout()
+        {
+            // Main container
+            mainPanel = new Panel
+            {
+                Size = new Size(900, 500),
+                Location = new Point((this.Width - 900) / 2, (this.Height - 500) / 2),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+
+            // Add rounded corners effect
+            mainPanel.Paint += (s, e) => {
+                var rect = new Rectangle(0, 0, mainPanel.Width, mainPanel.Height);
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, rect);
+                }
+            };
+
+            this.Controls.Add(mainPanel);
+
+            CreateLeftPanel();
+            CreateRightPanel();
+        }
+
+        private void CreateLeftPanel()
+        {
+            leftPanel = new Panel
+            {
+                Size = new Size(450, 500),
+                Location = new Point(0, 0),
+                BackColor = Color.FromArgb(240, 248, 255)
+            };
+
+            // Logo and title
+            Label titleLabel = new Label
+            {
+                Text = "NETWORK PRO",
+                Font = new Font("Segoe UI", 28, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(50, 80),
+                Size = new Size(350, 50),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label subtitleLabel = new Label
+            {
+                Text = "Comprehensive Network Programming Platform",
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                ForeColor = Color.FromArgb(100, 100, 100),
+                Location = new Point(50, 140),
+                Size = new Size(350, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Feature list
+            Label featuresLabel = new Label
+            {
+                Text = "✓ Socket Programming (TCP/UDP)\n" +
+                       "✓ Asynchronous Network Operations\n" +
+                       "✓ SSL/TLS Security Implementation\n" +
+                       "✓ WebSocket & gRPC Integration\n" +
+                       "✓ Wireshark Network Analysis\n" +
+                       "✓ Multi-Client Server Architecture\n" +
+                       "✓ Broadcast & Multicast Communication",
+                Font = new Font("Segoe UI", 11),
+                ForeColor = Color.FromArgb(80, 80, 80),
+                Location = new Point(50, 200),
+                Size = new Size(350, 200),
+                TextAlign = ContentAlignment.TopLeft
+            };
+
+            leftPanel.Controls.AddRange(new Control[] { titleLabel, subtitleLabel, featuresLabel });
+            mainPanel.Controls.Add(leftPanel);
+        }
+
+        private void CreateRightPanel()
+        {
+            rightPanel = new Panel
+            {
+                Size = new Size(450, 500),
+                Location = new Point(450, 0),
+                BackColor = Color.White
+            };
+
+            CreateLoginInterface();
+            mainPanel.Controls.Add(rightPanel);
+        }
+
+        private void CreateLoginInterface()
+        {
+            rightPanel.Controls.Clear();
+
+            // Header
+            Label headerLabel = new Label
+            {
+                Text = isLoginMode ? "ĐĂNG NHẬP" : "ĐĂNG KÝ",
+                Font = new Font("Segoe UI", 24, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(50, 50),
+                Size = new Size(350, 40),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // User info panel (similar to the image)
+            Panel userInfoPanel = CreateUserInfoPanel();
+
+            // Social login section
+            Label socialLabel = new Label
+            {
+                Text = "HOẶC ĐĂNG NHẬP",
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                ForeColor = Color.Gray,
+                Location = new Point(50, 280),
+                Size = new Size(350, 20),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Panel socialPanel = CreateSocialPanel();
+
+            // Action button
+            Button actionButton = new Button
+            {
+                Text = isLoginMode ? "🎮 ĐĂNG NHẬP" : "📝 ĐĂNG KÝ",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = Color.FromArgb(255, 165, 0),
+                ForeColor = Color.White,
+                Size = new Size(350, 50),
+                Location = new Point(50, 400),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            actionButton.FlatAppearance.BorderSize = 0;
+            actionButton.Click += ActionButton_Click;
+
+            // Toggle link
+            LinkLabel toggleLabel = new LinkLabel
+            {
+                Text = isLoginMode ? "Chưa có tài khoản? Đăng ký ngay" : "Đã có tài khoản? Đăng nhập",
+                Font = new Font("Segoe UI", 10),
+                Location = new Point(50, 460),
+                Size = new Size(350, 20),
+                TextAlign = ContentAlignment.MiddleCenter,
+                LinkColor = Color.FromArgb(45, 125, 245)
+            };
+            toggleLabel.Click += ToggleLabel_Click;
+
+            rightPanel.Controls.AddRange(new Control[] { 
+                headerLabel, userInfoPanel, socialLabel, socialPanel, actionButton, toggleLabel 
+            });
+        }
+
+        private Panel CreateUserInfoPanel()
+        {
+            Panel panel = new Panel
+            {
+                Location = new Point(50, 120),
+                Size = new Size(350, 140),
+                BackColor = Color.FromArgb(248, 250, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Avatar
+            PictureBox avatar = new PictureBox
+            {
+                Size = new Size(80, 80),
+                Location = new Point(20, 30),
+                BackColor = Color.FromArgb(255, 193, 7),
+                SizeMode = PictureBoxSizeMode.CenterImage
+            };
+            
+            // Draw smiley face
+            avatar.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using (var brush = new SolidBrush(Color.FromArgb(255, 193, 7)))
+                {
+                    e.Graphics.FillEllipse(brush, 0, 0, 80, 80);
+                }
+                using (var pen = new Pen(Color.White, 3))
+                {
+                    // Eyes
+                    e.Graphics.DrawEllipse(pen, 25, 25, 8, 8);
+                    e.Graphics.DrawEllipse(pen, 47, 25, 8, 8);
+                    // Smile
+                    e.Graphics.DrawArc(pen, 25, 35, 30, 20, 0, 180);
+                }
+            };
+
+            // Username input
+            TextBox usernameBox = new TextBox
+            {
+                Name = "txtUsername",
+                PlaceholderText = isLoginMode ? "Tên đăng nhập" : "Tên người dùng",
+                Font = new Font("Segoe UI", 11),
+                Location = new Point(120, 40),
+                Size = new Size(200, 30),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Password input (only for registration)
+            TextBox passwordBox = new TextBox
+            {
+                Name = "txtPassword",
+                PlaceholderText = "Mật khẩu",
+                Font = new Font("Segoe UI", 11),
+                Location = new Point(120, 80),
+                Size = new Size(200, 30),
+                BorderStyle = BorderStyle.FixedSingle,
+                UseSystemPasswordChar = true,
+                Visible = !isLoginMode
+            };
+
+            panel.Controls.AddRange(new Control[] { avatar, usernameBox, passwordBox });
+            return panel;
+        }
+
+        private Panel CreateSocialPanel()
+        {
+            Panel panel = new Panel
+            {
+                Location = new Point(50, 310),
+                Size = new Size(350, 70),
+                BackColor = Color.Transparent
+            };
+
+            // Social buttons
+            Button facebookBtn = CreateSocialButton("Facebook", Color.FromArgb(59, 89, 152), "F");
+            facebookBtn.Location = new Point(20, 20);
+            facebookBtn.Click += (s, e) => LoginWithProvider("Facebook");
+
+            Button googleBtn = CreateSocialButton("Google", Color.FromArgb(221, 75, 57), "G");
+            googleBtn.Location = new Point(95, 20);
+            googleBtn.Click += (s, e) => LoginWithProvider("Google");
+
+            Button githubBtn = CreateSocialButton("GitHub", Color.FromArgb(51, 51, 51), "Git");
+            githubBtn.Location = new Point(170, 20);
+            githubBtn.Click += (s, e) => LoginWithProvider("GitHub");
+
+            Button twitterBtn = CreateSocialButton("Twitter", Color.FromArgb(29, 161, 242), "T");
+            twitterBtn.Location = new Point(245, 20);
+            twitterBtn.Click += (s, e) => LoginWithProvider("Twitter");
+
+            panel.Controls.AddRange(new Control[] { facebookBtn, googleBtn, githubBtn, twitterBtn });
+            return panel;
+        }
+
+        private Button CreateSocialButton(string provider, Color color, string text)
+        {
+            Button btn = new Button
+            {
+                Size = new Size(50, 50),
+                BackColor = color,
+                ForeColor = Color.White,
+                Text = text,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Tag = provider
+            };
+            btn.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effect
+            btn.MouseEnter += (s, e) => btn.BackColor = ControlPaint.Dark(color, 0.1f);
+            btn.MouseLeave += (s, e) => btn.BackColor = color;
+
+            return btn;
+        }
+
+        private void ActionButton_Click(object sender, EventArgs e)
+        {
+            var usernameBox = rightPanel.Controls.Find("txtUsername", true).FirstOrDefault() as TextBox;
+            string username = usernameBox?.Text ?? "";
+
+            if (string.IsNullOrEmpty(username))
+            {
+                MessageBox.Show("Vui lòng nhập tên người dùng!", "Thông báo", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (isLoginMode)
+            {
+                // Simulate login
+                LoginSuccessful?.Invoke(username);
+                this.Hide();
+            }
+            else
+            {
+                var passwordBox = rightPanel.Controls.Find("txtPassword", true).FirstOrDefault() as TextBox;
+                string password = passwordBox?.Text ?? "";
+
+                if (string.IsNullOrEmpty(password))
+                {
+                    MessageBox.Show("Vui lòng nhập mật khẩu!", "Thông báo", 
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Simulate registration
+                MessageBox.Show("Đăng ký thành công!", "Thông báo", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                
+                isLoginMode = true;
+                CreateLoginInterface();
+            }
+        }
+
+        private void ToggleLabel_Click(object sender, EventArgs e)
+        {
+            isLoginMode = !isLoginMode;
+            CreateLoginInterface();
+        }
+
+        private async void LoginWithProvider(string provider)
+        {
+            try
+            {
+                // Simulate OAuth flow
+                var loadingForm = new Form
+                {
+                    Size = new Size(300, 150),
+                    StartPosition = FormStartPosition.CenterParent,
+                    FormBorderStyle = FormBorderStyle.FixedDialog,
+                    MaximizeBox = false,
+                    MinimizeBox = false,
+                    Text = $"Đăng nhập {provider}"
+                };
+
+                var loadingLabel = new Label
+                {
+                    Text = $"Đang kết nối với {provider}...",
+                    Location = new Point(50, 50),
+                    Size = new Size(200, 30),
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+
+                loadingForm.Controls.Add(loadingLabel);
+                loadingForm.Show();
+
+                // Simulate API call delay
+                await Task.Delay(2000);
+
+                loadingForm.Hide();
+
+                // Show success and login
+                MessageBox.Show($"Đăng nhập {provider} thành công!", "Thông báo", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                string username = $"User_{provider}_{DateTime.Now.Ticks % 10000}";
+                LoginSuccessful?.Invoke(username);
+                this.Hide();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi đăng nhập {provider}: {ex.Message}", "Lỗi", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            
+            // Draw gradient background
+            using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
+                this.ClientRectangle,
+                Color.FromArgb(45, 125, 245),
+                Color.FromArgb(30, 90, 200),
+                System.Drawing.Drawing2D.LinearGradientMode.Vertical))
+            {
+                e.Graphics.FillRectangle(brush, this.ClientRectangle);
+            }
+        }
+    }
+}

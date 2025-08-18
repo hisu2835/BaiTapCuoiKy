@@ -1,0 +1,167 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    public partial class Form1 : Form
+    {
+        private bool isLoggedIn = false;
+        private string currentUser = "";
+        private TabControl mainTabControl;
+
+        public Form1()
+        {
+            InitializeComponent();
+            ShowLoginForm();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            if (isLoggedIn)
+            {
+                InitializeMainInterface();
+            }
+        }
+
+        private void ShowLoginForm()
+        {
+            // Hide main interface and show login
+            this.Controls.Clear();
+            LoginForm loginForm = new LoginForm();
+            loginForm.LoginSuccessful += (username) => {
+                isLoggedIn = true;
+                currentUser = username;
+                InitializeMainInterface();
+            };
+            
+            loginForm.TopLevel = false;
+            loginForm.FormBorderStyle = FormBorderStyle.None;
+            loginForm.Dock = DockStyle.Fill;
+            this.Controls.Add(loginForm);
+            loginForm.Show();
+        }
+
+        private void InitializeMainInterface()
+        {
+            this.Controls.Clear();
+            CreateMainTabs();
+        }
+
+        private void CreateMainTabs()
+        {
+            mainTabControl = new TabControl();
+            mainTabControl.Dock = DockStyle.Fill;
+            
+            // Add all network programming tabs
+            AddEnvironmentTab();           // Buổi 02: Cài đặt Môi trường & Giới thiệu Socket
+            AddTcpTab();                  // Buổi 03: TCP Client/Server
+            AddUdpTab();                  // Buổi 04: UDP Client/Server
+            AddAsyncTab();                // Buổi 05: Lập trình bất đồng bộ
+            AddMultiClientTab();          // Buổi 06: Multi-Client Server
+            AddSecurityTab();             // Buổi 07: Bảo mật SSL/TLS
+            AddBroadcastTab();            // Buổi 08: Broadcast & Multicast
+            AddHttpEmailTab();            // Buổi 09: HTTP - Email
+            AddWebSocketTab();            // Buổi 10: WebSocket - gRPC
+            AddWiresharkTab();            // Wireshark Integration
+            
+            this.Controls.Add(mainTabControl);
+        }
+
+        private void AddEnvironmentTab()
+        {
+            TabPage tab = new TabPage("Môi trường Socket");
+            EnvironmentControl envControl = new EnvironmentControl();
+            envControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(envControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddTcpTab()
+        {
+            TabPage tab = new TabPage("TCP Client/Server");
+            TcpControl tcpControl = new TcpControl();
+            tcpControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(tcpControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddUdpTab()
+        {
+            TabPage tab = new TabPage("UDP Client/Server");
+            UdpControl udpControl = new UdpControl();
+            udpControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(udpControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddAsyncTab()
+        {
+            TabPage tab = new TabPage("Bất đồng bộ");
+            AsyncControl asyncControl = new AsyncControl();
+            asyncControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(asyncControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddMultiClientTab()
+        {
+            TabPage tab = new TabPage("Multi-Client Server");
+            MultiClientControl multiControl = new MultiClientControl();
+            multiControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(multiControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddSecurityTab()
+        {
+            TabPage tab = new TabPage("SSL/TLS Security");
+            SecurityControl securityControl = new SecurityControl();
+            securityControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(securityControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddBroadcastTab()
+        {
+            TabPage tab = new TabPage("Broadcast/Multicast");
+            BroadcastControl broadcastControl = new BroadcastControl();
+            broadcastControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(broadcastControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddHttpEmailTab()
+        {
+            TabPage tab = new TabPage("HTTP/Email");
+            HttpEmailControl httpControl = new HttpEmailControl();
+            httpControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(httpControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddWebSocketTab()
+        {
+            TabPage tab = new TabPage("WebSocket/gRPC");
+            WebSocketControl wsControl = new WebSocketControl();
+            wsControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(wsControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+
+        private void AddWiresharkTab()
+        {
+            TabPage tab = new TabPage("Wireshark Analysis");
+            WiresharkControl wiresharkControl = new WiresharkControl();
+            wiresharkControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(wiresharkControl);
+            mainTabControl.TabPages.Add(tab);
+        }
+    }
+}

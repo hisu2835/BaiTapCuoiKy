@@ -1,0 +1,361 @@
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Win32;
+
+namespace BaiTapCuoiKy
+{
+    public class WiresharkHelper
+    {
+        private string _wiresharkPath;
+        private Process _wiresharkProcess;
+
+        public event Action<string> OnWiresharkStatusChanged;
+
+        public WiresharkHelper()
+        {
+            DetectWiresharkInstallation();
+        }
+
+        /// <summary>
+        /// Tự động phát hiện cài đặt Wireshark
+        /// </summary>
+        private void DetectWiresharkInstallation()
+        {
+            try
+            {
+                // Kiểm tra các đường dẫn phổ biến của Wireshark
+                string[] commonPaths = {
+                    @"C:\Program Files\Wireshark\Wireshark.exe",
+                    @"C:\Program Files (x86)\Wireshark\Wireshark.exe",
+                    @"C:\Wireshark\Wireshark.exe"
+                };
+
+                foreach (string path in commonPaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        _wiresharkPath = path;
+                        OnWiresharkStatusChanged?.Invoke($"Wireshark detected: {path}");
+                        return;
+                    }
+                }
+
+                // Kiểm tra trong Registry
+                try
+                {
+                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"))
+                    {
+                        if (key != null)
+                        {
+                            foreach (string subKeyName in key.GetSubKeyNames())
+                            {
+                                using (RegistryKey subKey = key.OpenSubKey(subKeyName))
+                                {
+                                    string displayName = subKey?.GetValue("DisplayName")?.ToString();
+                                    if (displayName != null && displayName.Contains("Wireshark"))
+                                    {
+                                        string installLocation = subKey.GetValue("InstallLocation")?.ToString();
+                                        if (!string.IsNullOrEmpty(installLocation))
+                                        {
+                                            string wiresharkExe = Path.Combine(installLocation, "Wireshark.exe");
+                                            if (File.Exists(wiresharkExe))
+                                            {
+                                                _wiresharkPath = wiresharkExe;
+                                                OnWiresharkStatusChanged?.Invoke($"Wireshark detected via registry: {wiresharkExe}");
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
+
+                OnWiresharkStatusChanged?.Invoke("Wireshark not found. Please install Wireshark or specify path manually.");
+            }
+            catch (Exception ex)
+            {
+                OnWiresharkStatusChanged?.Invoke($"Error detecting Wireshark: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra Wireshark có sẵn không
+        /// </summary>
+        public bool IsWiresharkAvailable()
+        {
+            return !string.IsNullOrEmpty(_wiresharkPath) && File.Exists(_wiresharkPath);
+        }
+
+        /// <summary>
+        /// Thiết lập đường dẫn Wireshark thủ công
+        /// </summary>
+        public void SetWiresharkPath(string path)
+        {
+            if (File.Exists(path))
+            {
+                _wiresharkPath = path;
+                OnWiresharkStatusChanged?.Invoke($"Wireshark path set: {path}");
+            }
+            else
+            {
+                OnWiresharkStatusChanged?.Invoke($"Invalid Wireshark path: {path}");
+            }
+        }
+
+        /// <summary>
+        /// Khởi động Wireshark để capture traffic
+        /// </summary>
+        public void StartCapture(string interfaceName = null, string captureFilter = null)
+        {
+            if (!IsWiresharkAvailable())
+            {
+                OnWiresharkStatusChanged?.Invoke("Wireshark is not available. Please install or configure path.");
+                return;
+            }
+
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = _wiresharkPath,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                };
+
+                // Tạo arguments cho Wireshark
+                StringBuilder args = new StringBuilder();
+
+                // Chỉ định interface nếu có
+                if (!string.IsNullOrEmpty(interfaceName))
+                {
+                    args.Append($"-i \"{interfaceName}\" ");
+                }
+                else
+                {
+                    // Sử dụng interface mặc định (thường là đầu tiên)
+                    args.Append("-i 1 ");
+                }
+
+                // Thêm capture filter nếu có
+                if (!string.IsNullOrEmpty(captureFilter))
+                {
+                    args.Append($"-f \"{captureFilter}\" ");
+                }
+
+                // Khởi động capture ngay lập tức
+                args.Append("-k ");
+
+                startInfo.Arguments = args.ToString().Trim();
+
+                _wiresharkProcess = Process.Start(startInfo);
+                OnWiresharkStatusChanged?.Invoke($"Wireshark started with arguments: {startInfo.Arguments}");
+            }
+            catch (Exception ex)
+            {
+                OnWiresharkStatusChanged?.Invoke($"Error starting Wireshark: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Khởi động Wireshark với filter cho TCP traffic
+        /// </summary>
+        public void StartTcpCapture(int port)
+        {
+            string filter = $"tcp port {port}";
+            StartCapture(null, filter);
+            OnWiresharkStatusChanged?.Invoke($"Started TCP capture on port {port}");
+        }
+
+        /// <summary>
+        /// Khởi động Wireshark với filter cho UDP traffic
+        /// </summary>
+        public void StartUdpCapture(int port)
+        {
+            string filter = $"udp port {port}";
+            StartCapture(null, filter);
+            OnWiresharkStatusChanged?.Invoke($"Started UDP capture on port {port}");
+        }
+
+        /// <summary>
+        /// Khởi động Wireshark với filter cho loopback traffic
+        /// </summary>
+        public void StartLoopbackCapture()
+        {
+            // Capture trên loopback interface với filter cho localhost
+            string filter = "host 127.0.0.1";
+            StartCapture("Npcap Loopback Adapter", filter);
+            OnWiresharkStatusChanged?.Invoke("Started loopback capture for localhost traffic");
+        }
+
+        /// <summary>
+        /// Dừng capture hiện tại
+        /// </summary>
+        public void StopCapture()
+        {
+            try
+            {
+                if (_wiresharkProcess != null && !_wiresharkProcess.HasExited)
+                {
+                    _wiresharkProcess.CloseMainWindow();
+                    if (!_wiresharkProcess.WaitForExit(5000))
+                    {
+                        _wiresharkProcess.Kill();
+                    }
+                    OnWiresharkStatusChanged?.Invoke("Wireshark capture stopped");
+                }
+                else
+                {
+                    OnWiresharkStatusChanged?.Invoke("No active Wireshark capture to stop");
+                }
+            }
+            catch (Exception ex)
+            {
+                OnWiresharkStatusChanged?.Invoke($"Error stopping Wireshark: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Mở file capture trong Wireshark
+        /// </summary>
+        public void OpenCaptureFile(string filePath)
+        {
+            if (!IsWiresharkAvailable())
+            {
+                OnWiresharkStatusChanged?.Invoke("Wireshark is not available");
+                return;
+            }
+
+            if (!File.Exists(filePath))
+            {
+                OnWiresharkStatusChanged?.Invoke($"Capture file not found: {filePath}");
+                return;
+            }
+
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = _wiresharkPath,
+                    Arguments = $"\"{filePath}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                };
+
+                Process.Start(startInfo);
+                OnWiresharkStatusChanged?.Invoke($"Opened capture file: {filePath}");
+            }
+            catch (Exception ex)
+            {
+                OnWiresharkStatusChanged?.Invoke($"Error opening capture file: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách interfaces có sẵn
+        /// </summary>
+        public async Task<string> GetNetworkInterfaces()
+        {
+            if (!IsWiresharkAvailable())
+            {
+                return "Wireshark is not available";
+            }
+
+            try
+            {
+                string dumpcapPath = Path.Combine(Path.GetDirectoryName(_wiresharkPath), "dumpcap.exe");
+                if (!File.Exists(dumpcapPath))
+                {
+                    return "Dumpcap not found";
+                }
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = dumpcapPath,
+                    Arguments = "-D",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+
+                using (Process process = Process.Start(startInfo))
+                {
+                    string output = await process.StandardOutput.ReadToEndAsync();
+                    await Task.Run(() => process.WaitForExit());
+                    return output;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error getting interfaces: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Tạo hướng dẫn sử dụng Wireshark
+        /// </summary>
+        public static string GetWiresharkGuide()
+        {
+            StringBuilder guide = new StringBuilder();
+            
+            guide.AppendLine("=== HƯỚNG DẪN SỬ DỤNG WIRESHARK ===");
+            guide.AppendLine();
+            guide.AppendLine("Wireshark là công cụ phân tích giao thức mạng mạnh mẽ giúp:");
+            guide.AppendLine("- Capture và phân tích network traffic");
+            guide.AppendLine("- Debug các vấn đề mạng");
+            guide.AppendLine("- Hiểu rõ hơn về cách thức hoạt động của protocols");
+            guide.AppendLine();
+            
+            guide.AppendLine("=== CÁC FILTER HỮU ÍCH ===");
+            guide.AppendLine();
+            guide.AppendLine("TCP Traffic:");
+            guide.AppendLine("- tcp port 8080          # Traffic trên port 8080");
+            guide.AppendLine("- tcp.stream eq 0         # TCP stream đầu tiên");
+            guide.AppendLine("- tcp.flags.syn == 1      # TCP SYN packets");
+            guide.AppendLine();
+            
+            guide.AppendLine("UDP Traffic:");
+            guide.AppendLine("- udp port 8081          # Traffic trên port 8081");
+            guide.AppendLine("- udp.length > 100       # UDP packets lớn hơn 100 bytes");
+            guide.AppendLine();
+            
+            guide.AppendLine("General Filters:");
+            guide.AppendLine("- host 127.0.0.1         # Traffic từ/đến localhost");
+            guide.AppendLine("- ip.addr == 192.168.1.1 # Traffic từ/đến IP cụ thể");
+            guide.AppendLine("- port 80 or port 443    # HTTP/HTTPS traffic");
+            guide.AppendLine();
+            
+            guide.AppendLine("=== CÁCH SỬ DỤNG VỚI SOCKET APP ===");
+            guide.AppendLine();
+            guide.AppendLine("1. Khởi động Wireshark capture trước khi test socket");
+            guide.AppendLine("2. Chạy TCP/UDP server trong ứng dụng");
+            guide.AppendLine("3. Kết nối client và gửi messages");
+            guide.AppendLine("4. Quan sát packets trong Wireshark");
+            guide.AppendLine("5. Phân tích header, payload và timing");
+            guide.AppendLine();
+            
+            guide.AppendLine("=== MẸO VÀ TRICKS ===");
+            guide.AppendLine();
+            guide.AppendLine("- Sử dụng 'Follow TCP Stream' để xem toàn bộ conversation");
+            guide.AppendLine("- 'Statistics > Protocol Hierarchy' để xem tổng quan protocols");
+            guide.AppendLine("- 'Statistics > Conversations' để xem traffic giữa endpoints");
+            guide.AppendLine("- Export packets thành các format khác nhau để phân tích");
+            guide.AppendLine();
+            
+            return guide.ToString();
+        }
+
+        /// <summary>
+        /// Cleanup resources
+        /// </summary>
+        public void Dispose()
+        {
+            StopCapture();
+        }
+    }
+}

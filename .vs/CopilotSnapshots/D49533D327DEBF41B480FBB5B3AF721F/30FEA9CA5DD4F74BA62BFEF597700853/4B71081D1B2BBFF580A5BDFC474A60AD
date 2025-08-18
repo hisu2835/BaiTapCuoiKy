@@ -1,0 +1,85 @@
+﻿namespace BaiTapCuoiKy
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            this.timerGame = new System.Windows.Forms.Timer(this.components);
+            this.statusStripGame = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusStripGame.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // timerGame
+            // 
+            this.timerGame.Interval = 1000;
+            // 
+            // statusStripGame
+            // 
+            this.statusStripGame.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel});
+            this.statusStripGame.Location = new System.Drawing.Point(0, 740);
+            this.statusStripGame.Name = "statusStripGame";
+            this.statusStripGame.Size = new System.Drawing.Size(1384, 22);
+            this.statusStripGame.TabIndex = 0;
+            this.statusStripGame.Text = "statusStrip1";
+            // 
+            // toolStripStatusLabel
+            // 
+            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(118, 17);
+            this.toolStripStatusLabel.Text = "DrawMaster - Ready";
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(125)))), ((int)(((byte)(245)))));
+            this.ClientSize = new System.Drawing.Size(1384, 762);
+            this.Controls.Add(this.statusStripGame);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "DrawMaster - Multiplayer Drawing Game";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.statusStripGame.ResumeLayout(false);
+            this.statusStripGame.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Timer timerGame;
+        private System.Windows.Forms.StatusStrip statusStripGame;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
+    }
+}
+

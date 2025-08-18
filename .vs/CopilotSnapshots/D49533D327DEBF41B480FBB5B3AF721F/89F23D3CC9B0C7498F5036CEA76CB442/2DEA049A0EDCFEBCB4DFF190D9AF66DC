@@ -1,0 +1,116 @@
+﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace BaiTapCuoiKy
+{
+    public class TcpServer
+    {
+        private TcpListener _tcpListener;
+        private Thread _tcpListenerThread;
+        private bool _isRunning = false;
+        
+        public event Action<string> OnMessageReceived;
+        public event Action<string> OnServerStatusChanged;
+
+        public void StartServer(int port)
+        {
+            try
+            {
+                _tcpListener = new TcpListener(IPAddress.Any, port);
+                _tcpListenerThread = new Thread(new ThreadStart(ListenForTcpClients))
+                {
+                    IsBackground = true
+                };
+                _tcpListenerThread.Start();
+                OnServerStatusChanged?.Invoke($"TCP Server started on port {port}");
+            }
+            catch (Exception ex)
+            {
+                OnServerStatusChanged?.Invoke($"Error starting TCP Server: {ex.Message}");
+            }
+        }
+
+        public void StopServer()
+        {
+            try
+            {
+                _isRunning = false;
+                _tcpListener?.Stop();
+                _tcpListenerThread?.Abort();
+                OnServerStatusChanged?.Invoke("TCP Server stopped");
+            }
+            catch (Exception ex)
+            {
+                OnServerStatusChanged?.Invoke($"Error stopping TCP Server: {ex.Message}");
+            }
+        }
+
+        private void ListenForTcpClients()
+        {
+            try
+            {
+                _tcpListener.Start();
+                _isRunning = true;
+                OnServerStatusChanged?.Invoke("TCP Server listening for clients...");
+
+                while (_isRunning)
+                {
+                    using (System.Net.Sockets.TcpClient client = _tcpListener.AcceptTcpClient())
+                    {
+                        Thread clientThread = new Thread(new ParameterizedThreadStart(HandleTcpClientComm))
+                        {
+                            IsBackground = true
+                        };
+                        clientThread.Start(client);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OnServerStatusChanged?.Invoke($"TCP Server error: {ex.Message}");
+            }
+        }
+
+        private void HandleTcpClientComm(object client)
+        {
+            System.Net.Sockets.TcpClient tcpClient = (System.Net.Sockets.TcpClient)client;
+            NetworkStream clientStream = tcpClient.GetStream();
+            
+            byte[] message = new byte[4096];
+            int bytesRead;
+
+            while (true)
+            {
+                bytesRead = 0;
+
+                try
+                {
+                    bytesRead = clientStream.Read(message, 0, 4096);
+                }
+                catch
+                {
+                    break;
+                }
+
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+
+                string receivedMessage = Encoding.UTF8.GetString(message, 0, bytesRead);
+                OnMessageReceived?.Invoke($"TCP Received: {receivedMessage}");
+
+                // Echo the message back to client
+                byte[] response = Encoding.UTF8.GetBytes($"Echo: {receivedMessage}");
+                clientStream.Write(response, 0, response.Length);
+                clientStream.Flush();
+            }
+
+            tcpClient.Close();
+        }
+    }
+}

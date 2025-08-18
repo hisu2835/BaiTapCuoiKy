@@ -1,0 +1,98 @@
+﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace BaiTapCuoiKy
+{
+    public class UdpServer
+    {
+        private System.Net.Sockets.UdpClient _udpServer;
+        private IPEndPoint _endPoint;
+        private bool _isRunning = false;
+        private Thread _listenThread;
+
+        public event Action<string> OnMessageReceived;
+        public event Action<string> OnServerStatusChanged;
+
+        public void StartServer(int port)
+        {
+            try
+            {
+                _endPoint = new IPEndPoint(IPAddress.Any, port);
+                _udpServer = new System.Net.Sockets.UdpClient(port);
+                _isRunning = true;
+
+                _listenThread = new Thread(new ThreadStart(ListenForUdpClients))
+                {
+                    IsBackground = true
+                };
+                _listenThread.Start();
+
+                OnServerStatusChanged?.Invoke($"UDP Server started on port {port}");
+            }
+            catch (Exception ex)
+            {
+                OnServerStatusChanged?.Invoke($"Error starting UDP Server: {ex.Message}");
+            }
+        }
+
+        public void StopServer()
+        {
+            try
+            {
+                _isRunning = false;
+                _udpServer?.Dispose();
+                _listenThread?.Abort();
+                OnServerStatusChanged?.Invoke("UDP Server stopped");
+            }
+            catch (Exception ex)
+            {
+                OnServerStatusChanged?.Invoke($"Error stopping UDP Server: {ex.Message}");
+            }
+        }
+
+        private void ListenForUdpClients()
+        {
+            while (_isRunning)
+            {
+                try
+                {
+                    IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                    byte[] receivedBytes = _udpServer.Receive(ref clientEndPoint);
+                    string receivedMessage = Encoding.UTF8.GetString(receivedBytes);
+
+                    OnMessageReceived?.Invoke($"UDP Received from {clientEndPoint}: {receivedMessage}");
+
+                    // Echo the message back to client
+                    string echoMessage = $"Echo: {receivedMessage}";
+                    byte[] echoBytes = Encoding.UTF8.GetBytes(echoMessage);
+                    _udpServer.Send(echoBytes, echoBytes.Length, clientEndPoint);
+                }
+                catch (Exception ex)
+                {
+                    if (_isRunning)
+                    {
+                        OnServerStatusChanged?.Invoke($"UDP Server error: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        public void SendMessage(string message, IPEndPoint clientEndPoint)
+        {
+            try
+            {
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                _udpServer.Send(data, data.Length, clientEndPoint);
+                OnServerStatusChanged?.Invoke($"UDP Sent to {clientEndPoint}: {message}");
+            }
+            catch (Exception ex)
+            {
+                OnServerStatusChanged?.Invoke($"Error sending UDP message: {ex.Message}");
+            }
+        }
+    }
+}

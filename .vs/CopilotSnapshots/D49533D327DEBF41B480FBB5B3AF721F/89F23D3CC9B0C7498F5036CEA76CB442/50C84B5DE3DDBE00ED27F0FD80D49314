@@ -1,0 +1,100 @@
+﻿using System;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BaiTapCuoiKy
+{
+    public class TcpClient
+    {
+        private System.Net.Sockets.TcpClient _tcpClient;
+        private NetworkStream _stream;
+        private bool _isConnected = false;
+
+        public event Action<string> OnMessageReceived;
+        public event Action<string> OnConnectionStatusChanged;
+
+        public async Task<bool> ConnectAsync(string serverIP, int port)
+        {
+            try
+            {
+                _tcpClient = new System.Net.Sockets.TcpClient();
+                await _tcpClient.ConnectAsync(serverIP, port);
+                _stream = _tcpClient.GetStream();
+                _isConnected = true;
+                OnConnectionStatusChanged?.Invoke($"Connected to TCP Server {serverIP}:{port}");
+                
+                // Start listening for messages
+                _ = Task.Run(ListenForMessages);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                OnConnectionStatusChanged?.Invoke($"Failed to connect: {ex.Message}");
+                return false;
+            }
+        }
+
+        public void Disconnect()
+        {
+            try
+            {
+                _isConnected = false;
+                _stream?.Close();
+                _tcpClient?.Close();
+                OnConnectionStatusChanged?.Invoke("Disconnected from TCP Server");
+            }
+            catch (Exception ex)
+            {
+                OnConnectionStatusChanged?.Invoke($"Error disconnecting: {ex.Message}");
+            }
+        }
+
+        public async Task SendMessageAsync(string message)
+        {
+            if (!_isConnected || _stream == null)
+            {
+                OnConnectionStatusChanged?.Invoke("Not connected to server");
+                return;
+            }
+
+            try
+            {
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                await _stream.WriteAsync(data, 0, data.Length);
+                await _stream.FlushAsync();
+                OnConnectionStatusChanged?.Invoke($"TCP Sent: {message}");
+            }
+            catch (Exception ex)
+            {
+                OnConnectionStatusChanged?.Invoke($"Error sending message: {ex.Message}");
+            }
+        }
+
+        private async Task ListenForMessages()
+        {
+            byte[] buffer = new byte[4096];
+
+            while (_isConnected && _stream != null)
+            {
+                try
+                {
+                    int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead > 0)
+                    {
+                        string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        OnMessageReceived?.Invoke($"TCP Received: {message}");
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                catch
+                {
+                    break;
+                }
+            }
+        }
+    }
+}

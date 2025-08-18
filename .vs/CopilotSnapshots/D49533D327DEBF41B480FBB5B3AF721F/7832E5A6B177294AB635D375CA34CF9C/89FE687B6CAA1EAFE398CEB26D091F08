@@ -1,0 +1,818 @@
+﻿namespace BaiTapCuoiKy
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.panelDrawing = new System.Windows.Forms.Panel();
+            this.btnClearCanvas = new System.Windows.Forms.Button();
+            this.panelTools = new System.Windows.Forms.Panel();
+            this.lblBrushSize = new System.Windows.Forms.Label();
+            this.trackBarBrushSize = new System.Windows.Forms.TrackBar();
+            this.btnColorRed = new System.Windows.Forms.Button();
+            this.btnColorBlue = new System.Windows.Forms.Button();
+            this.btnColorGreen = new System.Windows.Forms.Button();
+            this.btnColorYellow = new System.Windows.Forms.Button();
+            this.btnColorBlack = new System.Windows.Forms.Button();
+            this.btnColorWhite = new System.Windows.Forms.Button();
+            this.lblSelectedColor = new System.Windows.Forms.Label();
+            this.panelSelectedColor = new System.Windows.Forms.Panel();
+            this.btnEraser = new System.Windows.Forms.Button();
+            this.btnPencil = new System.Windows.Forms.Button();
+            this.panelChat = new System.Windows.Forms.Panel();
+            this.lblChat = new System.Windows.Forms.Label();
+            this.listBoxChat = new System.Windows.Forms.ListBox();
+            this.txtChatInput = new System.Windows.Forms.TextBox();
+            this.btnSendMessage = new System.Windows.Forms.Button();
+            this.panelLeaderboard = new System.Windows.Forms.Panel();
+            this.lblLeaderboard = new System.Windows.Forms.Label();
+            this.listViewLeaderboard = new System.Windows.Forms.ListView();
+            this.columnRank = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnPlayer = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnScore = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.panelCurrentPlayer = new System.Windows.Forms.Panel();
+            this.pictureBoxPlayerAvatar = new System.Windows.Forms.PictureBox();
+            this.lblCurrentPlayer = new System.Windows.Forms.Label();
+            this.lblPlayerName = new System.Windows.Forms.Label();
+            this.lblPlayerCurrentScore = new System.Windows.Forms.Label();
+            this.panelGameInfo = new System.Windows.Forms.Panel();
+            this.lblCurrentWord = new System.Windows.Forms.Label();
+            this.lblWordToGuess = new System.Windows.Forms.Label();
+            this.lblTimer = new System.Windows.Forms.Label();
+            this.lblTimeLeft = new System.Windows.Forms.Label();
+            this.lblRound = new System.Windows.Forms.Label();
+            this.lblCurrentRound = new System.Windows.Forms.Label();
+            this.progressBarTime = new System.Windows.Forms.ProgressBar();
+            this.panelRoomInfo = new System.Windows.Forms.Panel();
+            this.lblRoomCodeTitle = new System.Windows.Forms.Label();
+            this.lblRoomCode = new System.Windows.Forms.Label();
+            this.lblPlayersOnline = new System.Windows.Forms.Label();
+            this.lblPlayersCount = new System.Windows.Forms.Label();
+            this.timerGame = new System.Windows.Forms.Timer(this.components);
+            this.btnStartGame = new System.Windows.Forms.Button();
+            this.btnLeaveGame = new System.Windows.Forms.Button();
+            this.btnBackToWaitingRoom = new System.Windows.Forms.Button();
+            this.statusStripGame = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.lblGameStatus = new System.Windows.Forms.Label();
+            this.panelTopBar = new System.Windows.Forms.Panel();
+            this.lblRoomTitle = new System.Windows.Forms.Label();
+            this.panelTools.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarBrushSize)).BeginInit();
+            this.panelChat.SuspendLayout();
+            this.panelLeaderboard.SuspendLayout();
+            this.panelCurrentPlayer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlayerAvatar)).BeginInit();
+            this.panelGameInfo.SuspendLayout();
+            this.panelRoomInfo.SuspendLayout();
+            this.statusStripGame.SuspendLayout();
+            this.panelTopBar.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // lblTitle
+            // 
+            this.lblTitle.AutoSize = true;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTitle.ForeColor = Color.FromArgb(45, 125, 245);
+            this.lblTitle.Location = new System.Drawing.Point(20, 15);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(300, 45);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "🎨 DRAWMASTER";
+            // 
+            // panelDrawing
+            // 
+            this.panelDrawing.BackColor = System.Drawing.Color.White;
+            this.panelDrawing.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelDrawing.Cursor = System.Windows.Forms.Cursors.Cross;
+            this.panelDrawing.Location = new System.Drawing.Point(20, 80);
+            this.panelDrawing.Name = "panelDrawing";
+            this.panelDrawing.Size = new System.Drawing.Size(700, 500);
+            this.panelDrawing.TabIndex = 1;
+            this.panelDrawing.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseDown);
+            this.panelDrawing.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseMove);
+            this.panelDrawing.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseUp);
+            this.panelDrawing.Paint += new System.Windows.Forms.PaintEventHandler(this.panelDrawing_Paint);
+            // 
+            // btnClearCanvas
+            // 
+            this.btnClearCanvas.BackColor = System.Drawing.Color.FromArgb(220, 53, 69);
+            this.btnClearCanvas.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnClearCanvas.ForeColor = System.Drawing.Color.White;
+            this.btnClearCanvas.Location = new System.Drawing.Point(620, 590);
+            this.btnClearCanvas.Name = "btnClearCanvas";
+            this.btnClearCanvas.Size = new System.Drawing.Size(100, 35);
+            this.btnClearCanvas.TabIndex = 2;
+            this.btnClearCanvas.Text = "🗑️ Clear";
+            this.btnClearCanvas.UseVisualStyleBackColor = false;
+            this.btnClearCanvas.Click += new System.EventHandler(this.btnClearCanvas_Click);
+            // 
+            // panelTools
+            // 
+            this.panelTools.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
+            this.panelTools.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelTools.Controls.Add(this.lblBrushSize);
+            this.panelTools.Controls.Add(this.trackBarBrushSize);
+            this.panelTools.Controls.Add(this.btnColorRed);
+            this.panelTools.Controls.Add(this.btnColorBlue);
+            this.panelTools.Controls.Add(this.btnColorGreen);
+            this.panelTools.Controls.Add(this.btnColorYellow);
+            this.panelTools.Controls.Add(this.btnColorBlack);
+            this.panelTools.Controls.Add(this.btnColorWhite);
+            this.panelTools.Controls.Add(this.lblSelectedColor);
+            this.panelTools.Controls.Add(this.panelSelectedColor);
+            this.panelTools.Controls.Add(this.btnEraser);
+            this.panelTools.Controls.Add(this.btnPencil);
+            this.panelTools.Location = new System.Drawing.Point(20, 590);
+            this.panelTools.Name = "panelTools";
+            this.panelTools.Size = new System.Drawing.Size(590, 90);
+            this.panelTools.TabIndex = 3;
+            // 
+            // lblBrushSize
+            // 
+            this.lblBrushSize.AutoSize = true;
+            this.lblBrushSize.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblBrushSize.Location = new System.Drawing.Point(400, 15);
+            this.lblBrushSize.Name = "lblBrushSize";
+            this.lblBrushSize.Size = new System.Drawing.Size(80, 15);
+            this.lblBrushSize.TabIndex = 11;
+            this.lblBrushSize.Text = "🖌️ Brush Size:";
+            // 
+            // trackBarBrushSize
+            // 
+            this.trackBarBrushSize.Location = new System.Drawing.Point(400, 35);
+            this.trackBarBrushSize.Maximum = 20;
+            this.trackBarBrushSize.Minimum = 1;
+            this.trackBarBrushSize.Name = "trackBarBrushSize";
+            this.trackBarBrushSize.Size = new System.Drawing.Size(150, 45);
+            this.trackBarBrushSize.TabIndex = 10;
+            this.trackBarBrushSize.Value = 3;
+            this.trackBarBrushSize.ValueChanged += new System.EventHandler(this.trackBarBrushSize_ValueChanged);
+            // 
+            // btnColorRed
+            // 
+            this.btnColorRed.BackColor = System.Drawing.Color.Red;
+            this.btnColorRed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnColorRed.Location = new System.Drawing.Point(130, 50);
+            this.btnColorRed.Name = "btnColorRed";
+            this.btnColorRed.Size = new System.Drawing.Size(35, 35);
+            this.btnColorRed.TabIndex = 9;
+            this.btnColorRed.UseVisualStyleBackColor = false;
+            this.btnColorRed.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorBlue
+            // 
+            this.btnColorBlue.BackColor = System.Drawing.Color.Blue;
+            this.btnColorBlue.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnColorBlue.Location = new System.Drawing.Point(175, 50);
+            this.btnColorBlue.Name = "btnColorBlue";
+            this.btnColorBlue.Size = new System.Drawing.Size(35, 35);
+            this.btnColorBlue.TabIndex = 8;
+            this.btnColorBlue.UseVisualStyleBackColor = false;
+            this.btnColorBlue.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorGreen
+            // 
+            this.btnColorGreen.BackColor = System.Drawing.Color.Green;
+            this.btnColorGreen.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnColorGreen.Location = new System.Drawing.Point(220, 50);
+            this.btnColorGreen.Name = "btnColorGreen";
+            this.btnColorGreen.Size = new System.Drawing.Size(35, 35);
+            this.btnColorGreen.TabIndex = 7;
+            this.btnColorGreen.UseVisualStyleBackColor = false;
+            this.btnColorGreen.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorYellow
+            // 
+            this.btnColorYellow.BackColor = System.Drawing.Color.Yellow;
+            this.btnColorYellow.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnColorYellow.Location = new System.Drawing.Point(265, 50);
+            this.btnColorYellow.Name = "btnColorYellow";
+            this.btnColorYellow.Size = new System.Drawing.Size(35, 35);
+            this.btnColorYellow.TabIndex = 6;
+            this.btnColorYellow.UseVisualStyleBackColor = false;
+            this.btnColorYellow.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorBlack
+            // 
+            this.btnColorBlack.BackColor = System.Drawing.Color.Black;
+            this.btnColorBlack.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnColorBlack.Location = new System.Drawing.Point(130, 10);
+            this.btnColorBlack.Name = "btnColorBlack";
+            this.btnColorBlack.Size = new System.Drawing.Size(35, 35);
+            this.btnColorBlack.TabIndex = 5;
+            this.btnColorBlack.UseVisualStyleBackColor = false;
+            this.btnColorBlack.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // btnColorWhite
+            // 
+            this.btnColorWhite.BackColor = System.Drawing.Color.White;
+            this.btnColorWhite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnColorWhite.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.btnColorWhite.Location = new System.Drawing.Point(175, 10);
+            this.btnColorWhite.Name = "btnColorWhite";
+            this.btnColorWhite.Size = new System.Drawing.Size(35, 35);
+            this.btnColorWhite.TabIndex = 4;
+            this.btnColorWhite.UseVisualStyleBackColor = false;
+            this.btnColorWhite.Click += new System.EventHandler(this.btnColor_Click);
+            // 
+            // lblSelectedColor
+            // 
+            this.lblSelectedColor.AutoSize = true;
+            this.lblSelectedColor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblSelectedColor.Location = new System.Drawing.Point(315, 15);
+            this.lblSelectedColor.Name = "lblSelectedColor";
+            this.lblSelectedColor.Size = new System.Drawing.Size(50, 15);
+            this.lblSelectedColor.TabIndex = 3;
+            this.lblSelectedColor.Text = "🎨 Color:";
+            // 
+            // panelSelectedColor
+            // 
+            this.panelSelectedColor.BackColor = System.Drawing.Color.Black;
+            this.panelSelectedColor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelSelectedColor.Location = new System.Drawing.Point(320, 35);
+            this.panelSelectedColor.Name = "panelSelectedColor";
+            this.panelSelectedColor.Size = new System.Drawing.Size(50, 50);
+            this.panelSelectedColor.TabIndex = 2;
+            // 
+            // btnEraser
+            // 
+            this.btnEraser.BackColor = System.Drawing.Color.FromArgb(255, 193, 203);
+            this.btnEraser.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnEraser.Location = new System.Drawing.Point(15, 50);
+            this.btnEraser.Name = "btnEraser";
+            this.btnEraser.Size = new System.Drawing.Size(90, 35);
+            this.btnEraser.TabIndex = 1;
+            this.btnEraser.Text = "🧽 Eraser";
+            this.btnEraser.UseVisualStyleBackColor = false;
+            this.btnEraser.Click += new System.EventHandler(this.btnEraser_Click);
+            // 
+            // btnPencil
+            // 
+            this.btnPencil.BackColor = System.Drawing.Color.FromArgb(173, 216, 230);
+            this.btnPencil.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnPencil.Location = new System.Drawing.Point(15, 10);
+            this.btnPencil.Name = "btnPencil";
+            this.btnPencil.Size = new System.Drawing.Size(90, 35);
+            this.btnPencil.TabIndex = 0;
+            this.btnPencil.Text = "✏️ Pencil";
+            this.btnPencil.UseVisualStyleBackColor = false;
+            this.btnPencil.Click += new System.EventHandler(this.btnPencil_Click);
+            // 
+            // panelChat
+            // 
+            this.panelChat.BackColor = System.Drawing.Color.White;
+            this.panelChat.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelChat.Controls.Add(this.lblChat);
+            this.panelChat.Controls.Add(this.listBoxChat);
+            this.panelChat.Controls.Add(this.txtChatInput);
+            this.panelChat.Controls.Add(this.btnSendMessage);
+            this.panelChat.Location = new System.Drawing.Point(740, 400);
+            this.panelChat.Name = "panelChat";
+            this.panelChat.Size = new System.Drawing.Size(320, 280);
+            this.panelChat.TabIndex = 4;
+            // 
+            // lblChat
+            // 
+            this.lblChat.AutoSize = true;
+            this.lblChat.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblChat.ForeColor = System.Drawing.Color.FromArgb(45, 125, 245);
+            this.lblChat.Location = new System.Drawing.Point(15, 15);
+            this.lblChat.Name = "lblChat";
+            this.lblChat.Size = new System.Drawing.Size(110, 25);
+            this.lblChat.TabIndex = 3;
+            this.lblChat.Text = "💬 Chat & Guess";
+            // 
+            // listBoxChat
+            // 
+            this.listBoxChat.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.listBoxChat.FormattingEnabled = true;
+            this.listBoxChat.ItemHeight = 15;
+            this.listBoxChat.Location = new System.Drawing.Point(15, 50);
+            this.listBoxChat.Name = "listBoxChat";
+            this.listBoxChat.Size = new System.Drawing.Size(290, 180);
+            this.listBoxChat.TabIndex = 2;
+            // 
+            // txtChatInput
+            // 
+            this.txtChatInput.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtChatInput.Location = new System.Drawing.Point(15, 240);
+            this.txtChatInput.Name = "txtChatInput";
+            this.txtChatInput.Size = new System.Drawing.Size(200, 25);
+            this.txtChatInput.TabIndex = 1;
+            this.txtChatInput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtChatInput_KeyPress);
+            // 
+            // btnSendMessage
+            // 
+            this.btnSendMessage.BackColor = System.Drawing.Color.FromArgb(40, 167, 69);
+            this.btnSendMessage.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnSendMessage.ForeColor = System.Drawing.Color.White;
+            this.btnSendMessage.Location = new System.Drawing.Point(225, 238);
+            this.btnSendMessage.Name = "btnSendMessage";
+            this.btnSendMessage.Size = new System.Drawing.Size(80, 30);
+            this.btnSendMessage.TabIndex = 0;
+            this.btnSendMessage.Text = "📤 Send";
+            this.btnSendMessage.UseVisualStyleBackColor = false;
+            this.btnSendMessage.Click += new System.EventHandler(this.btnSendMessage_Click);
+            // 
+            // panelLeaderboard
+            // 
+            this.panelLeaderboard.BackColor = System.Drawing.Color.White;
+            this.panelLeaderboard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelLeaderboard.Controls.Add(this.lblLeaderboard);
+            this.panelLeaderboard.Controls.Add(this.listViewLeaderboard);
+            this.panelLeaderboard.Location = new System.Drawing.Point(740, 80);
+            this.panelLeaderboard.Name = "panelLeaderboard";
+            this.panelLeaderboard.Size = new System.Drawing.Size(320, 300);
+            this.panelLeaderboard.TabIndex = 5;
+            // 
+            // lblLeaderboard
+            // 
+            this.lblLeaderboard.AutoSize = true;
+            this.lblLeaderboard.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblLeaderboard.ForeColor = System.Drawing.Color.FromArgb(255, 140, 0);
+            this.lblLeaderboard.Location = new System.Drawing.Point(15, 15);
+            this.lblLeaderboard.Name = "lblLeaderboard";
+            this.lblLeaderboard.Size = new System.Drawing.Size(150, 25);
+            this.lblLeaderboard.TabIndex = 1;
+            this.lblLeaderboard.Text = "🏆 Leaderboard";
+            // 
+            // listViewLeaderboard
+            // 
+            this.listViewLeaderboard.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnRank,
+            this.columnPlayer,
+            this.columnScore,
+            this.columnStatus});
+            this.listViewLeaderboard.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.listViewLeaderboard.FullRowSelect = true;
+            this.listViewLeaderboard.GridLines = true;
+            this.listViewLeaderboard.HideSelection = false;
+            this.listViewLeaderboard.Location = new System.Drawing.Point(15, 50);
+            this.listViewLeaderboard.Name = "listViewLeaderboard";
+            this.listViewLeaderboard.Size = new System.Drawing.Size(290, 235);
+            this.listViewLeaderboard.TabIndex = 0;
+            this.listViewLeaderboard.UseCompatibleStateImageBehavior = false;
+            this.listViewLeaderboard.View = System.Windows.Forms.View.Details;
+            // 
+            // columnRank
+            // 
+            this.columnRank.Text = "#";
+            this.columnRank.Width = 30;
+            // 
+            // columnPlayer
+            // 
+            this.columnPlayer.Text = "Player";
+            this.columnPlayer.Width = 120;
+            // 
+            // columnScore
+            // 
+            this.columnScore.Text = "Score";
+            this.columnScore.Width = 60;
+            // 
+            // columnStatus
+            // 
+            this.columnStatus.Text = "Status";
+            this.columnStatus.Width = 80;
+            // 
+            // panelCurrentPlayer
+            // 
+            this.panelCurrentPlayer.BackColor = System.Drawing.Color.FromArgb(240, 248, 255);
+            this.panelCurrentPlayer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelCurrentPlayer.Controls.Add(this.pictureBoxPlayerAvatar);
+            this.panelCurrentPlayer.Controls.Add(this.lblCurrentPlayer);
+            this.panelCurrentPlayer.Controls.Add(this.lblPlayerName);
+            this.panelCurrentPlayer.Controls.Add(this.lblPlayerCurrentScore);
+            this.panelCurrentPlayer.Location = new System.Drawing.Point(1080, 80);
+            this.panelCurrentPlayer.Name = "panelCurrentPlayer";
+            this.panelCurrentPlayer.Size = new System.Drawing.Size(200, 150);
+            this.panelCurrentPlayer.TabIndex = 6;
+            // 
+            // pictureBoxPlayerAvatar
+            // 
+            this.pictureBoxPlayerAvatar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBoxPlayerAvatar.Location = new System.Drawing.Point(15, 15);
+            this.pictureBoxPlayerAvatar.Name = "pictureBoxPlayerAvatar";
+            this.pictureBoxPlayerAvatar.Size = new System.Drawing.Size(60, 60);
+            this.pictureBoxPlayerAvatar.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBoxPlayerAvatar.TabIndex = 0;
+            this.pictureBoxPlayerAvatar.TabStop = false;
+            // 
+            // lblCurrentPlayer
+            // 
+            this.lblCurrentPlayer.AutoSize = true;
+            this.lblCurrentPlayer.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblCurrentPlayer.Location = new System.Drawing.Point(85, 15);
+            this.lblCurrentPlayer.Name = "lblCurrentPlayer";
+            this.lblCurrentPlayer.Size = new System.Drawing.Size(30, 19);
+            this.lblCurrentPlayer.TabIndex = 1;
+            this.lblCurrentPlayer.Text = "You";
+            // 
+            // lblPlayerName
+            // 
+            this.lblPlayerName.AutoSize = true;
+            this.lblPlayerName.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblPlayerName.ForeColor = System.Drawing.Color.FromArgb(45, 125, 245);
+            this.lblPlayerName.Location = new System.Drawing.Point(85, 35);
+            this.lblPlayerName.Name = "lblPlayerName";
+            this.lblPlayerName.Size = new System.Drawing.Size(72, 21);
+            this.lblPlayerName.TabIndex = 2;
+            this.lblPlayerName.Text = "Player1";
+            // 
+            // lblPlayerCurrentScore
+            // 
+            this.lblPlayerCurrentScore.AutoSize = true;
+            this.lblPlayerCurrentScore.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
+            this.lblPlayerCurrentScore.ForeColor = System.Drawing.Color.FromArgb(40, 167, 69);
+            this.lblPlayerCurrentScore.Location = new System.Drawing.Point(15, 90);
+            this.lblPlayerCurrentScore.Name = "lblPlayerCurrentScore";
+            this.lblPlayerCurrentScore.Size = new System.Drawing.Size(95, 30);
+            this.lblPlayerCurrentScore.TabIndex = 3;
+            this.lblPlayerCurrentScore.Text = "Score: 0";
+            // 
+            // panelGameInfo
+            // 
+            this.panelGameInfo.BackColor = System.Drawing.Color.White;
+            this.panelGameInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelGameInfo.Controls.Add(this.lblCurrentWord);
+            this.panelGameInfo.Controls.Add(this.lblWordToGuess);
+            this.panelGameInfo.Controls.Add(this.lblTimer);
+            this.panelGameInfo.Controls.Add(this.lblTimeLeft);
+            this.panelGameInfo.Controls.Add(this.lblRound);
+            this.panelGameInfo.Controls.Add(this.lblCurrentRound);
+            this.panelGameInfo.Controls.Add(this.progressBarTime);
+            this.panelGameInfo.Location = new System.Drawing.Point(1080, 250);
+            this.panelGameInfo.Name = "panelGameInfo";
+            this.panelGameInfo.Size = new System.Drawing.Size(200, 180);
+            this.panelGameInfo.TabIndex = 7;
+            // 
+            // lblCurrentWord
+            // 
+            this.lblCurrentWord.AutoSize = true;
+            this.lblCurrentWord.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblCurrentWord.ForeColor = System.Drawing.Color.FromArgb(40, 167, 69);
+            this.lblCurrentWord.Location = new System.Drawing.Point(15, 15);
+            this.lblCurrentWord.Name = "lblCurrentWord";
+            this.lblCurrentWord.Size = new System.Drawing.Size(107, 19);
+            this.lblCurrentWord.TabIndex = 0;
+            this.lblCurrentWord.Text = "🎯 Word to draw:";
+            // 
+            // lblWordToGuess
+            // 
+            this.lblWordToGuess.AutoSize = true;
+            this.lblWordToGuess.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblWordToGuess.ForeColor = System.Drawing.Color.FromArgb(220, 53, 69);
+            this.lblWordToGuess.Location = new System.Drawing.Point(15, 40);
+            this.lblWordToGuess.Name = "lblWordToGuess";
+            this.lblWordToGuess.Size = new System.Drawing.Size(120, 25);
+            this.lblWordToGuess.TabIndex = 1;
+            this.lblWordToGuess.Text = "_ _ _ _ _ _";
+            // 
+            // lblTimer
+            // 
+            this.lblTimer.AutoSize = true;
+            this.lblTimer.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblTimer.Location = new System.Drawing.Point(15, 80);
+            this.lblTimer.Name = "lblTimer";
+            this.lblTimer.Size = new System.Drawing.Size(81, 19);
+            this.lblTimer.TabIndex = 2;
+            this.lblTimer.Text = "⏱️ Time Left:";
+            // 
+            // lblTimeLeft
+            // 
+            this.lblTimeLeft.AutoSize = true;
+            this.lblTimeLeft.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblTimeLeft.ForeColor = System.Drawing.Color.FromArgb(220, 53, 69);
+            this.lblTimeLeft.Location = new System.Drawing.Point(100, 80);
+            this.lblTimeLeft.Name = "lblTimeLeft";
+            this.lblTimeLeft.Size = new System.Drawing.Size(54, 21);
+            this.lblTimeLeft.TabIndex = 3;
+            this.lblTimeLeft.Text = "00:60";
+            // 
+            // lblRound
+            // 
+            this.lblRound.AutoSize = true;
+            this.lblRound.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblRound.Location = new System.Drawing.Point(15, 110);
+            this.lblRound.Name = "lblRound";
+            this.lblRound.Size = new System.Drawing.Size(67, 19);
+            this.lblRound.TabIndex = 4;
+            this.lblRound.Text = "🔄 Round:";
+            // 
+            // lblCurrentRound
+            // 
+            this.lblCurrentRound.AutoSize = true;
+            this.lblCurrentRound.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblCurrentRound.ForeColor = System.Drawing.Color.FromArgb(45, 125, 245);
+            this.lblCurrentRound.Location = new System.Drawing.Point(85, 110);
+            this.lblCurrentRound.Name = "lblCurrentRound";
+            this.lblCurrentRound.Size = new System.Drawing.Size(36, 21);
+            this.lblCurrentRound.TabIndex = 5;
+            this.lblCurrentRound.Text = "1/5";
+            // 
+            // progressBarTime
+            // 
+            this.progressBarTime.ForeColor = System.Drawing.Color.FromArgb(220, 53, 69);
+            this.progressBarTime.Location = new System.Drawing.Point(15, 140);
+            this.progressBarTime.Maximum = 60;
+            this.progressBarTime.Name = "progressBarTime";
+            this.progressBarTime.Size = new System.Drawing.Size(170, 25);
+            this.progressBarTime.TabIndex = 6;
+            this.progressBarTime.Value = 60;
+            // 
+            // panelRoomInfo
+            // 
+            this.panelRoomInfo.BackColor = System.Drawing.Color.White;
+            this.panelRoomInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelRoomInfo.Controls.Add(this.lblRoomCodeTitle);
+            this.panelRoomInfo.Controls.Add(this.lblRoomCode);
+            this.panelRoomInfo.Controls.Add(this.lblPlayersOnline);
+            this.panelRoomInfo.Controls.Add(this.lblPlayersCount);
+            this.panelRoomInfo.Location = new System.Drawing.Point(1080, 450);
+            this.panelRoomInfo.Name = "panelRoomInfo";
+            this.panelRoomInfo.Size = new System.Drawing.Size(200, 100);
+            this.panelRoomInfo.TabIndex = 8;
+            // 
+            // lblRoomCodeTitle
+            // 
+            this.lblRoomCodeTitle.AutoSize = true;
+            this.lblRoomCodeTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblRoomCodeTitle.Location = new System.Drawing.Point(15, 15);
+            this.lblRoomCodeTitle.Name = "lblRoomCodeTitle";
+            this.lblRoomCodeTitle.Size = new System.Drawing.Size(85, 15);
+            this.lblRoomCodeTitle.TabIndex = 0;
+            this.lblRoomCodeTitle.Text = "🏠 Room Code:";
+            // 
+            // lblRoomCode
+            // 
+            this.lblRoomCode.AutoSize = true;
+            this.lblRoomCode.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblRoomCode.ForeColor = System.Drawing.Color.FromArgb(45, 125, 245);
+            this.lblRoomCode.Location = new System.Drawing.Point(15, 35);
+            this.lblRoomCode.Name = "lblRoomCode";
+            this.lblRoomCode.Size = new System.Drawing.Size(70, 21);
+            this.lblRoomCode.TabIndex = 1;
+            this.lblRoomCode.Text = "ABC123";
+            // 
+            // lblPlayersOnline
+            // 
+            this.lblPlayersOnline.AutoSize = true;
+            this.lblPlayersOnline.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblPlayersOnline.Location = new System.Drawing.Point(15, 65);
+            this.lblPlayersOnline.Name = "lblPlayersOnline";
+            this.lblPlayersOnline.Size = new System.Drawing.Size(96, 15);
+            this.lblPlayersOnline.TabIndex = 2;
+            this.lblPlayersOnline.Text = "👥 Players Online:";
+            // 
+            // lblPlayersCount
+            // 
+            this.lblPlayersCount.AutoSize = true;
+            this.lblPlayersCount.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblPlayersCount.ForeColor = System.Drawing.Color.FromArgb(40, 167, 69);
+            this.lblPlayersCount.Location = new System.Drawing.Point(115, 65);
+            this.lblPlayersCount.Name = "lblPlayersCount";
+            this.lblPlayersCount.Size = new System.Drawing.Size(25, 19);
+            this.lblPlayersCount.TabIndex = 3;
+            this.lblPlayersCount.Text = "3/8";
+            // 
+            // timerGame
+            // 
+            this.timerGame.Interval = 1000;
+            this.timerGame.Tick += new System.EventHandler(this.timerGame_Tick);
+            // 
+            // btnStartGame
+            // 
+            this.btnStartGame.BackColor = System.Drawing.Color.FromArgb(40, 167, 69);
+            this.btnStartGame.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.btnStartGame.ForeColor = System.Drawing.Color.White;
+            this.btnStartGame.Location = new System.Drawing.Point(1080, 570);
+            this.btnStartGame.Name = "btnStartGame";
+            this.btnStartGame.Size = new System.Drawing.Size(200, 40);
+            this.btnStartGame.TabIndex = 9;
+            this.btnStartGame.Text = "▶️ Start Game";
+            this.btnStartGame.UseVisualStyleBackColor = false;
+            this.btnStartGame.Click += new System.EventHandler(this.btnStartGame_Click);
+            // 
+            // btnLeaveGame
+            // 
+            this.btnLeaveGame.BackColor = System.Drawing.Color.FromArgb(220, 53, 69);
+            this.btnLeaveGame.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnLeaveGame.ForeColor = System.Drawing.Color.White;
+            this.btnLeaveGame.Location = new System.Drawing.Point(1080, 620);
+            this.btnLeaveGame.Name = "btnLeaveGame";
+            this.btnLeaveGame.Size = new System.Drawing.Size(95, 35);
+            this.btnLeaveGame.TabIndex = 10;
+            this.btnLeaveGame.Text = "🚪 Leave";
+            this.btnLeaveGame.UseVisualStyleBackColor = false;
+            this.btnLeaveGame.Click += new System.EventHandler(this.btnLeaveGame_Click);
+            // 
+            // btnBackToWaitingRoom
+            // 
+            this.btnBackToWaitingRoom.BackColor = System.Drawing.Color.FromArgb(255, 140, 0);
+            this.btnBackToWaitingRoom.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnBackToWaitingRoom.ForeColor = System.Drawing.Color.White;
+            this.btnBackToWaitingRoom.Location = new System.Drawing.Point(1185, 620);
+            this.btnBackToWaitingRoom.Name = "btnBackToWaitingRoom";
+            this.btnBackToWaitingRoom.Size = new System.Drawing.Size(95, 35);
+            this.btnBackToWaitingRoom.TabIndex = 11;
+            this.btnBackToWaitingRoom.Text = "🏠 Lobby";
+            this.btnBackToWaitingRoom.UseVisualStyleBackColor = false;
+            this.btnBackToWaitingRoom.Click += new System.EventHandler(this.btnBackToWaitingRoom_Click);
+            // 
+            // statusStripGame
+            // 
+            this.statusStripGame.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel});
+            this.statusStripGame.Location = new System.Drawing.Point(0, 690);
+            this.statusStripGame.Name = "statusStripGame";
+            this.statusStripGame.Size = new System.Drawing.Size(1300, 22);
+            this.statusStripGame.TabIndex = 12;
+            this.statusStripGame.Text = "statusStrip1";
+            // 
+            // toolStripStatusLabel
+            // 
+            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(118, 17);
+            this.toolStripStatusLabel.Text = "DrawMaster - Ready";
+            // 
+            // lblGameStatus
+            // 
+            this.lblGameStatus.AutoSize = true;
+            this.lblGameStatus.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblGameStatus.ForeColor = System.Drawing.Color.FromArgb(45, 125, 245);
+            this.lblGameStatus.Location = new System.Drawing.Point(740, 695);
+            this.lblGameStatus.Name = "lblGameStatus";
+            this.lblGameStatus.Size = new System.Drawing.Size(200, 21);
+            this.lblGameStatus.TabIndex = 13;
+            this.lblGameStatus.Text = "Waiting for players to join...";
+            // 
+            // panelTopBar
+            // 
+            this.panelTopBar.BackColor = System.Drawing.Color.FromArgb(45, 125, 245);
+            this.panelTopBar.Controls.Add(this.lblTitle);
+            this.panelTopBar.Controls.Add(this.lblRoomTitle);
+            this.panelTopBar.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelTopBar.Location = new System.Drawing.Point(0, 0);
+            this.panelTopBar.Name = "panelTopBar";
+            this.panelTopBar.Size = new System.Drawing.Size(1300, 70);
+            this.panelTopBar.TabIndex = 14;
+            // 
+            // lblRoomTitle
+            // 
+            this.lblRoomTitle.AutoSize = true;
+            this.lblRoomTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblRoomTitle.ForeColor = System.Drawing.Color.White;
+            this.lblRoomTitle.Location = new System.Drawing.Point(740, 25);
+            this.lblRoomTitle.Name = "lblRoomTitle";
+            this.lblRoomTitle.Size = new System.Drawing.Size(200, 25);
+            this.lblRoomTitle.TabIndex = 1;
+            this.lblRoomTitle.Text = "🎮 Multiplayer Game Room";
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(248, 249, 250);
+            this.ClientSize = new System.Drawing.Size(1300, 712);
+            this.Controls.Add(this.panelTopBar);
+            this.Controls.Add(this.lblGameStatus);
+            this.Controls.Add(this.statusStripGame);
+            this.Controls.Add(this.btnBackToWaitingRoom);
+            this.Controls.Add(this.btnLeaveGame);
+            this.Controls.Add(this.btnStartGame);
+            this.Controls.Add(this.panelRoomInfo);
+            this.Controls.Add(this.panelGameInfo);
+            this.Controls.Add(this.panelCurrentPlayer);
+            this.Controls.Add(this.panelLeaderboard);
+            this.Controls.Add(this.panelChat);
+            this.Controls.Add(this.panelTools);
+            this.Controls.Add(this.btnClearCanvas);
+            this.Controls.Add(this.panelDrawing);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "DrawMaster - Multiplayer Drawing Game";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.panelTools.ResumeLayout(false);
+            this.panelTools.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarBrushSize)).EndInit();
+            this.panelChat.ResumeLayout(false);
+            this.panelChat.PerformLayout();
+            this.panelLeaderboard.ResumeLayout(false);
+            this.panelLeaderboard.PerformLayout();
+            this.panelCurrentPlayer.ResumeLayout(false);
+            this.panelCurrentPlayer.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlayerAvatar)).EndInit();
+            this.panelGameInfo.ResumeLayout(false);
+            this.panelGameInfo.PerformLayout();
+            this.panelRoomInfo.ResumeLayout(false);
+            this.panelRoomInfo.PerformLayout();
+            this.statusStripGame.ResumeLayout(false);
+            this.statusStripGame.PerformLayout();
+            this.panelTopBar.ResumeLayout(false);
+            this.panelTopBar.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.Panel panelDrawing;
+        private System.Windows.Forms.Button btnClearCanvas;
+        private System.Windows.Forms.Panel panelTools;
+        private System.Windows.Forms.Panel panelChat;
+        private System.Windows.Forms.Panel panelLeaderboard;
+        private System.Windows.Forms.Panel panelCurrentPlayer;
+        private System.Windows.Forms.Panel panelGameInfo;
+        private System.Windows.Forms.Panel panelRoomInfo;
+        private System.Windows.Forms.Timer timerGame;
+        private System.Windows.Forms.Button btnStartGame;
+        private System.Windows.Forms.Button btnLeaveGame;
+        private System.Windows.Forms.Button btnBackToWaitingRoom;
+        private System.Windows.Forms.StatusStrip statusStripGame;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
+        private System.Windows.Forms.Label lblGameStatus;
+        private System.Windows.Forms.Panel panelTopBar;
+        
+        // Drawing Tools
+        private System.Windows.Forms.Button btnPencil;
+        private System.Windows.Forms.Button btnEraser;
+        private System.Windows.Forms.Panel panelSelectedColor;
+        private System.Windows.Forms.Label lblSelectedColor;
+        private System.Windows.Forms.Button btnColorWhite;
+        private System.Windows.Forms.Button btnColorBlack;
+        private System.Windows.Forms.Button btnColorYellow;
+        private System.Windows.Forms.Button btnColorGreen;
+        private System.Windows.Forms.Button btnColorBlue;
+        private System.Windows.Forms.Button btnColorRed;
+        private System.Windows.Forms.TrackBar trackBarBrushSize;
+        private System.Windows.Forms.Label lblBrushSize;
+        
+        // Chat
+        private System.Windows.Forms.Label lblChat;
+        private System.Windows.Forms.ListBox listBoxChat;
+        private System.Windows.Forms.TextBox txtChatInput;
+        private System.Windows.Forms.Button btnSendMessage;
+        
+        // Leaderboard
+        private System.Windows.Forms.Label lblLeaderboard;
+        private System.Windows.Forms.ListView listViewLeaderboard;
+        private System.Windows.Forms.ColumnHeader columnRank;
+        private System.Windows.Forms.ColumnHeader columnPlayer;
+        private System.Windows.Forms.ColumnHeader columnScore;
+        private System.Windows.Forms.ColumnHeader columnStatus;
+        
+        // Current Player
+        private System.Windows.Forms.PictureBox pictureBoxPlayerAvatar;
+        private System.Windows.Forms.Label lblCurrentPlayer;
+        private System.Windows.Forms.Label lblPlayerName;
+        private System.Windows.Forms.Label lblPlayerCurrentScore;
+        
+        // Game Info
+        private System.Windows.Forms.Label lblCurrentWord;
+        private System.Windows.Forms.Label lblWordToGuess;
+        private System.Windows.Forms.Label lblTimer;
+        private System.Windows.Forms.Label lblTimeLeft;
+        private System.Windows.Forms.Label lblRound;
+        private System.Windows.Forms.Label lblCurrentRound;
+        private System.Windows.Forms.ProgressBar progressBarTime;
+        
+        // Room Info
+        private System.Windows.Forms.Label lblRoomCodeTitle;
+        private System.Windows.Forms.Label lblRoomCode;
+        private System.Windows.Forms.Label lblPlayersOnline;
+        private System.Windows.Forms.Label lblPlayersCount;
+        private System.Windows.Forms.Label lblRoomTitle;
+    }
+}
+
