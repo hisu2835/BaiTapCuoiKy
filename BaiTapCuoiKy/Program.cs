@@ -16,7 +16,28 @@ namespace BaiTapCuoiKy
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            
+            // Show login form first
+            var loginForm = new LoginForm();
+            bool loginSuccessful = false;
+            string loggedInUser = "";
+
+            loginForm.LoginSuccessful += (username) =>
+            {
+                loggedInUser = username;
+                loginSuccessful = true;
+                loginForm.Close(); // Close the login form to exit the Application.Run loop
+            };
+
+            // Run the login form
+            Application.Run(loginForm);
+
+            // If login was successful, open the main game form
+            if (loginSuccessful && !string.IsNullOrEmpty(loggedInUser))
+            {
+                var gameForm = new Form1(loggedInUser);
+                Application.Run(gameForm);
+            }
         }
     }
 }
