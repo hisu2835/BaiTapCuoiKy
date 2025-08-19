@@ -1,0 +1,101 @@
+﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
+
+namespace BaiTapCuoiKy
+{
+    public class GameClient
+    {
+        private TcpClient _client;
+        private NetworkStream _stream;
+        private bool _isConnected = false;
+
+        public event Action<NetworkData> DataReceived;
+        public event Action ConnectionStatusChanged;
+
+        public bool IsConnected => _isConnected;
+
+        public async Task ConnectAsync(string ipAddress, int port)
+        {
+            try
+            {
+                _client = new TcpClient();
+                await _client.ConnectAsync(ipAddress, port);
+                _stream = _client.GetStream();
+                _isConnected = true;
+                ConnectionStatusChanged?.Invoke();
+                Task.Run(() => ReceiveData());
+            }
+            catch (Exception ex)
+            {
+                _isConnected = false;
+                ConnectionStatusChanged?.Invoke();
+                // Propagate the error to be handled by the UI
+                throw new Exception($"Failed to connect to server: {ex.Message}");
+            }
+        }
+
+        private async Task ReceiveData()
+        {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+
+            while (_isConnected && _client.Connected)
+            {
+                try
+                {
+                    bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead == 0)
+                    {
+                        // Server disconnected
+                        Disconnect();
+                        break;
+                    }
+
+                    byte[] receivedBytes = new byte[bytesRead];
+                    Array.Copy(buffer, receivedBytes, bytesRead);
+                    NetworkData data = NetworkData.FromBytes(receivedBytes);
+
+                    DataReceived?.Invoke(data);
+                }
+                catch (Exception)
+                {
+                    // Handle exceptions, e.g., server disconnected abruptly
+                    Disconnect();
+                    break;
+                }
+            }
+        }
+
+        public async Task SendDataAsync(NetworkData data)
+        {
+            if (!_isConnected || !_client.Connected)
+            {
+                // Optionally throw an exception or log an error
+                return;
+            }
+
+            try
+            {
+                byte[] bytesToSend = data.ToBytes();
+                await _stream.WriteAsync(bytesToSend, 0, bytesToSend.Length);
+            }
+            catch (Exception ex)
+            {
+                // Handle send error
+                Disconnect();
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (!_isConnected) return;
+
+            _isConnected = false;
+            _stream?.Close();
+            _client?.Close();
+            ConnectionStatusChanged?.Invoke();
+        }
+    }
+}

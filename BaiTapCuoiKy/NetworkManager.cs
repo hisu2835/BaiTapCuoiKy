@@ -1,80 +1,74 @@
 using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace BaiTapCuoiKy
 {
-    // Simple NetworkManager without external dependencies.
-    // It attempts to discover the public IP and exposes an address for clients to connect.
+    // Minimal NetworkManager to satisfy Form1 dependencies.
+    // Provides a local connection address and no-op Initialize/Cleanup.
     public class NetworkManager
     {
         public event Action<string> LogMessage;
         public event Action<string> ErrorOccurred;
 
-        public string PublicIP { get; private set; }
-        public int MappedPort { get; private set; } = 7777;
-        private bool _isInitialized = false;
+        private string _connectionAddress = "127.0.0.1";
 
         public async Task Initialize()
         {
             try
             {
-                if (_isInitialized) return;
-
-                // Try to get public IP via a simple web service. This may fail if offline.
-                try
+                var ip = GetLocalIPv4();
+                if (!string.IsNullOrWhiteSpace(ip))
                 {
-                    using (var wc = new WebClient())
-                    {
-                        // Common public IP echo service; you can replace by your own if needed.
-                        PublicIP = (await wc.DownloadStringTaskAsync(new Uri("http://checkip.amazonaws.com/"))).Trim();
-                        LogMessage?.Invoke($"Public IP detected: {PublicIP}");
-                    }
+                    _connectionAddress = ip;
                 }
-                catch (Exception ex)
-                {
-                    ErrorOccurred?.Invoke($"Could not determine public IP automatically: {ex.Message}");
-                    PublicIP = GetLocalIPAddress();
-                }
-
-                // No UPnP mapping performed (library not available). Inform the user.
-                LogMessage?.Invoke("Note: UPnP port mapping not configured. If connecting over the Internet, forward port 7777 manually on your router.");
-
-                _isInitialized = true;
+                LogMessage?.Invoke($"Network initialized. Connection address: {_connectionAddress}");
+                await Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke($"Network initialization failed: {ex.Message}");
-                PublicIP = GetLocalIPAddress();
+                ErrorOccurred?.Invoke($"Network init error: {ex.Message}");
             }
         }
 
         public string GetConnectionAddress()
         {
-            return string.IsNullOrWhiteSpace(PublicIP) ? GetLocalIPAddress() : PublicIP;
+            return _connectionAddress;
         }
 
         public async Task Cleanup()
         {
-            // No port mapping to remove; kept for API compatibility.
-            await Task.CompletedTask;
+            try
+            {
+                // No-op for now
+                LogMessage?.Invoke("Network cleanup complete.");
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                ErrorOccurred?.Invoke($"Network cleanup error: {ex.Message}");
+            }
         }
 
-        private string GetLocalIPAddress()
+        private static string GetLocalIPv4()
         {
             try
             {
                 var host = Dns.GetHostEntry(Dns.GetHostName());
                 foreach (var ip in host.AddressList)
                 {
-                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
                     {
                         return ip.ToString();
                     }
                 }
             }
-            catch { }
-            return "127.0.0.1";
+            catch
+            {
+                // ignore
+            }
+            return null;
         }
     }
 }

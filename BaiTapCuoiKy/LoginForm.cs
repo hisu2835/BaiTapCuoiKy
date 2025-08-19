@@ -37,19 +37,18 @@ namespace BaiTapCuoiKy
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(900, 600);
             this.Name = "LoginForm";
-            this.Text = "DrawMaster - ??ng nh?p";
+            this.Text = LocalizationManager.Tr("APP_TITLE_LOGIN");
             this.ResumeLayout(false);
         }
 
         private void SetupForm()
         {
-            this.Text = "DrawMaster - ??ng nh?p";
+            this.Text = LocalizationManager.Tr("APP_TITLE_LOGIN");
             this.Size = new Size(900, 600);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            
             CreateLoginInterface();
         }
 
@@ -103,7 +102,7 @@ namespace BaiTapCuoiKy
             // Branding content in left panel
             Label brandTitle = new Label
             {
-                Text = "DrawMaster",
+                Text = LocalizationManager.Tr("LOGIN_BRAND_TITLE"),
                 Font = new Font("Segoe UI", 32, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(50, 100),
@@ -113,7 +112,7 @@ namespace BaiTapCuoiKy
 
             Label brandSubtitle = new Label
             {
-                Text = "Multiplayer Drawing Game",
+                Text = LocalizationManager.Tr("LOGIN_BRAND_SUBTITLE"),
                 Font = new Font("Segoe UI", 14),
                 ForeColor = Color.FromArgb(200, 220, 255),
                 Location = new Point(50, 160),
@@ -121,10 +120,9 @@ namespace BaiTapCuoiKy
                 TextAlign = ContentAlignment.MiddleCenter
             };
 
-            // Game features
             Label featuresLabel = new Label
             {
-                Text = "? V? và ?oán cùng b?n bè\n?? Công c? v? chuyên nghi?p\n?? Chat th?i gian th?c\n?? H? th?ng ?i?m s?\n?? H? tr? ti?ng Vi?t",
+                Text = LocalizationManager.Tr("LOGIN_FEATURES"),
                 Font = new Font("Segoe UI", 12),
                 ForeColor = Color.White,
                 Location = new Point(30, 250),
@@ -155,7 +153,7 @@ namespace BaiTapCuoiKy
             // Header
             Label headerLabel = new Label
             {
-                Text = isLoginMode ? "??NG NH?P" : "??NG KÝ",
+                Text = isLoginMode ? LocalizationManager.Tr("LOGIN_TITLE") : LocalizationManager.Tr("REGISTER_TITLE"),
                 Font = new Font("Segoe UI", 24, FontStyle.Bold),
                 ForeColor = Color.FromArgb(45, 125, 245),
                 Location = new Point(50, 50),
@@ -166,7 +164,7 @@ namespace BaiTapCuoiKy
             // Username/Email field
             Label usernameLabel = new Label
             {
-                Text = isLoginMode ? "Tên ??ng nh?p ho?c Email:" : "Tên ??ng nh?p:",
+                Text = isLoginMode ? LocalizationManager.Tr("USERNAME_OR_EMAIL") : LocalizationManager.Tr("USERNAME_ONLY"),
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 Location = new Point(50, 120),
@@ -185,7 +183,7 @@ namespace BaiTapCuoiKy
             // Password field
             Label passwordLabel = new Label
             {
-                Text = "M?t kh?u:",
+                Text = LocalizationManager.Tr("PASSWORD"),
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 Location = new Point(50, 190),
@@ -206,7 +204,7 @@ namespace BaiTapCuoiKy
             Label confirmPasswordLabel = new Label
             {
                 Name = "confirmPasswordLabel",
-                Text = "Xác nh?n m?t kh?u:",
+                Text = LocalizationManager.Tr("CONFIRM_PASSWORD"),
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 Location = new Point(50, 260),
@@ -229,7 +227,7 @@ namespace BaiTapCuoiKy
             Label emailLabel = new Label
             {
                 Name = "emailLabel",
-                Text = "Email:",
+                Text = LocalizationManager.Tr("EMAIL"),
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 Location = new Point(50, 330),
@@ -250,7 +248,7 @@ namespace BaiTapCuoiKy
             // Main action button
             Button actionButton = new Button
             {
-                Text = isLoginMode ? "??NG NH?P" : "??NG KÝ",
+                Text = isLoginMode ? LocalizationManager.Tr("BTN_LOGIN") : LocalizationManager.Tr("BTN_REGISTER"),
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 BackColor = Color.FromArgb(45, 125, 245),
                 ForeColor = Color.White,
@@ -270,7 +268,7 @@ namespace BaiTapCuoiKy
             // Toggle between login/register
             LinkLabel toggleLabel = new LinkLabel
             {
-                Text = isLoginMode ? "Ch?a có tài kho?n? ??ng ký ngay" : "?ã có tài kho?n? ??ng nh?p",
+                Text = isLoginMode ? LocalizationManager.Tr("TOGGLE_TO_REGISTER") : LocalizationManager.Tr("TOGGLE_TO_LOGIN"),
                 Font = new Font("Segoe UI", 10),
                 Location = new Point(50, isLoginMode ? 450 : 520),
                 Size = new Size(350, 20),
@@ -296,7 +294,7 @@ namespace BaiTapCuoiKy
 
             Label socialLabel = new Label
             {
-                Text = "HO?C ??NG NH?P B?NG",
+                Text = LocalizationManager.Tr("OR_LOGIN_WITH"),
                 Font = new Font("Segoe UI", 10, FontStyle.Regular),
                 ForeColor = Color.Gray,
                 Location = new Point(0, 10),
@@ -347,7 +345,7 @@ namespace BaiTapCuoiKy
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Vui lòng nh?p ??y ?? thông tin!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Tr("FILL_ALL_FIELDS"), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -357,14 +355,14 @@ namespace BaiTapCuoiKy
                 if (ValidateLogin(username, password))
                 {
                     string displayName = GetDisplayName(username);
-                    MessageBox.Show($"??ng nh?p thành công! Chào m?ng {displayName}!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(string.Format(LocalizationManager.Tr("LOGIN_SUCCESS"), displayName), "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoginSuccessful?.Invoke(displayName);
                     // Close the form to exit the Application.Run loop in Program.cs
                     this.Close();
                 }
                 else
                 {
-                    MessageBox.Show("Tên ??ng nh?p ho?c m?t kh?u không ?úng!", "L?i ??ng nh?p", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(LocalizationManager.Tr("LOGIN_FAILED"), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             else
@@ -378,31 +376,31 @@ namespace BaiTapCuoiKy
 
                 if (string.IsNullOrEmpty(confirmPassword) || string.IsNullOrEmpty(email))
                 {
-                    MessageBox.Show("Vui lòng nh?p ??y ?? thông tin!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(LocalizationManager.Tr("FILL_ALL_FIELDS"), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (password != confirmPassword)
                 {
-                    MessageBox.Show("M?t kh?u xác nh?n không kh?p!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(LocalizationManager.Tr("PASSWORD_MISMATCH"), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (!IsValidEmail(email))
                 {
-                    MessageBox.Show("Email không h?p l?!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(LocalizationManager.Tr("INVALID_EMAIL"), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (userAccounts.ContainsKey(username.ToLower()))
                 {
-                    MessageBox.Show("Tên ??ng nh?p ?ã t?n t?i!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(LocalizationManager.Tr("USERNAME_EXISTS"), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (userAccounts.Values.Any(u => u.Email.ToLower() == email.ToLower()))
                 {
-                    MessageBox.Show("Email ?ã ???c s? d?ng!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(LocalizationManager.Tr("EMAIL_IN_USE"), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -420,7 +418,7 @@ namespace BaiTapCuoiKy
                 userAccounts[username.ToLower()] = newAccount;
                 SaveUserAccounts();
 
-                MessageBox.Show("??ng ký thành công! B?n có th? ??ng nh?p ngay bây gi?.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(LocalizationManager.Tr("REGISTER_SUCCESS"), "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 
                 // Switch to login mode
                 isLoginMode = true;
@@ -458,7 +456,7 @@ namespace BaiTapCuoiKy
                 username = existingUser.Username;
             }
 
-            MessageBox.Show($"??ng nh?p {provider} thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(string.Format(LocalizationManager.Tr("SOCIAL_LOGIN_SUCCESS"), provider), "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
             LoginSuccessful?.Invoke(GetDisplayName(username));
             // Close the form to exit the Application.Run loop in Program.cs
             this.Close();
@@ -523,11 +521,9 @@ namespace BaiTapCuoiKy
                 try
                 {
                     string[] lines = File.ReadAllLines(accountsFilePath);
-                    
                     foreach (string line in lines)
                     {
                         if (string.IsNullOrWhiteSpace(line)) continue;
-                        
                         string[] parts = line.Split('|');
                         if (parts.Length >= 6)
                         {
@@ -546,11 +542,10 @@ namespace BaiTapCuoiKy
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"L?i khi t?i d? li?u tài kho?n: {ex.Message}", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(string.Format(LocalizationManager.Tr("ERROR_LOAD_ACCOUNTS"), ex.Message), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
 
-            // Create default admin account if no accounts exist
             if (userAccounts.Count == 0)
             {
                 var adminAccount = new UserAccount
@@ -571,17 +566,16 @@ namespace BaiTapCuoiKy
         {
             try
             {
-                var lines = userAccounts.Values.Select(account => 
-                    $"{account.Username}|{account.Password}|{account.Email}|{account.DisplayName}|{account.CreatedDate:yyyy-MM-dd HH:mm:ss}|{account.LoginProvider}"
-                ).ToArray();
-                
+                var lines = userAccounts.Values.Select(account =>
+                    $"{account.Username}|{account.Password}|{account.Email}|{account.DisplayName}|{account.CreatedDate:yyyy-MM-dd HH:mm:ss}|{account.LoginProvider}").ToArray();
                 File.WriteAllLines(accountsFilePath, lines);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"L?i khi l?u d? li?u tài kho?n: {ex.Message}", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(string.Format(LocalizationManager.Tr("ERROR_SAVE_ACCOUNTS"), ex.Message), LocalizationManager.Tr("ERROR"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
     }
 
     public class UserAccount
@@ -591,6 +585,6 @@ namespace BaiTapCuoiKy
         public string Email { get; set; }
         public string DisplayName { get; set; }
         public DateTime CreatedDate { get; set; }
-        public string LoginProvider { get; set; } // "Local", "Facebook", "Google", "GitHub"
+        public string LoginProvider { get; set; }
     }
 }

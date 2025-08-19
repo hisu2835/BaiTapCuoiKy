@@ -1,0 +1,416 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
+using System.Threading;
+
+namespace BaiTapCuoiKy
+{
+    public class GameServer
+    {
+        private TcpListener _listener;
+        private readonly List<TcpClient> _clients = new List<TcpClient>();
+        private readonly object _clientsLock = new object();
+        private readonly int _port;
+        private bool _isRunning = false;
+        private CancellationTokenSource _cancellationTokenSource;
+
+        public event Action<string> ServerLog;
+        public event Action<TcpClient, NetworkData> DataReceived;
+
+        public int ConnectedClientsCount 
+        { 
+            get 
+            { 
+                lock (_clientsLock) 
+                { 
+                    return _clients.Count; 
+                } 
+            } 
+        }
+
+        public GameServer(int port)
+        {
+            _port = port;
+        }
+
+        public void Start()
+        {
+            try
+            {
+                if (_isRunning)
+                {
+                    ServerLog?.Invoke("Server is already running.");
+                    return;
+                }
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                _listener = new TcpListener(IPAddress.Any, _port);
+                _listener.Start();
+                _isRunning = true;
+                
+                ServerLog?.Invoke($"🚀 Server started on port {_port}. Waiting for connections...");
+                
+                // Start listening for clients in background
+                Task.Run(() => ListenForClients(_cancellationTokenSource.Token));
+            }
+            catch (Exception ex)
+            {
+                ServerLog?.Invoke($"❌ Error starting server: {ex.Message}");
+                _isRunning = false;
+            }
+        }
+
+        private async Task ListenForClients(CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (_isRunning && !cancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        // Accept client with cancellation support
+                        var client = await _listener.AcceptTcpClientAsync();
+                        
+                        if (client != null)
+                        {
+                            lock (_clientsLock)
+                            {
+                                _clients.Add(client);
+                            }
+                            
+                            var clientEndpoint = client.Client.RemoteEndPoint as IPEndPoint;
+                            var clientAddress = clientEndpoint?.Address?.ToString() ?? "Unknown";
+                            
+                            ServerLog?.Invoke($"👤 New client connected: {clientAddress} (Total: {ConnectedClientsCount})");
+                            
+                            // Handle each client in separate task
+                            Task.Run(() => HandleClient(client, cancellationToken));
+                        }
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Expected when server is stopping
+                        break;
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Expected when listener is stopped
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (_isRunning && !cancellationToken.IsCancellationRequested)
+                        {
+                            ServerLog?.Invoke($"⚠️ Error accepting client: {ex.Message}");
+                            try
+                            {
+                                await Task.Delay(1000, cancellationToken); // Brief delay before retry
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancellation is requested
+                ServerLog?.Invoke("📡 Server listener cancelled.");
+            }
+            catch (Exception ex)
+            {
+                ServerLog?.Invoke($"❌ Fatal error in ListenForClients: {ex.Message}");
+            }
+        }
+
+        private async Task HandleClient(TcpClient client, CancellationToken cancellationToken)
+        {
+            NetworkStream stream = null;
+            var clientEndpoint = client?.Client?.RemoteEndPoint as IPEndPoint;
+            var clientAddress = clientEndpoint?.Address?.ToString() ?? "Unknown";
+            
+            try
+            {
+                stream = client.GetStream();
+                byte[] buffer = new byte[4096];
+                
+                ServerLog?.Invoke($"📞 Started handling client: {clientAddress}");
+                
+                while (_isRunning && client.Connected && !cancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        // Read data from client
+                        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                        
+                        if (bytesRead == 0)
+                        {
+                            // Client disconnected gracefully
+                            ServerLog?.Invoke($"📴 Client disconnected gracefully: {clientAddress}");
+                            break;
+                        }
+
+                        // Process received data
+                        byte[] receivedBytes = new byte[bytesRead];
+                        Array.Copy(buffer, receivedBytes, bytesRead);
+                        
+                        try
+                        {
+                            NetworkData data = NetworkData.FromBytes(receivedBytes);
+                            
+                            // Invoke data received event
+                            DataReceived?.Invoke(client, data);
+                            
+                            ServerLog?.Invoke($"📨 Received {data.Command} from {data.SenderName} ({clientAddress})");
+                        }
+                        catch (Exception dataEx)
+                        {
+                            ServerLog?.Invoke($"⚠️ Error deserializing data from {clientAddress}: {dataEx.Message}");
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected when cancellation is requested
+                        break;
+                    }
+                    catch (Exception readEx)
+                    {
+                        ServerLog?.Invoke($"⚠️ Error reading from client {clientAddress}: {readEx.Message}");
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerLog?.Invoke($"❌ Error handling client {clientAddress}: {ex.Message}");
+            }
+            finally
+            {
+                // Cleanup client connection
+                RemoveClient(client, clientAddress);
+            }
+        }
+
+        public async Task BroadcastAsync(NetworkData data, TcpClient excludeClient = null)
+        {
+            if (data == null)
+            {
+                ServerLog?.Invoke("⚠️ Attempted to broadcast null data");
+                return;
+            }
+
+            try
+            {
+                byte[] bytesToSend = data.ToBytes();
+                List<TcpClient> clientsCopy;
+                
+                // Create a copy of clients list for thread safety
+                lock (_clientsLock)
+                {
+                    clientsCopy = new List<TcpClient>(_clients);
+                }
+
+                var broadcastTasks = new List<Task>();
+                int successCount = 0;
+                int failureCount = 0;
+
+                foreach (var client in clientsCopy)
+                {
+                    if (client == excludeClient || !client.Connected)
+                        continue;
+
+                    // Broadcast to each client asynchronously
+                    var broadcastTask = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            NetworkStream stream = client.GetStream();
+                            await stream.WriteAsync(bytesToSend, 0, bytesToSend.Length);
+                            await stream.FlushAsync();
+                            
+                            lock (_clientsLock)
+                            {
+                                successCount++;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            lock (_clientsLock)
+                            {
+                                failureCount++;
+                            }
+                            
+                            var clientEndpoint = client?.Client?.RemoteEndPoint as IPEndPoint;
+                            var clientAddress = clientEndpoint?.Address?.ToString() ?? "Unknown";
+                            
+                            ServerLog?.Invoke($"⚠️ Error broadcasting to {clientAddress}: {ex.Message}");
+                            
+                            // Remove failed client
+                            RemoveClient(client, clientAddress);
+                        }
+                    });
+                    
+                    broadcastTasks.Add(broadcastTask);
+                }
+
+                // Wait for all broadcast operations to complete
+                if (broadcastTasks.Count > 0)
+                {
+                    await Task.WhenAll(broadcastTasks);
+                    ServerLog?.Invoke($"📡 Broadcast completed: {successCount} success, {failureCount} failures");
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerLog?.Invoke($"❌ Critical error in BroadcastAsync: {ex.Message}");
+            }
+        }
+
+        private void RemoveClient(TcpClient client, string clientAddress = null)
+        {
+            if (client == null) return;
+
+            try
+            {
+                bool wasRemoved = false;
+                lock (_clientsLock)
+                {
+                    if (_clients.Contains(client))
+                    {
+                        _clients.Remove(client);
+                        wasRemoved = true;
+                    }
+                }
+
+                if (wasRemoved)
+                {
+                    var address = clientAddress ?? "Unknown";
+                    ServerLog?.Invoke($"👋 Client removed: {address} (Remaining: {ConnectedClientsCount})");
+                }
+
+                // Safe cleanup
+                try
+                {
+                    client.Close();
+                }
+                catch (Exception ex)
+                {
+                    ServerLog?.Invoke($"⚠️ Error closing client connection: {ex.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerLog?.Invoke($"❌ Error in RemoveClient: {ex.Message}");
+            }
+        }
+
+        public void Stop()
+        {
+            try
+            {
+                if (!_isRunning)
+                {
+                    ServerLog?.Invoke("Server is already stopped.");
+                    return;
+                }
+
+                ServerLog?.Invoke("🛑 Stopping server...");
+                _isRunning = false;
+
+                // Cancel all operations
+                _cancellationTokenSource?.Cancel();
+
+                // Stop listener
+                try
+                {
+                    _listener?.Stop();
+                }
+                catch (Exception ex)
+                {
+                    ServerLog?.Invoke($"⚠️ Error stopping listener: {ex.Message}");
+                }
+
+                // Close all client connections
+                List<TcpClient> clientsCopy;
+                lock (_clientsLock)
+                {
+                    clientsCopy = new List<TcpClient>(_clients);
+                    _clients.Clear();
+                }
+
+                foreach (var client in clientsCopy)
+                {
+                    try
+                    {
+                        client.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerLog?.Invoke($"⚠️ Error closing client: {ex.Message}");
+                    }
+                }
+
+                // Cleanup cancellation token
+                try
+                {
+                    _cancellationTokenSource?.Dispose();
+                    _cancellationTokenSource = null;
+                }
+                catch (Exception ex)
+                {
+                    ServerLog?.Invoke($"⚠️ Error disposing cancellation token: {ex.Message}");
+                }
+
+                ServerLog?.Invoke("✅ Server stopped successfully.");
+            }
+            catch (Exception ex)
+            {
+                ServerLog?.Invoke($"❌ Error stopping server: {ex.Message}");
+            }
+        }
+
+        // Additional utility methods
+        public bool IsRunning => _isRunning;
+
+        public void DisconnectClient(TcpClient client)
+        {
+            if (client != null)
+            {
+                var clientEndpoint = client.Client?.RemoteEndPoint as IPEndPoint;
+                var clientAddress = clientEndpoint?.Address?.ToString() ?? "Unknown";
+                RemoveClient(client, clientAddress);
+            }
+        }
+
+        public List<string> GetConnectedClientAddresses()
+        {
+            var addresses = new List<string>();
+            lock (_clientsLock)
+            {
+                foreach (var client in _clients)
+                {
+                    try
+                    {
+                        if (client.Connected)
+                        {
+                            var endpoint = client.Client.RemoteEndPoint as IPEndPoint;
+                            if (endpoint != null)
+                            {
+                                addresses.Add(endpoint.Address.ToString());
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Skip clients with invalid endpoints
+                    }
+                }
+            }
+            return addresses;
+        }
+    }
+}

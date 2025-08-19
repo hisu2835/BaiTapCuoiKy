@@ -410,5 +410,44 @@ namespace BaiTapCuoiKy
         }
 
         #endregion
+
+        private void StartWordSelection()
+        {
+            try
+            {
+                if (wordBank == null || wordBank.Length == 0)
+                {
+                    wordBank = new string[] {
+                        "CAT", "DOG", "HOUSE", "TREE", "CAR", "BOOK", "APPLE", "STAR",
+                        "FISH", "BIRD", "FLOWER", "SUN", "MOON", "BANANA", "GUITAR",
+                        "PHONE", "COMPUTER", "CHAIR", "TABLE", "WINDOW", "DOOR", "LAMP",
+                        "BOTTLE", "CUP", "PLATE", "FORK", "KNIFE", "SPOON", "BOWL"
+                    };
+                }
+
+                // Ch? ?? test: t? ch?n t? và b?t ??u v? ngay
+                currentWord = wordBank[random.Next(wordBank.Length)];
+
+                // B?t ??u pha v? (inline tránh ph? thu?c ph??ng th?c khác)
+                isPlayerDrawing = true;
+                gameTimeLeft = currentGameSettings?.TimePerRound ?? 60;
+
+                var currentPlayerInfo = connectedPlayers.FirstOrDefault(p => p.Name == currentUser);
+                if (currentPlayerInfo != null) currentPlayerInfo.IsDrawing = true;
+
+                gameView?.SetRoundInfo(currentWord, gameTimeLeft, currentRound, maxRounds);
+                gameView?.AddChat($"?? B?n ?ang v?: {currentWord}");
+                gameView?.AddChat($"? B?n có {gameTimeLeft} giây ?? v?!");
+                gameView?.AddChat("??? Ng??i ch?i khác s? ?oán b?c v? c?a b?n.");
+
+                UpdateGameViewLeaderboard();
+                gameTimer?.Start();
+                try { GameEffects.PlaySuccessSound(); } catch { }
+            }
+            catch (Exception ex)
+            {
+                gameView?.AddChat($"? Error selecting word: {ex.Message}");
+            }
+        }
     }
 }

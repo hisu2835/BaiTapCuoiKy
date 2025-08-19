@@ -61,6 +61,7 @@
     <Compile Include="GameViewControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="LocalizationManager.cs" />
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>

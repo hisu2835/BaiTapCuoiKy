@@ -1,0 +1,151 @@
+﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
+using System.Threading;
+
+namespace BaiTapCuoiKy
+{
+    public class GameClient
+    {
+        private TcpClient _client;
+        private NetworkStream _stream;
+        private bool _isConnected = false;
+        private Task _receiveTask;
+
+        public event Action<NetworkData> DataReceived;
+        public event Action<string> ConnectionLog;
+
+        public bool IsConnected => _isConnected;
+
+        public async Task ConnectAsync(string ipAddress, int port, int timeoutMs = 5000)
+        {
+            try
+            {
+                _client = new TcpClient();
+                
+                // Create a cancellation token with timeout
+                using (var cancellationTokenSource = new CancellationTokenSource(timeoutMs))
+                {
+                    try
+                    {
+                        var connectTask = _client.ConnectAsync(ipAddress, port);
+                        var delayTask = Task.Delay(timeoutMs, cancellationTokenSource.Token);
+                        
+                        var completedTask = await Task.WhenAny(connectTask, delayTask);
+                        
+                        if (completedTask == delayTask)
+                        {
+                            throw new TimeoutException($"Kết nối timeout sau {timeoutMs/1000} giây. Không thể kết nối đến {ipAddress}:{port}");
+                        }
+                        
+                        await connectTask; // This will throw if connection failed
+                    }
+                    catch (SocketException ex)
+                    {
+                        throw new Exception($"Không thể kết nối đến {ipAddress}:{port}. Lỗi: {ex.Message}");
+                    }
+                }
+                
+                _stream = _client.GetStream();
+                _isConnected = true;
+                
+                // Start receiving data in background
+                _receiveTask = Task.Run(() => ReceiveData());
+                
+                ConnectionLog?.Invoke($"Kết nối thành công đến {ipAddress}:{port}");
+            }
+            catch (Exception ex)
+            {
+                _isConnected = false;
+                _client?.Close();
+                ConnectionLog?.Invoke($"Lỗi kết nối: {ex.Message}");
+                throw; // Re-throw so Form1 can handle it
+            }
+        }
+
+        private async Task ReceiveData()
+        {
+            byte[] buffer = new byte[4096];
+            
+            try
+            {
+                while (_isConnected && _client?.Connected == true)
+                {
+                    int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
+                    
+                    if (bytesRead == 0)
+                    {
+                        // Server disconnected gracefully
+                        ConnectionLog?.Invoke("Server đã ngắt kết nối");
+                        break;
+                    }
+
+                    byte[] receivedBytes = new byte[bytesRead];
+                    Array.Copy(buffer, receivedBytes, bytesRead);
+                    
+                    try
+                    {
+                        NetworkData data = NetworkData.FromBytes(receivedBytes);
+                        DataReceived?.Invoke(data);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConnectionLog?.Invoke($"Lỗi xử lý dữ liệu nhận được: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (_isConnected)
+                {
+                    ConnectionLog?.Invoke($"Lỗi nhận dữ liệu: {ex.Message}");
+                }
+            }
+            finally
+            {
+                Disconnect();
+            }
+        }
+
+        public async Task SendDataAsync(NetworkData data)
+        {
+            if (!_isConnected || _client?.Connected != true)
+            {
+                ConnectionLog?.Invoke("Không thể gửi dữ liệu: Chưa kết nối");
+                return;
+            }
+
+            try
+            {
+                byte[] bytesToSend = data.ToBytes();
+                await _stream.WriteAsync(bytesToSend, 0, bytesToSend.Length);
+                await _stream.FlushAsync();
+            }
+            catch (Exception ex)
+            {
+                ConnectionLog?.Invoke($"Lỗi gửi dữ liệu: {ex.Message}");
+                Disconnect();
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (!_isConnected) return;
+
+            _isConnected = false;
+            
+            try
+            {
+                _stream?.Close();
+                _client?.Close();
+            }
+            catch (Exception ex)
+            {
+                ConnectionLog?.Invoke($"Lỗi khi ngắt kết nối: {ex.Message}");
+            }
+            
+            ConnectionLog?.Invoke("Đã ngắt kết nối");
+        }
+    }
+}
