@@ -94,7 +94,6 @@ namespace BaiTapCuoiKy
         private GameServer gameServer;
         private GameClient gameClient;
         private bool isHost = false;
-        private NetworkManager networkManager; // NEW: UPnP Network Manager
 
         #endregion
 
@@ -504,19 +503,10 @@ namespace BaiTapCuoiKy
                     string roomCode = roomDialog.RoomCode;
                     var settings = roomDialog.GameSettings;
                     
-                    // Initialize network manager
-                    networkManager = new NetworkManager();
-                    networkManager.LogMessage += (msg) => AddLobbyMessage("Network", msg);
-                    networkManager.ErrorOccurred += (err) => AddLobbyMessage("Error", err);
-                    
-                    await networkManager.Initialize();
-                    
                     // Start the server
                     isHost = true;
-                    gameServer = new GameServer(7777);
-                    gameServer.ServerLog += (log) => this.Invoke((MethodInvoker)delegate { 
-                        AddLobbyMessage("Server", log);
-                    });
+                    gameServer = new GameServer(7777); // Port can be configurable
+                    gameServer.ServerLog += (log) => this.Invoke((MethodInvoker)delegate { AddLobbyMessage("Server", log); });
                     gameServer.DataReceived += GameServer_DataReceived;
                     gameServer.Start();
 
@@ -531,16 +521,13 @@ namespace BaiTapCuoiKy
                             await gameClient.ConnectAsync("127.0.0.1", 7777);
                             // On successful connection, transition to lobby
                             this.Invoke((MethodInvoker)delegate {
-                                // Use public IP as room code
-                                string publicAddress = networkManager.GetConnectionAddress();
-                                EnterGameRoom(publicAddress, true, settings);
+                                EnterGameRoom(roomCode, true, settings);
                             });
                         }
                         catch (Exception ex)
                         {
                             this.Invoke((MethodInvoker)delegate {
-                                MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}", "Lỗi", 
-                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             });
                         }
                     });
@@ -599,11 +586,7 @@ namespace BaiTapCuoiKy
 
             if (result == DialogResult.Yes)
             {
-                // Cleanup network components
-                if (networkManager != null)
-                {
-                    await networkManager.Cleanup();
-                }
+                // Disconnect network components
                 gameClient?.Disconnect();
                 gameServer?.Stop();
 
@@ -621,20 +604,18 @@ namespace BaiTapCuoiKy
 
         private void BtnInvitePlayers_Click(object sender, EventArgs e)
         {
-            string connectionAddress = networkManager?.GetConnectionAddress() ?? currentRoomCode;
-            
             // Show invite dialog
             var inviteMessage = $"🎮 Mời bạn bè tham gia game!\n\n" +
-                              $"📋 Địa chỉ kết nối: {connectionAddress}\n" +
-                              $"🎯 Copy địa chỉ này và gửi cho bạn bè để họ có thể tham gia!";
+                              $"📋 Mã phòng: {currentRoomCode}\n" +
+                              $"🎯 Copy mã này và gửi cho bạn bè để họ có thể tham gia!";
             
             MessageBox.Show(inviteMessage, "Mời bạn bè", MessageBoxButtons.OK, MessageBoxIcon.Information);
             
-            // Copy connection address to clipboard
+            // Copy room code to clipboard
             try
             {
-                System.Windows.Forms.Clipboard.SetText(connectionAddress);
-                AddLobbyMessage("System", "📋 Địa chỉ kết nối đã được copy vào clipboard!");
+                System.Windows.Forms.Clipboard.SetText(currentRoomCode);
+                AddLobbyMessage("System", "📋 Mã phòng đã được copy vào clipboard!");
             }
             catch
             {
