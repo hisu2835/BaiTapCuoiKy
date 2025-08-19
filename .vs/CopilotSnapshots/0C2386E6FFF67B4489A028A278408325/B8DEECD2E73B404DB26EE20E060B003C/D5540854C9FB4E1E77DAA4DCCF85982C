@@ -1,0 +1,181 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    /// <summary>
+    /// 🎨 GameEffects - Clean version for DrawMaster Premium
+    /// </summary>
+    public static class GameEffects
+    {
+        #region Color Utilities
+
+        /// <summary>
+        /// Lighten a color by percentage
+        /// </summary>
+        public static Color LightenColor(Color color, float percentage)
+        {
+            return Color.FromArgb(
+                color.A,
+                Math.Min(255, (int)(color.R + (255 - color.R) * percentage)),
+                Math.Min(255, (int)(color.G + (255 - color.G) * percentage)),
+                Math.Min(255, (int)(color.B + (255 - color.B) * percentage))
+            );
+        }
+
+        /// <summary>
+        /// Darken a color by percentage
+        /// </summary>
+        public static Color DarkenColor(Color color, float percentage)
+        {
+            return Color.FromArgb(
+                color.A,
+                Math.Max(0, (int)(color.R * (1 - percentage))),
+                Math.Max(0, (int)(color.G * (1 - percentage))),
+                Math.Max(0, (int)(color.B * (1 - percentage)))
+            );
+        }
+
+        #endregion
+
+        #region Animation Helpers
+
+        /// <summary>
+        /// Tính toán bounce animation
+        /// </summary>
+        public static float CalculateBounce(float time, float amplitude = 1.0f)
+        {
+            return (float)(amplitude * Math.Abs(Math.Sin(time * Math.PI)));
+        }
+
+        /// <summary>
+        /// Tính toán pulse animation
+        /// </summary>
+        public static float CalculatePulse(float time, float minScale = 0.8f, float maxScale = 1.2f)
+        {
+            var pulse = (float)((Math.Sin(time * Math.PI * 2) + 1) / 2);
+            return minScale + (maxScale - minScale) * pulse;
+        }
+
+        #endregion
+
+        #region Text Effects
+
+        /// <summary>
+        /// Vẽ text với gradient effect
+        /// </summary>
+        public static void DrawGradientText(Graphics g, string text, Font font, Rectangle bounds, Color color1, Color color2)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+            using (var brush = new LinearGradientBrush(
+                new Point(bounds.X, bounds.Y), 
+                new Point(bounds.X, bounds.Y + bounds.Height),
+                color1, color2))
+            {
+                var format = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center
+                };
+
+                g.DrawString(text, font, brush, bounds, format);
+            }
+        }
+
+        #endregion
+
+        #region Visual Enhancements
+
+        /// <summary>
+        /// Vẽ button với hiệu ứng 3D
+        /// </summary>
+        public static void Draw3DButton(Graphics g, Rectangle bounds, Color baseColor, bool isPressed = false)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Shadow
+            var shadowBounds = new Rectangle(bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height);
+            using (var shadowBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0)))
+            {
+                g.FillRectangle(shadowBrush, shadowBounds);
+            }
+
+            // Main button
+            var mainBounds = isPressed ? 
+                new Rectangle(bounds.X + 2, bounds.Y + 2, bounds.Width - 2, bounds.Height - 2) : 
+                bounds;
+
+            using (var mainBrush = new LinearGradientBrush(
+                new Point(mainBounds.X, mainBounds.Y),
+                new Point(mainBounds.X, mainBounds.Y + mainBounds.Height),
+                Color.FromArgb(Math.Min(255, baseColor.R + 30), Math.Min(255, baseColor.G + 30), Math.Min(255, baseColor.B + 30)),
+                Color.FromArgb(Math.Max(0, baseColor.R - 30), Math.Max(0, baseColor.G - 30), Math.Max(0, baseColor.B - 30))))
+            {
+                g.FillRectangle(mainBrush, mainBounds);
+            }
+
+            // Highlight
+            var highlightBounds = new Rectangle(mainBounds.X, mainBounds.Y, mainBounds.Width, mainBounds.Height / 3);
+            using (var highlightBrush = new LinearGradientBrush(
+                new Point(highlightBounds.X, highlightBounds.Y),
+                new Point(highlightBounds.X, highlightBounds.Y + highlightBounds.Height),
+                Color.FromArgb(80, 255, 255, 255),
+                Color.Transparent))
+            {
+                g.FillRectangle(highlightBrush, highlightBounds);
+            }
+
+            // Border
+            using (var borderPen = new Pen(
+                Color.FromArgb(
+                    Math.Max(0, baseColor.R - 50), 
+                    Math.Max(0, baseColor.G - 50), 
+                    Math.Max(0, baseColor.B - 50)), 2))
+            {
+                g.DrawRectangle(borderPen, mainBounds);
+            }
+        }
+
+        #endregion
+
+        #region Sound Effect Helpers
+
+        /// <summary>
+        /// Play success sound with system sounds
+        /// </summary>
+        public static void PlaySuccessSound()
+        {
+            try
+            {
+                System.Media.SystemSounds.Exclamation.Play();
+            }
+            catch
+            {
+                // Ignore if sound fails
+            }
+        }
+
+        /// <summary>
+        /// Play warning sound
+        /// </summary>
+        public static void PlayWarningSound()
+        {
+            try
+            {
+                System.Media.SystemSounds.Hand.Play();
+            }
+            catch
+            {
+                // Ignore if sound fails
+            }
+        }
+
+        #endregion
+    }
+}

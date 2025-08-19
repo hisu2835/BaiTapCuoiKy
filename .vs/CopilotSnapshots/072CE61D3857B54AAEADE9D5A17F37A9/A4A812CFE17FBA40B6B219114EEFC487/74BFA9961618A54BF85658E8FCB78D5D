@@ -1,0 +1,1117 @@
+﻿using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BaiTapCuoiKy
+{
+    // Lightweight, self-contained game UI similar to the screenshot
+    public class GameViewControl : UserControl
+    {
+        // Public events to integrate with Form1
+        public event EventHandler StartGameRequested;
+        public event EventHandler LeaveRequested;
+        public event EventHandler BackLobbyRequested;
+        public event Action<string> MessageSubmitted;
+        public event Action<string> AnswerSubmitted; // NEW: explicit answer submit
+        public event Action<string> ChatSubmitted;   // NEW: explicit chat submit
+
+        // Left: Drawing
+        private Panel panelTopBar;
+        private Label lblHeader;
+        private Panel panelDrawing;
+        private Panel panelTools;
+        private Button btnPencil;
+        private Button btnEraser;
+        private Button btnClear;
+        private Panel panelSelectedColor;
+        private Label lblColor;
+        private TrackBar trackBrush;
+        private Label lblBrush;
+        private Button btnCBlack, btnCWhite, btnCRed, btnCBlue, btnCGreen, btnCYellow;
+
+        // Middle/right: Leaderboard & Chat
+        private GroupBox groupLeaderboard;
+        private ListView lvLeaderboard;
+        private ColumnHeader colRank, colPlayer, colScore, colStatus;
+
+        private GroupBox groupChat;
+        // Two-column chat UI
+        private Panel pnlAnswer;           // left column - TRẢ LỜI
+        private Panel pnlChatRight;        // right column - TRÒ CHUYỆN
+        private Label lblAnswerHeader;
+        private Label lblChatHeader;
+        private ListBox lbAnswer;          // left list
+        private TextBox txtAnswer;         // left input
+        private Button btnAnswerSend;      // left send button
+        private Label lblAnswerWaiting;    // info label "Đang chờ người chơi"
+
+        private ListBox lbChat;            // right list
+        private TextBox txtChat;
+        private Button btnSend;
+        private Button btnGuess; // kept for compatibility, acts as right-side guess quick-send
+        private Label lblCorrectStats; // summary for correct guessers (bottom of right panel)
+        private FlowLayoutPanel flpCorrectGuessers; // chips for players who guessed correctly
+
+        // Right sidebar
+        private Panel panelSidebar;
+        private PictureBox avatarBox;
+        private Label lblYou, lblPlayerName, lblScoreTitle, lblScoreValue;
+        private GroupBox groupRoundInfo;
+        private Label lblWordTitle, lblWord, lblTimeTitle, lblTime, lblRoundTitle, lblRound;
+        private ProgressBar progressTime;
+        private GroupBox groupRoomInfo;
+        private Label lblRoomCodeTitle, lblRoomCode, lblPlayersOnlineTitle, lblPlayersOnline;
+
+        private Button btnStartGame, btnLeave, btnBackLobby;
+
+        // Drawing state
+        private Bitmap _canvas;
+        private Graphics _g;
+        private bool _drawing;
+        private Point _last;
+        private Color _currentColor = Color.Black;
+        private int _brushSize = 4;
+        private bool _eraser;
+
+        // Game state for correct answers tracking
+        private HashSet<string> correctGuessers = new HashSet<string>();
+        private int totalPlayers = 0;
+        private string currentDrawingWord = "";
+
+        public string RoomCode
+        {
+            get => lblRoomCode?.Text; 
+            set { if (lblRoomCode != null) lblRoomCode.Text = value; }
+        }
+
+        public string PlayerName
+        {
+            get => lblPlayerName?.Text; 
+            set { if (lblPlayerName != null) lblPlayerName.Text = value; }
+        }
+
+        public int PlayersOnline
+        {
+            get => totalPlayers;
+            set 
+            { 
+                totalPlayers = value;
+                if (lblPlayersOnline != null) lblPlayersOnline.Text = value.ToString(); 
+                UpdateCorrectGuessersUI();
+            }
+        }
+
+        public GameViewControl()
+        {
+            DoubleBuffered = true;
+            BackColor = Color.FromArgb(245, 247, 250);
+            BuildLayout();
+            InitCanvas();
+
+            // Responsive layout
+            this.Resize += (s, e) => PerformResponsiveLayout();
+            PerformResponsiveLayout();
+            
+            // Enhanced chat input features
+            SetupChatInputFeatures();
+            SetupAnswerInputFeatures();
+        }
+
+        private void SetupAnswerInputFeatures()
+        {
+            if (txtAnswer == null) return;
+            txtAnswer.Text = "Đang chờ...";
+            txtAnswer.ForeColor = Color.Gray;
+            
+            txtAnswer.Enter += (s, e) =>
+            {
+                if (txtAnswer.Text == "Đang chờ...")
+                {
+                    txtAnswer.Text = string.Empty;
+                    txtAnswer.ForeColor = Color.Black;
+                }
+            };
+            txtAnswer.Leave += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(txtAnswer.Text))
+                {
+                    txtAnswer.Text = "Đang chờ...";
+                    txtAnswer.ForeColor = Color.Gray;
+                }
+            };
+            txtAnswer.KeyPress += (s, e) =>
+            {
+                if (e.KeyChar == (char)Keys.Enter)
+                {
+                    var text = txtAnswer.Text.Trim();
+                    if (!string.IsNullOrWhiteSpace(text) && text != "Đang chờ...")
+                    {
+                        // Raise answer events
+                        AnswerSubmitted?.Invoke(text);
+                        MessageSubmitted?.Invoke(text);
+                        
+                        txtAnswer.Text = "Đang chờ...";
+                        txtAnswer.ForeColor = Color.Gray;
+                    }
+                    e.Handled = true;
+                }
+            };
+            if (btnAnswerSend != null)
+            {
+                btnAnswerSend.Click += (s, e) =>
+                {
+                    var text = txtAnswer.Text.Trim();
+                    if (!string.IsNullOrWhiteSpace(text) && text != "Đang chờ...")
+                    {
+                        AnswerSubmitted?.Invoke(text);
+                        MessageSubmitted?.Invoke(text);
+                        txtAnswer.Text = "Đang chờ...";
+                        txtAnswer.ForeColor = Color.Gray;
+                    }
+                };
+            }
+        }
+
+        private void SetupChatInputFeatures()
+        {
+            if (txtChat == null) return;
+            
+            // Add placeholder text
+            txtChat.Text = "Chat ở đây...";
+            txtChat.ForeColor = Color.Gray;
+            
+            txtChat.Enter += (s, e) =>
+            {
+                if (txtChat.Text == "Chat ở đây...")
+                {
+                    txtChat.Text = "";
+                    txtChat.ForeColor = Color.Black;
+                }
+            };
+            
+            txtChat.Leave += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(txtChat.Text))
+                {
+                    txtChat.Text = "Chat ở đây...";
+                    txtChat.ForeColor = Color.Gray;
+                }
+            };
+            
+            // Add chat shortcuts
+            txtChat.KeyDown += (s, e) =>
+            {
+                if (e.Control)
+                {
+                    switch (e.KeyCode)
+                    {
+                        case Keys.D1: // Ctrl+1 for quick reactions
+                            InsertQuickReaction("👍");
+                            e.Handled = true;
+                            break;
+                        case Keys.D2: // Ctrl+2 
+                            InsertQuickReaction("😄");
+                            e.Handled = true;
+                            break;
+                        case Keys.D3: // Ctrl+3
+                            InsertQuickReaction("🤔");
+                            e.Handled = true;
+                            break;
+                        case Keys.H: // Ctrl+H for help
+                            ShowChatHelp();
+                            e.Handled = true;
+                            break;
+                    }
+                }
+            };
+        }
+
+        private void InsertQuickReaction(string emoji)
+        {
+            if (txtChat.Text == "Chat ở đây...")
+            {
+                txtChat.Text = emoji;
+                txtChat.ForeColor = Color.Black;
+            }
+            else
+            {
+                txtChat.Text += emoji;
+            }
+            txtChat.Focus();
+            txtChat.SelectionStart = txtChat.Text.Length;
+        }
+
+        private void ShowChatHelp()
+        {
+            AddChat("💡 Chat Help: Ctrl+1=👍, Ctrl+2=😄, Ctrl+3=🤔, Ctrl+H=Help");
+            AddChat("💡 Tips: Gõ nhanh để đoán từ, dùng emoji để chat vui hơn!");
+        }
+
+        private void BuildLayout()
+        {
+            SuspendLayout();
+
+            // Top bar with gradient
+            panelTopBar = new Panel { Height = 50, Dock = DockStyle.Top };
+            panelTopBar.Paint += (s, e) =>
+            {
+                using (var brush = new LinearGradientBrush(panelTopBar.ClientRectangle,
+                    Color.FromArgb(67, 82, 161), Color.FromArgb(45, 125, 245), LinearGradientMode.Horizontal))
+                {
+                    e.Graphics.FillRectangle(brush, panelTopBar.ClientRectangle);
+                }
+                
+                // Add shine effect
+                using (var shineBrush = new LinearGradientBrush(
+                    new Rectangle(0, 0, panelTopBar.Width, panelTopBar.Height / 2),
+                    Color.FromArgb(100, 255, 255, 255), Color.Transparent, LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(shineBrush, new Rectangle(0, 0, panelTopBar.Width, panelTopBar.Height / 2));
+                }
+            };
+            
+            lblHeader = new Label
+            {
+                Text = "🎨 DRAWMASTER - PHÒNG TRÒ CHƠI",
+                ForeColor = Color.White,
+                AutoSize = false,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold)
+            };
+            panelTopBar.Controls.Add(lblHeader);
+            Controls.Add(panelTopBar);
+
+            // Left drawing panel with enhanced styling
+            panelDrawing = new Panel
+            {
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+            panelDrawing.Paint += (s, e) => 
+            { 
+                // Draw 3D border
+                using (var pen = new Pen(Color.FromArgb(200, 200, 200), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, panelDrawing.Width - 1, panelDrawing.Height - 1);
+                }
+                using (var pen = new Pen(Color.FromArgb(150, 150, 150), 1))
+                {
+                    e.Graphics.DrawLine(pen, 1, 1, panelDrawing.Width - 2, 1);
+                    e.Graphics.DrawLine(pen, 1, 1, 1, panelDrawing.Height - 2);
+                }
+                
+                if (_canvas != null) 
+                    e.Graphics.DrawImage(_canvas, 2, 2, panelDrawing.Width - 4, panelDrawing.Height - 4); 
+            };
+            
+            panelDrawing.MouseDown += (s, e) => { _drawing = true; _last = e.Location; };
+            panelDrawing.MouseMove += (s, e) =>
+            {
+                if (!_drawing || _g == null) return;
+                using (var pen = new Pen(_eraser ? Color.White : _currentColor, _brushSize))
+                { 
+                    pen.StartCap = LineCap.Round; 
+                    pen.EndCap = LineCap.Round; 
+                    _g.DrawLine(pen, _last, e.Location); 
+                }
+                _last = e.Location; 
+                panelDrawing.Invalidate();
+            };
+            panelDrawing.MouseUp += (s, e) => { _drawing = false; };
+            panelDrawing.Resize += (s, e) => ResizeCanvasToPanel();
+            Controls.Add(panelDrawing);
+
+            // Enhanced tools panel
+            panelTools = new Panel
+            {
+                BorderStyle = BorderStyle.None,
+                BackColor = Color.FromArgb(248, 250, 252)
+            };
+            panelTools.Paint += (s, e) =>
+            {
+                using (var brush = new LinearGradientBrush(panelTools.ClientRectangle,
+                    Color.FromArgb(248, 250, 252), Color.FromArgb(235, 240, 245), LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(brush, panelTools.ClientRectangle);
+                }
+                using (var pen = new Pen(Color.FromArgb(200, 200, 200)))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, panelTools.Width - 1, panelTools.Height - 1);
+                }
+            };
+
+            btnPencil = CreateStyledButton("✏️ Bút chì", Color.FromArgb(52, 152, 219));
+            btnEraser = CreateStyledButton("🧽 Tẩy", Color.FromArgb(231, 76, 60));
+            btnPencil.Click += (s, e) => { _eraser = false; UpdateToolStyles(); };
+            btnEraser.Click += (s, e) => { _eraser = true; UpdateToolStyles(); };
+
+            btnCBlack = MakeColorButton(Color.Black, Point.Empty);
+            btnCWhite = MakeColorButton(Color.White, Point.Empty);
+            btnCRed   = MakeColorButton(Color.Red, Point.Empty);
+            btnCBlue  = MakeColorButton(Color.RoyalBlue, Point.Empty);
+            btnCGreen = MakeColorButton(Color.ForestGreen, Point.Empty);
+            btnCYellow= MakeColorButton(Color.Gold, Point.Empty);
+
+            lblColor = new Label { Text = "🎨 Màu sắc:", AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
+            panelSelectedColor = new Panel { BackColor = _currentColor, Size = new Size(28, 28), BorderStyle = BorderStyle.FixedSingle };
+
+            lblBrush = new Label { Text = "📏 Kích thước:", AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
+            trackBrush = new TrackBar { Minimum = 1, Maximum = 30, Value = _brushSize, TickStyle = TickStyle.None, Width = 180 };
+            trackBrush.ValueChanged += (s, e) => _brushSize = trackBrush.Value;
+
+            btnClear = CreateStyledButton("🗑️ Xóa tất cả", Color.FromArgb(231, 76, 60));
+            btnClear.Click += (s, e) => { if (_g != null) { _g.Clear(Color.White); panelDrawing.Invalidate(); } };
+
+            panelTools.Controls.AddRange(new Control[] {
+                btnPencil, btnEraser, btnCBlack, btnCWhite, btnCRed, btnCBlue, btnCGreen, btnCYellow,
+                lblColor, panelSelectedColor, lblBrush, trackBrush, btnClear
+            });
+            Controls.Add(panelTools);
+
+            // Enhanced Leaderboard
+            groupLeaderboard = new GroupBox
+            {
+                Text = "🏆 Bảng xếp hạng",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(52, 73, 94)
+            };
+            groupLeaderboard.Paint += (s, e) => DrawGroupBoxBorder(e, groupLeaderboard, Color.FromArgb(52, 152, 219));
+            
+            lvLeaderboard = new ListView
+            {
+                View = View.Details, 
+                FullRowSelect = true, 
+                GridLines = true,
+                Font = new Font("Segoe UI", 9),
+                BackColor = Color.FromArgb(250, 252, 255)
+            };
+            colRank = new ColumnHeader { Text = "#", Width = 30 };
+            colPlayer = new ColumnHeader { Text = "Người chơi", Width = 120 };
+            colScore = new ColumnHeader { Text = "Điểm", Width = 60 };
+            colStatus = new ColumnHeader { Text = "Trạng thái", Width = 80 };
+            lvLeaderboard.Columns.AddRange(new[] { colRank, colPlayer, colScore, colStatus });
+            groupLeaderboard.Controls.Add(lvLeaderboard);
+            Controls.Add(groupLeaderboard);
+
+            // Two-column Chat & Answer container
+            groupChat = new GroupBox
+            {
+                Text = string.Empty,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(52, 73, 94)
+            };
+            groupChat.Paint += (s, e) => DrawGroupBoxBorder(e, groupChat, Color.FromArgb(46, 204, 113));
+
+            // Left ANSWER panel
+            pnlAnswer = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.None };
+            lblAnswerHeader = new Label
+            {
+                Text = "TRẢ LỜI",
+                AutoSize = false,
+                Height = 28,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.FromArgb(25, 55, 155),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold)
+            };
+            lbAnswer = new ListBox
+            {
+                Font = new Font("Segoe UI", 9),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            lblAnswerWaiting = new Label
+            {
+                Text = "ℹ️ Đang chờ người chơi",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.FromArgb(33, 150, 243)
+            };
+            txtAnswer = new TextBox
+            {
+                Font = new Font("Segoe UI", 10),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            btnAnswerSend = CreateStyledButton("Gửi", Color.FromArgb(46, 204, 113));
+
+            pnlAnswer.Controls.AddRange(new Control[] { lblAnswerHeader, lblAnswerWaiting, lbAnswer, txtAnswer, btnAnswerSend });
+
+            // Right CHAT panel
+            pnlChatRight = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.None };
+            lblChatHeader = new Label
+            {
+                Text = "TRÒ CHUYỆN",
+                AutoSize = false,
+                Height = 28,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.FromArgb(25, 55, 155),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold)
+            };
+            lbChat = new ListBox
+            {
+                Font = new Font("Segoe UI", 9),
+                BackColor = Color.FromArgb(250, 252, 255),
+                BorderStyle = BorderStyle.FixedSingle,
+                DrawMode = DrawMode.OwnerDrawFixed
+            };
+            lbChat.DrawItem += LbChat_DrawItem;
+            txtChat = new TextBox { Font = new Font("Segoe UI", 10), BorderStyle = BorderStyle.FixedSingle };
+            btnSend = CreateStyledButton("Gửi", Color.FromArgb(52, 152, 219));
+            btnSend.Click += (s, e) =>
+            {
+                var text = txtChat.Text.Trim();
+                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ở đây...")
+                {
+                    ChatSubmitted?.Invoke(text);
+                    MessageSubmitted?.Invoke(text);
+                    txtChat.Text = "Chat ở đây...";
+                    txtChat.ForeColor = Color.Gray;
+                }
+            };
+            // Optional extra guess button kept
+            btnGuess = CreateStyledButton("Đoán", Color.FromArgb(52, 152, 219));
+            btnGuess.Click += (s, e) =>
+            {
+                var text = txtAnswer.Text.Trim();
+                if (!string.IsNullOrWhiteSpace(text) && text != "Đang chờ...")
+                {
+                    AnswerSubmitted?.Invoke(text);
+                    MessageSubmitted?.Invoke(text);
+                    txtAnswer.Text = "Đang chờ...";
+                    txtAnswer.ForeColor = Color.Gray;
+                }
+            };
+
+            lblCorrectStats = new Label
+            {
+                Text = "✅ Đã đoán đúng: 0/0",
+                AutoSize = false,
+                Height = 18,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = Color.FromArgb(39, 174, 96)
+            };
+            flpCorrectGuessers = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = false,
+                Height = 20,
+                WrapContents = true,
+                BackColor = Color.FromArgb(245, 250, 245)
+            };
+
+            pnlChatRight.Controls.AddRange(new Control[] { lblChatHeader, lbChat, txtChat, btnSend, btnGuess, lblCorrectStats, flpCorrectGuessers });
+
+            groupChat.Controls.AddRange(new Control[] { pnlAnswer, pnlChatRight });
+            Controls.Add(groupChat);
+
+            // Enhanced Right sidebar
+            panelSidebar = new Panel { BackColor = Color.Transparent };
+            
+            avatarBox = new PictureBox 
+            { 
+                Size = new Size(80, 80), 
+                BackColor = Color.FromArgb(52, 152, 219), 
+                BorderStyle = BorderStyle.None, 
+                SizeMode = PictureBoxSizeMode.Zoom 
+            };
+            avatarBox.Paint += (s, e) =>
+            {
+                using (var pen = new Pen(Color.White, 3))
+                {
+                    e.Graphics.DrawEllipse(pen, 2, 2, avatarBox.Width - 6, avatarBox.Height - 6);
+                }
+            };
+            
+            lblYou = new Label { Text = "Bạn", AutoSize = true, Font = new Font("Segoe UI", 12, FontStyle.Bold), ForeColor = Color.FromArgb(52, 73, 94) };
+            lblPlayerName = new Label { Text = "Player1", AutoSize = true, ForeColor = Color.FromArgb(52, 152, 219), Font = new Font("Segoe UI", 11) };
+            lblScoreTitle = new Label { Text = "Điểm số:", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblScoreValue = new Label { Text = "0", AutoSize = true, ForeColor = Color.FromArgb(46, 204, 113), Font = new Font("Segoe UI", 12, FontStyle.Bold) };
+
+            groupRoundInfo = new GroupBox { Text = "🎯 Thông tin vòng chơi", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            groupRoundInfo.Paint += (s, e) => DrawGroupBoxBorder(e, groupRoundInfo, Color.FromArgb(155, 89, 182));
+            
+            lblWordTitle = new Label { Text = "Từ cần vẽ:", AutoSize = true, Font = new Font("Segoe UI", 9) };
+            lblWord = new Label { Text = "- - - - -", AutoSize = true, ForeColor = Color.FromArgb(231, 76, 60), Font = new Font("Segoe UI", 11, FontStyle.Bold) };
+            lblTimeTitle = new Label { Text = "Thời gian còn lại:", AutoSize = true, Font = new Font("Segoe UI", 9) };
+            lblTime = new Label { Text = "00:60", AutoSize = true, ForeColor = Color.FromArgb(231, 76, 60), Font = new Font("Segoe UI", 12, FontStyle.Bold) };
+            lblRoundTitle = new Label { Text = "Vòng:", AutoSize = true, Font = new Font("Segoe UI", 9) };
+            lblRound = new Label { Text = "1/5", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            progressTime = new ProgressBar { Value = 60, Maximum = 60, Style = ProgressBarStyle.Continuous };
+            groupRoundInfo.Controls.AddRange(new Control[] { lblWordTitle, lblWord, lblTimeTitle, lblTime, lblRoundTitle, lblRound, progressTime });
+
+            groupRoomInfo = new GroupBox { Text = "🏠 Thông tin phòng", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            groupRoomInfo.Paint += (s, e) => DrawGroupBoxBorder(e, groupRoomInfo, Color.FromArgb(52, 152, 219));
+            
+            lblRoomCodeTitle = new Label { Text = "Mã phòng:", AutoSize = true, Font = new Font("Segoe UI", 9) };
+            lblRoomCode = new Label { Text = "ABC123", AutoSize = true, ForeColor = Color.FromArgb(52, 152, 219), Cursor = Cursors.Hand, Font = new Font("Segoe UI", 11, FontStyle.Bold) };
+            lblRoomCode.Click += (s, e) => { try { Clipboard.SetText(lblRoomCode.Text); } catch { } };
+            lblPlayersOnlineTitle = new Label { Text = "Người chơi online:", AutoSize = true, Font = new Font("Segoe UI", 9) };
+            lblPlayersOnline = new Label { Text = "3/8", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            groupRoomInfo.Controls.AddRange(new Control[] { lblRoomCodeTitle, lblRoomCode, lblPlayersOnlineTitle, lblPlayersOnline });
+
+            btnStartGame = CreateStyledButton("🎮 Bắt đầu game", Color.FromArgb(46, 204, 113));
+            btnLeave = CreateStyledButton("🚪 Rời phòng", Color.FromArgb(231, 76, 60));
+            btnBackLobby = CreateStyledButton("🏠 Về lobby", Color.FromArgb(243, 156, 18));
+
+            btnStartGame.Click += (s, e) => StartGameRequested?.Invoke(this, EventArgs.Empty);
+            btnLeave.Click += (s, e) => LeaveRequested?.Invoke(this, EventArgs.Empty);
+            btnBackLobby.Click += (s, e) => BackLobbyRequested?.Invoke(this, EventArgs.Empty);
+
+            panelSidebar.Controls.AddRange(new Control[] {
+                avatarBox, lblYou, lblPlayerName, lblScoreTitle, lblScoreValue,
+                groupRoundInfo, groupRoomInfo, btnStartGame, btnLeave, btnBackLobby
+            });
+            Controls.Add(panelSidebar);
+
+            ResumeLayout(false);
+        }
+
+        private Button CreateStyledButton(string text, Color color)
+        {
+            var btn = new Button
+            {
+                Text = text,
+                BackColor = color,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            btn.FlatAppearance.BorderSize = 0;
+            
+            // Hover effects
+            btn.MouseEnter += (s, e) => btn.BackColor = LightenColor(color, 0.2f);
+            btn.MouseLeave += (s, e) => btn.BackColor = color;
+            
+            return btn;
+        }
+
+        private Color LightenColor(Color color, float factor)
+        {
+            return Color.FromArgb(
+                Math.Min(255, (int)(color.R + (255 - color.R) * factor)),
+                Math.Min(255, (int)(color.G + (255 - color.G) * factor)),
+                Math.Min(255, (int)(color.B + (255 - color.B) * factor))
+            );
+        }
+
+        private void DrawGroupBoxBorder(PaintEventArgs e, GroupBox gb, Color accentColor)
+        {
+            using (var pen = new Pen(accentColor, 2))
+            {
+                e.Graphics.DrawRectangle(pen, 1, 10, gb.Width - 3, gb.Height - 12);
+            }
+        }
+
+        private void LbChat_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+            
+            e.DrawBackground();
+            
+            string text = lbChat.Items[e.Index].ToString();
+            Color textColor = Color.Black;
+            Color backgroundColor = e.BackColor;
+            
+            // Enhanced message type detection and styling
+            if (text.Contains("✅") && (text.Contains("đoán đúng") || text.Contains("đoán chính xác")))
+            {
+                // Correct guess - green background
+                backgroundColor = Color.FromArgb(200, 255, 200);
+                textColor = Color.FromArgb(0, 100, 0);
+                
+                using (var brush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+            }
+            else if (text.Contains("❌") && text.Contains(":"))
+            {
+                // Wrong guess - light red background
+                backgroundColor = Color.FromArgb(255, 220, 220);
+                textColor = Color.FromArgb(150, 0, 0);
+                
+                using (var brush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+            }
+            else if (text.Contains("🤖 System:") || text.Contains("💡") || text.Contains("Gợi ý:"))
+            {
+                // System messages - blue background
+                backgroundColor = Color.FromArgb(220, 235, 255);
+                textColor = Color.FromArgb(0, 50, 150);
+                
+                using (var brush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+            }
+            else if (text.Contains("🎨") && text.Contains("đang vẽ"))
+            {
+                // Drawing player messages - yellow background
+                backgroundColor = Color.FromArgb(255, 248, 220);
+                textColor = Color.FromArgb(150, 100, 0);
+                
+                using (var brush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+            }
+            else if (text.Contains("🎉") || text.Contains("🚀") || text.Contains("🎁"))
+            {
+                // Celebration messages - rainbow effect
+                backgroundColor = Color.FromArgb(240, 255, 240);
+                textColor = Color.FromArgb(100, 0, 150);
+                
+                using (var brush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+            }
+            else if (text.Contains("💬"))
+            {
+                // Regular chat messages - default with slight tint
+                backgroundColor = Color.FromArgb(248, 252, 255);
+                textColor = Color.FromArgb(50, 50, 50);
+                
+                using (var brush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+            }
+            else if (text.Contains("💭"))
+            {
+                // Player reactions - italic style
+                backgroundColor = Color.FromArgb(250, 250, 250);
+                textColor = Color.FromArgb(100, 100, 100);
+                
+                using (var brush = new SolidBrush(backgroundColor))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
+            }
+            
+            // Draw the text with appropriate font style
+            Font textFont = lbChat.Font;
+            if (text.Contains("💭")) // Reactions in italic
+            {
+                textFont = new Font(lbChat.Font, FontStyle.Italic);
+            }
+            else if (text.Contains("🎉") || text.Contains("✅")) // Celebrations in bold
+            {
+                textFont = new Font(lbChat.Font, FontStyle.Bold);
+            }
+            
+            using (var brush = new SolidBrush(textColor))
+            {
+                var textRect = new Rectangle(e.Bounds.X + 5, e.Bounds.Y, e.Bounds.Width - 10, e.Bounds.Height);
+                e.Graphics.DrawString(text, textFont, brush, textRect, StringFormat.GenericDefault);
+            }
+            
+            // Dispose custom font if created
+            if (textFont != lbChat.Font)
+            {
+                textFont.Dispose();
+            }
+            
+            e.DrawFocusRectangle();
+        }
+
+        private void UpdateToolStyles()
+        {
+            btnPencil.BackColor = _eraser ? Color.FromArgb(149, 165, 166) : Color.FromArgb(52, 152, 219);
+            btnEraser.BackColor = _eraser ? Color.FromArgb(231, 76, 60) : Color.FromArgb(149, 165, 166);
+        }
+
+        private Button MakeColorButton(Color color, Point location)
+        {
+            var btn = new Button { BackColor = color, Location = location, Size = new Size(32, 28) };
+            btn.FlatStyle = FlatStyle.Flat; 
+            btn.FlatAppearance.BorderSize = 1;
+            btn.FlatAppearance.BorderColor = Color.Gray;
+            btn.Click += (s, e) => { 
+                _currentColor = color; 
+                panelSelectedColor.BackColor = color; 
+                _eraser = false; 
+                UpdateToolStyles();
+            };
+            return btn;
+        }
+
+        private void InitCanvas()
+        {
+            _canvas = new Bitmap(Math.Max(10, panelDrawing.Width), Math.Max(10, panelDrawing.Height));
+            _g = Graphics.FromImage(_canvas);
+            _g.SmoothingMode = SmoothingMode.AntiAlias;
+            _g.Clear(Color.White);
+        }
+
+        private void ResizeCanvasToPanel()
+        {
+            if (panelDrawing.Width <= 0 || panelDrawing.Height <= 0) return;
+
+            var newBmp = new Bitmap(panelDrawing.Width, panelDrawing.Height);
+            using (var g = Graphics.FromImage(newBmp))
+            {
+                g.Clear(Color.White);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                if (_canvas != null)
+                {
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.DrawImage(_canvas, new Rectangle(0, 0, newBmp.Width, newBmp.Height));
+                }
+            }
+
+            _g?.Dispose();
+            _canvas?.Dispose();
+            _canvas = newBmp;
+            _g = Graphics.FromImage(_canvas);
+            _g.SmoothingMode = SmoothingMode.AntiAlias;
+            panelDrawing.Invalidate();
+        }
+
+        private void PerformResponsiveLayout()
+        {
+            int margin = 16;
+            int topBarH = panelTopBar?.Height ?? 50;
+            int gap = 12;
+            int rightWidth = 260;
+            int midWidth = 320;
+
+            int availW = Math.Max(400, this.ClientSize.Width - margin * 2);
+            int availH = Math.Max(300, this.ClientSize.Height - topBarH - margin);
+
+            int leftWidth = availW - (rightWidth + midWidth + gap * 2);
+            if (leftWidth < 560)
+            {
+                int deficit = 560 - leftWidth;
+                int reduceMid = Math.Min(deficit, midWidth - 280);
+                midWidth -= reduceMid;
+                leftWidth = availW - (rightWidth + midWidth + gap * 2);
+            }
+            if (leftWidth < 560) leftWidth = 560;
+
+            int xLeft = margin;
+            int xMid = xLeft + leftWidth + gap;
+            int xRight = xMid + midWidth + gap;
+
+            // Left column: drawing + tools
+            int toolsH = 80;
+            int drawH = availH - toolsH - gap;
+            panelDrawing.Location = new Point(xLeft, topBarH + gap);
+            panelDrawing.Size = new Size(leftWidth, drawH);
+
+            panelTools.Location = new Point(xLeft, panelDrawing.Bottom + gap);
+            panelTools.Size = new Size(leftWidth, toolsH);
+
+            // Arrange tools content
+            int tx = 8; int ty = 8;
+            btnPencil.Location = new Point(tx, ty); btnPencil.Size = new Size(90, 32); tx += 98;
+            btnEraser.Location = new Point(tx, ty); btnEraser.Size = new Size(90, 32); tx += 98;
+            
+            tx = 8; ty += 40;
+            btnCBlack.Location = new Point(tx, ty); tx += 36; 
+            btnCWhite.Location = new Point(tx, ty); tx += 36;
+            btnCRed.Location = new Point(tx, ty); tx += 36; 
+            btnCBlue.Location = new Point(tx, ty); tx += 36;
+            btnCGreen.Location = new Point(tx, ty); tx += 36; 
+            btnCYellow.Location = new Point(tx, ty); tx += 44;
+            
+            lblColor.Location = new Point(tx, ty + 4); tx += lblColor.Width + 6;
+            panelSelectedColor.Location = new Point(tx, ty); tx += panelSelectedColor.Width + 24;
+            lblBrush.Location = new Point(tx, ty + 4); tx += lblBrush.Width + 6;
+            trackBrush.Location = new Point(tx, ty);
+            btnClear.Location = new Point(panelTools.Width - 120, ty - 2);
+            btnClear.Size = new Size(110, 32);
+
+            // Middle column: leaderboard (top) and chat (bottom)
+            groupLeaderboard.Location = new Point(xMid, topBarH + gap);
+            int midColH = availH;
+            int leaderH = (int)(midColH * 0.45);
+            int chatH = midColH - leaderH - gap;
+            groupLeaderboard.Size = new Size(midWidth, leaderH);
+
+            int pad = 12;
+            lvLeaderboard.Location = new Point(pad, 24 + pad);
+            lvLeaderboard.Size = new Size(groupLeaderboard.Width - pad * 2, groupLeaderboard.Height - (24 + pad * 2));
+
+            groupChat.Location = new Point(xMid, groupLeaderboard.Bottom + gap);
+            groupChat.Size = new Size(midWidth, chatH);
+
+            // Layout inside two-column groupChat
+            int innerGap = 8;
+            int halfW = (groupChat.Width - innerGap * 3) / 2; // two panels + padding
+            int innerTop = 12;
+
+            pnlAnswer.Location = new Point(innerGap, innerTop);
+            pnlAnswer.Size = new Size(halfW, groupChat.Height - innerTop - innerGap);
+            lblAnswerHeader.Location = new Point(0, 0);
+            lblAnswerHeader.Width = pnlAnswer.Width;
+            lblAnswerWaiting.Location = new Point(8, lblAnswerHeader.Bottom + 6);
+            lbAnswer.Location = new Point(8, lblAnswerWaiting.Bottom + 4);
+            lbAnswer.Size = new Size(pnlAnswer.Width - 16, pnlAnswer.Height - lblAnswerHeader.Height - 70);
+            txtAnswer.Location = new Point(8, pnlAnswer.Bottom - 34);
+            txtAnswer.Size = new Size(pnlAnswer.Width - 16 - 70, 28);
+            btnAnswerSend.Size = new Size(60, 28);
+            btnAnswerSend.Location = new Point(pnlAnswer.Right - 8 - btnAnswerSend.Width - groupChat.Left, pnlAnswer.Bottom - 34);
+
+            pnlChatRight.Location = new Point(pnlAnswer.Right + innerGap, innerTop);
+            pnlChatRight.Size = new Size(halfW, groupChat.Height - innerTop - innerGap);
+            lblChatHeader.Location = new Point(0, 0);
+            lblChatHeader.Width = pnlChatRight.Width;
+            lbChat.Location = new Point(8, lblChatHeader.Bottom + 6);
+            lbChat.Size = new Size(pnlChatRight.Width - 16, pnlChatRight.Height - lblChatHeader.Height - 78);
+            txtChat.Location = new Point(8, pnlChatRight.Bottom - 34);
+            txtChat.Size = new Size(pnlChatRight.Width - 16 - 140, 28);
+            btnSend.Size = new Size(60, 28);
+            btnGuess.Size = new Size(60, 28);
+            btnGuess.Location = new Point(pnlChatRight.Right - 8 - btnGuess.Width - groupChat.Left, pnlChatRight.Bottom - 34);
+            btnSend.Location = new Point(btnGuess.Left - 8 - btnSend.Width, pnlChatRight.Bottom - 34);
+
+            lblCorrectStats.Location = new Point(8, lbChat.Bottom + 4);
+            lblCorrectStats.Width = pnlChatRight.Width - 16;
+            flpCorrectGuessers.Location = new Point(8, lblCorrectStats.Bottom + 2);
+            flpCorrectGuessers.Size = new Size(pnlChatRight.Width - 16, 20);
+
+            // Right sidebar column
+            int sidebarH = availH;
+            panelSidebar.Location = new Point(xRight, topBarH + gap);
+            panelSidebar.Size = new Size(rightWidth, sidebarH);
+
+            int sx = 12, sy = 12;
+            avatarBox.Location = new Point(sx, sy);
+            lblYou.Location = new Point(sx + avatarBox.Width + 12, sy);
+            lblPlayerName.Location = new Point(lblYou.Left, sy + 24);
+            lblScoreTitle.Location = new Point(lblYou.Left, sy + 48);
+            lblScoreValue.Location = new Point(lblScoreTitle.Right + 8, sy + 48);
+
+            groupRoundInfo.Location = new Point(sx, avatarBox.Bottom + 20);
+            groupRoundInfo.Size = new Size(rightWidth - sx * 2, 200);
+            
+            int gx = 10, gy = 24 + 10;
+            lblWordTitle.Location = new Point(gx, gy);
+            lblWord.Location = new Point(gx, gy + 22);
+            lblTimeTitle.Location = new Point(gx, gy + 50);
+            lblTime.Location = new Point(gx, gy + 72);
+            lblRoundTitle.Location = new Point(gx, gy + 100);
+            lblRound.Location = new Point(gx + 60, gy + 100);
+            progressTime.Location = new Point(gx, gy + 130);
+            progressTime.Size = new Size(groupRoundInfo.Width - gx * 2, 22);
+
+            groupRoomInfo.Location = new Point(sx, groupRoundInfo.Bottom + 15);
+            groupRoomInfo.Size = new Size(rightWidth - sx * 2, 120);
+            
+            lblRoomCodeTitle.Location = new Point(gx, 24 + 10);
+            lblRoomCode.Location = new Point(gx, 24 + 32);
+            lblPlayersOnlineTitle.Location = new Point(gx, 24 + 60);
+            lblPlayersOnline.Location = new Point(gx, 24 + 82);
+
+            // Buttons at bottom of sidebar
+            int btnW = (rightWidth - sx * 2 - 8) / 2;
+            btnStartGame.Size = new Size(rightWidth - sx * 2, 42);
+            btnStartGame.Location = new Point(sx, groupRoomInfo.Bottom + 15);
+            btnLeave.Size = new Size(btnW, 38);
+            btnBackLobby.Size = new Size(btnW, 38);
+            btnLeave.Location = new Point(sx, btnStartGame.Bottom + 10);
+            btnBackLobby.Location = new Point(btnLeave.Right + 8, btnStartGame.Bottom + 10);
+        }
+
+        private void TxtChat_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                var text = txtChat.Text.Trim();
+                
+                // Don't send placeholder text
+                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ở đây...")
+                {
+                    ChatSubmitted?.Invoke(text);
+                    MessageSubmitted?.Invoke(text);
+                    
+                    // Reset to placeholder
+                    txtChat.Text = "Chat ở đây...";
+                    txtChat.ForeColor = Color.Gray;
+                }
+                e.Handled = true;
+            }
+        }
+
+        public void AddChat(string text)
+        {
+            lbChat.Items.Add(text);
+            if (lbChat.Items.Count > 0)
+                lbChat.TopIndex = lbChat.Items.Count - 1;
+            
+            if (lbChat.Items.Count > 100)
+            {
+                lbChat.Items.RemoveAt(0);
+            }
+        }
+
+        public void ShowAnswerStatus(string text)
+        {
+            if (lbAnswer == null) return;
+            lbAnswer.Items.Add(text);
+            if (lbAnswer.Items.Count > 0)
+            {
+                lbAnswer.TopIndex = lbAnswer.Items.Count - 1;
+            }
+        }
+
+        public void SetAnswerInputEnabled(bool enabled, string placeholder = null)
+        {
+            if (txtAnswer == null) return;
+            txtAnswer.Enabled = enabled;
+            if (!enabled)
+            {
+                txtAnswer.Text = placeholder ?? "Đang chờ...";
+                txtAnswer.ForeColor = Color.Gray;
+            }
+            else
+            {
+                txtAnswer.Text = placeholder ?? string.Empty;
+                txtAnswer.ForeColor = string.IsNullOrEmpty(txtAnswer.Text) ? Color.Black : txtAnswer.ForeColor;
+            }
+        }
+
+        private void UpdateCorrectGuessersUI()
+        {
+            if (lblCorrectStats == null || flpCorrectGuessers == null) return;
+            lblCorrectStats.Text = string.Format("✅ Đã đoán đúng: {0}/{1}", correctGuessers.Count, Math.Max(totalPlayers, 0));
+
+            // Refresh chips
+            flpCorrectGuessers.Controls.Clear();
+            foreach (var name in correctGuessers)
+            {
+                var chip = new Label
+                {
+                    Text = name,
+                    AutoSize = true,
+                    Padding = new Padding(6, 2, 6, 2),
+                    Margin = new Padding(2),
+                    BackColor = Color.FromArgb(220, 252, 231),
+                    ForeColor = Color.FromArgb(22, 101, 52),
+                    Font = new Font("Segoe UI", 8, FontStyle.Bold)
+                };
+                flpCorrectGuessers.Controls.Add(chip);
+            }
+        }
+
+        public bool ProcessGuess(string playerName, string guess)
+        {
+            if (string.IsNullOrEmpty(currentDrawingWord)) return false;
+            
+            bool isCorrect = guess.Trim().ToUpper() == currentDrawingWord.ToUpper();
+            
+            if (isCorrect && !correctGuessers.Contains(playerName))
+            {
+                correctGuessers.Add(playerName);
+                UpdateCorrectGuessersUI();
+                
+                // Check if half the players have guessed correctly
+                int halfPlayers = Math.Max(1, totalPlayers / 2);
+                if (correctGuessers.Count >= halfPlayers)
+                {
+                    AddChat(string.Format("🎉 {0}/{1} người đã đoán đúng! Kết thúc vòng sớm!", correctGuessers.Count, totalPlayers));
+                    return true; // Signal to end round as soon as half have guessed correctly
+                }
+                
+                AddChat(string.Format("✅ {0} đoán đúng! ({1}/{2})", playerName, correctGuessers.Count, totalPlayers));
+            }
+            
+            return false;
+        }
+
+        public void SetRoundInfo(string word, int seconds, int round, int maxRound)
+        {
+            currentDrawingWord = word;
+            correctGuessers.Clear(); // Reset for new round
+            UpdateCorrectGuessersUI();
+            
+            // Disable answering when you are the drawer (we show actual word), enable when waiting (masked word)
+            bool isDrawer = !string.IsNullOrEmpty(word) && word != "- - - - -";
+            SetAnswerInputEnabled(!isDrawer, isDrawer ? "Bạn đang vẽ..." : string.Empty);
+            if (lbAnswer != null)
+            {
+                lbAnswer.Items.Clear();
+                if (!isDrawer)
+                {
+                    lbAnswer.Items.Add("ℹ️ Hãy nhập đáp án ở bên dưới và nhấn Enter hoặc Gửi");
+                }
+                else
+                {
+                    lbAnswer.Items.Add("ℹ️ Bạn đang vẽ, không thể trả lời");
+                }
+            }
+
+            lblWord.Text = word;
+            lblTime.Text = string.Format("00:{0:00}", seconds);
+            progressTime.Maximum = seconds; 
+            progressTime.Value = Math.Min(seconds, progressTime.Maximum);
+            lblRound.Text = string.Format("{0}/{1}", round, maxRound);
+        }
+
+        public void UpdateTime(int seconds)
+        {
+            if (seconds < 0) seconds = 0;
+            if (progressTime.Maximum < seconds) progressTime.Maximum = seconds;
+            progressTime.Value = Math.Min(seconds, progressTime.Maximum);
+            lblTime.Text = string.Format("00:{0:00}", seconds);
+            
+            // Change progress bar color based on time remaining
+            if (seconds <= 10)
+            {
+                // Make progress bar red when time is low (requires custom painting)
+                progressTime.ForeColor = Color.Red;
+            }
+            else if (seconds <= 30)
+            {
+                progressTime.ForeColor = Color.Orange;
+            }
+            else
+            {
+                progressTime.ForeColor = Color.Green;
+            }
+        }
+
+        public void SetLeaderboard((int rank, string player, int score, string status)[] entries)
+        {
+            lvLeaderboard.Items.Clear();
+            foreach (var e in entries)
+            {
+                var item = new ListViewItem(e.rank.ToString());
+                item.SubItems.Add(e.player);
+                item.SubItems.Add(e.score.ToString());
+                item.SubItems.Add(e.status);
+                
+                // Highlight current drawing player
+                if (e.status.Contains("Đang vẽ"))
+                {
+                    item.BackColor = Color.FromArgb(255, 248, 220);
+                    item.ForeColor = Color.FromArgb(184, 134, 11);
+                }
+                // Highlight current user
+                else if (e.status.Contains("Bạn"))
+                {
+                    item.BackColor = Color.FromArgb(220, 252, 231);
+                    item.ForeColor = Color.FromArgb(22, 101, 52);
+                }
+                
+                lvLeaderboard.Items.Add(item);
+            }
+        }
+
+        public void ResetForNewRound()
+        {
+            correctGuessers.Clear();
+            currentDrawingWord = "";
+            UpdateCorrectGuessersUI();
+        }
+    }
+}

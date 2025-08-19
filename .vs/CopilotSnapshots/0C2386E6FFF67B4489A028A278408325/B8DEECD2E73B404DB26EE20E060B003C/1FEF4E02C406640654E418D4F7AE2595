@@ -1,0 +1,577 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    /// <summary>
+    /// 🎨 Class quản lý các hiệu ứng đặc biệt cho DrawMaster Premium
+    /// Bao gồm particle effects, animations, visual enhancements
+    /// </summary>
+    public static class GameEffects
+    {
+        #region Particle Effects
+
+        /// <summary>
+        /// Tạo hiệu ứng pháo hoa khi người chơi đoán đúng
+        /// </summary>
+        public static List<Particle> CreateFireworksEffect(Point center, int particleCount = 50)
+        {
+            var particles = new List<Particle>();
+            var random = new Random();
+            var colors = new[] 
+            { 
+                Color.Gold, Color.Orange, Color.Red, Color.Purple, 
+                Color.Lime, Color.Cyan, Color.Pink, Color.Yellow 
+            };
+
+            for (int i = 0; i < particleCount; i++)
+            {
+                var angle = (double)i / particleCount * Math.PI * 2;
+                var speed = random.Next(3, 8);
+                
+                particles.Add(new Particle
+                {
+                    X = center.X,
+                    Y = center.Y,
+                    VX = (float)(Math.Cos(angle) * speed),
+                    VY = (float)(Math.Sin(angle) * speed),
+                    Color = colors[random.Next(colors.Length)],
+                    Size = random.Next(4, 8),
+                    Life = 1.0f + random.Next(0, 50) * 0.01f,
+                    Type = Particle.ParticleType.Confetti
+                });
+            }
+
+            return particles;
+        }
+
+        /// <summary>
+        /// Tạo hiệu ứng rơi confetti từ trên xuống
+        /// </summary>
+        public static List<Particle> CreateConfettiRain(Rectangle bounds, int count = 30)
+        {
+            var particles = new List<Particle>();
+            var random = new Random();
+            var colors = new[] { Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Purple, Color.Orange };
+
+            for (int i = 0; i < count; i++)
+            {
+                particles.Add(new Particle
+                {
+                    X = random.Next(bounds.Left, bounds.Right),
+                    Y = bounds.Top - 20,
+                    VX = (float)(random.NextDouble() - 0.5) * 2,
+                    VY = random.Next(2, 5),
+                    Color = colors[random.Next(colors.Length)],
+                    Size = random.Next(3, 6),
+                    Life = 2.0f,
+                    Type = Particle.ParticleType.Confetti
+                });
+            }
+
+            return particles;
+        }
+
+        /// <summary>
+        /// Tạo hiệu ứng sparkle around object
+        /// </summary>
+        public static List<Particle> CreateSparkleEffect(Rectangle bounds, int count = 20)
+        {
+            var particles = new List<Particle>();
+            var random = new Random();
+
+            for (int i = 0; i < count; i++)
+            {
+                particles.Add(new Particle
+                {
+                    X = bounds.X + random.Next(bounds.Width),
+                    Y = bounds.Y + random.Next(bounds.Height),
+                    VX = (float)(random.NextDouble() - 0.5) * 3,
+                    VY = (float)(random.NextDouble() - 0.5) * 3,
+                    Color = Color.FromArgb(255, 255, 215), // Gold
+                    Size = random.Next(2, 5),
+                    Life = 1.5f,
+                    Type = Particle.ParticleType.Sparkle
+                });
+            }
+
+            return particles;
+        }
+
+        #endregion
+
+        #region Visual Enhancements
+
+        /// <summary>
+        /// Vẽ gradient background đẹp mắt
+        /// </summary>
+        public static void DrawGradientBackground(Graphics g, Rectangle bounds, Color color1, Color color2, LinearGradientMode mode = LinearGradientMode.Vertical)
+        {
+            using (var brush = new LinearGradientBrush(bounds, color1, color2, mode))
+            {
+                g.FillRectangle(brush, bounds);
+            }
+        }
+
+        /// <summary>
+        /// Vẽ button với hiệu ứng 3D
+        /// </summary>
+        public static void Draw3DButton(Graphics g, Rectangle bounds, Color baseColor, bool isPressed = false)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Shadow
+            var shadowBounds = new Rectangle(bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height);
+            using (var shadowBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0)))
+            {
+                g.FillRoundedRectangle(shadowBrush, shadowBounds, 8);
+            }
+
+            // Main button
+            var mainBounds = isPressed ? 
+                new Rectangle(bounds.X + 2, bounds.Y + 2, bounds.Width - 2, bounds.Height - 2) : 
+                bounds;
+
+            using (var mainBrush = new LinearGradientBrush(
+                mainBounds, 
+                Color.FromArgb(baseColor.R + 30, baseColor.G + 30, baseColor.B + 30),
+                Color.FromArgb(baseColor.R - 30, baseColor.G - 30, baseColor.B - 30),
+                LinearGradientMode.Vertical))
+            {
+                g.FillRoundedRectangle(mainBrush, mainBounds, 6);
+            }
+
+            // Highlight
+            var highlightBounds = new Rectangle(mainBounds.X, mainBounds.Y, mainBounds.Width, mainBounds.Height / 3);
+            using (var highlightBrush = new LinearGradientBrush(
+                highlightBounds,
+                Color.FromArgb(80, 255, 255, 255),
+                Color.Transparent,
+                LinearGradientMode.Vertical))
+            {
+                g.FillRoundedRectangle(highlightBrush, highlightBounds, 6);
+            }
+
+            // Border
+            using (var borderPen = new Pen(Color.FromArgb(baseColor.R - 50, baseColor.G - 50, baseColor.B - 50), 2))
+            {
+                g.DrawRoundedRectangle(borderPen, mainBounds, 6);
+            }
+        }
+
+        /// <summary>
+        /// Vẽ panel với glass effect
+        /// </summary>
+        public static void DrawGlassPanel(Graphics g, Rectangle bounds, Color baseColor, float opacity = 0.8f)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Main background
+            var color = Color.FromArgb((int)(255 * opacity), baseColor);
+            using (var brush = new SolidBrush(color))
+            {
+                g.FillRoundedRectangle(brush, bounds, 10);
+            }
+
+            // Glass highlight
+            var highlightBounds = new Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height / 2);
+            using (var highlightBrush = new LinearGradientBrush(
+                highlightBounds,
+                Color.FromArgb(50, 255, 255, 255),
+                Color.Transparent,
+                LinearGradientMode.Vertical))
+            {
+                g.FillRoundedRectangle(highlightBrush, highlightBounds, 10);
+            }
+
+            // Border
+            using (var borderPen = new Pen(Color.FromArgb(100, 255, 255, 255), 1))
+            {
+                g.DrawRoundedRectangle(borderPen, bounds, 10);
+            }
+        }
+
+        /// <summary>
+        /// Tạo neon glow effect
+        /// </summary>
+        public static void DrawNeonGlow(Graphics g, Rectangle bounds, Color glowColor, int glowSize = 10)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            for (int i = glowSize; i > 0; i--)
+            {
+                var alpha = (int)(100 * (1.0 - (double)i / glowSize));
+                var expandedBounds = new Rectangle(
+                    bounds.X - i, bounds.Y - i,
+                    bounds.Width + i * 2, bounds.Height + i * 2);
+
+                using (var pen = new Pen(Color.FromArgb(alpha, glowColor), i))
+                {
+                    g.DrawRoundedRectangle(pen, expandedBounds, 5 + i);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Animation Helpers
+
+        /// <summary>
+        /// Tính toán bounce animation
+        /// </summary>
+        public static float CalculateBounce(float time, float amplitude = 1.0f)
+        {
+            return (float)(amplitude * Math.Abs(Math.Sin(time * Math.PI)));
+        }
+
+        /// <summary>
+        /// Tính toán pulse animation
+        /// </summary>
+        public static float CalculatePulse(float time, float minScale = 0.8f, float maxScale = 1.2f)
+        {
+            var pulse = (float)((Math.Sin(time * Math.PI * 2) + 1) / 2);
+            return minScale + (maxScale - minScale) * pulse;
+        }
+
+        /// <summary>
+        /// Tính toán fade in/out effect
+        /// </summary>
+        public static float CalculateFade(float time, float duration, bool fadeIn = true)
+        {
+            var progress = Math.Min(time / duration, 1.0f);
+            return fadeIn ? progress : 1.0f - progress;
+        }
+
+        /// <summary>
+        /// Tính toán shake effect
+        /// </summary>
+        public static Point CalculateShake(float time, int intensity = 5)
+        {
+            var random = new Random((int)(time * 1000));
+            return new Point(
+                random.Next(-intensity, intensity),
+                random.Next(-intensity, intensity)
+            );
+        }
+
+        #endregion
+
+        #region Text Effects
+
+        /// <summary>
+        /// Vẽ text với shadow effect
+        /// </summary>
+        public static void DrawTextWithShadow(Graphics g, string text, Font font, Brush textBrush, Rectangle bounds, int shadowOffset = 2)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+            var format = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            // Shadow
+            var shadowBounds = new Rectangle(
+                bounds.X + shadowOffset, bounds.Y + shadowOffset,
+                bounds.Width, bounds.Height);
+            
+            using (var shadowBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0)))
+            {
+                g.DrawString(text, font, shadowBrush, shadowBounds, format);
+            }
+
+            // Main text
+            g.DrawString(text, font, textBrush, bounds, format);
+        }
+
+        /// <summary>
+        /// Vẽ text với gradient effect
+        /// </summary>
+        public static void DrawGradientText(Graphics g, string text, Font font, Rectangle bounds, Color color1, Color color2)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+            using (var brush = new LinearGradientBrush(bounds, color1, color2, LinearGradientMode.Vertical))
+            {
+                var format = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center
+                };
+
+                g.DrawString(text, font, brush, bounds, format);
+            }
+        }
+
+        /// <summary>
+        /// Vẽ text với outline effect
+        /// </summary>
+        public static void DrawOutlineText(Graphics g, string text, Font font, Brush fillBrush, Pen outlinePen, Rectangle bounds)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+            var format = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            using (var path = new GraphicsPath())
+            {
+                path.AddString(text, font.FontFamily, (int)font.Style, font.Size, bounds, format);
+                
+                // Outline
+                g.DrawPath(outlinePen, path);
+                
+                // Fill
+                g.FillPath(fillBrush, path);
+            }
+        }
+
+        #endregion
+
+        #region Color Utilities
+
+        /// <summary>
+        /// Lighten a color by percentage
+        /// </summary>
+        public static Color LightenColor(Color color, float percentage)
+        {
+            return Color.FromArgb(
+                color.A,
+                Math.Min(255, (int)(color.R + (255 - color.R) * percentage)),
+                Math.Min(255, (int)(color.G + (255 - color.G) * percentage)),
+                Math.Min(255, (int)(color.B + (255 - color.B) * percentage))
+            );
+        }
+
+        /// <summary>
+        /// Darken a color by percentage
+        /// </summary>
+        public static Color DarkenColor(Color color, float percentage)
+        {
+            return Color.FromArgb(
+                color.A,
+                Math.Max(0, (int)(color.R * (1 - percentage))),
+                Math.Max(0, (int)(color.G * (1 - percentage))),
+                Math.Max(0, (int)(color.B * (1 - percentage)))
+            );
+        }
+
+        /// <summary>
+        /// Create rainbow colors
+        /// </summary>
+        public static Color[] CreateRainbowColors(int count)
+        {
+            var colors = new Color[count];
+            for (int i = 0; i < count; i++)
+            {
+                var hue = (float)i / count * 360;
+                colors[i] = ColorFromHSV(hue, 1.0f, 1.0f);
+            }
+            return colors;
+        }
+
+        /// <summary>
+        /// Convert HSV to RGB color
+        /// </summary>
+        public static Color ColorFromHSV(float hue, float saturation, float value)
+        {
+            int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
+            float f = hue / 60 - (float)Math.Floor(hue / 60);
+
+            value = value * 255;
+            int v = Convert.ToInt32(value);
+            int p = Convert.ToInt32(value * (1 - saturation));
+            int q = Convert.ToInt32(value * (1 - f * saturation));
+            int t = Convert.ToInt32(value * (1 - (1 - f) * saturation));
+
+            switch (hi)
+            {
+                case 0: return Color.FromArgb(255, v, t, p);
+                case 1: return Color.FromArgb(255, q, v, p);
+                case 2: return Color.FromArgb(255, p, v, t);
+                case 3: return Color.FromArgb(255, p, q, v);
+                case 4: return Color.FromArgb(255, t, p, v);
+                default: return Color.FromArgb(255, v, p, q);
+            }
+        }
+
+        #endregion
+
+        #region Sound Effect Helpers
+
+        /// <summary>
+        /// Play success sound with system sounds
+        /// </summary>
+        public static void PlaySuccessSound()
+        {
+            try
+            {
+                System.Media.SystemSounds.Exclamation.Play();
+            }
+            catch
+            {
+                // Ignore if sound fails
+            }
+        }
+
+        /// <summary>
+        /// Play warning sound
+        /// </summary>
+        public static void PlayWarningSound()
+        {
+            try
+            {
+                System.Media.SystemSounds.Hand.Play();
+            }
+            catch
+            {
+                // Ignore if sound fails
+            }
+        }
+
+        /// <summary>
+        /// Play notification sound
+        /// </summary>
+        public static void PlayNotificationSound()
+        {
+            try
+            {
+                System.Media.SystemSounds.Asterisk.Play();
+            }
+            catch
+            {
+                // Ignore if sound fails
+            }
+        }
+
+        #endregion
+
+        #region Control Extensions
+
+        /// <summary>
+        /// Add fade in animation to control
+        /// </summary>
+        public static void FadeIn(this Control control, int duration = 500)
+        {
+            control.Visible = true;
+            var timer = new Timer { Interval = 50 };
+            var startTime = DateTime.Now;
+            var originalOpacity = 1.0f;
+
+            timer.Tick += (s, e) =>
+            {
+                var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
+                var progress = Math.Min(elapsed / duration, 1.0);
+
+                // Note: Opacity property doesn't exist on Control, this is a conceptual implementation
+                // In real implementation, you might need to use custom drawing or Form.Opacity for forms
+
+                if (progress >= 1.0)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                }
+            };
+
+            timer.Start();
+        }
+
+        /// <summary>
+        /// Add pulse animation to control
+        /// </summary>
+        public static void Pulse(this Control control, int duration = 1000, float minScale = 0.9f, float maxScale = 1.1f)
+        {
+            var timer = new Timer { Interval = 50 };
+            var startTime = DateTime.Now;
+            var originalSize = control.Size;
+
+            timer.Tick += (s, e) =>
+            {
+                var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
+                var time = (float)(elapsed / 1000.0);
+                var scale = CalculatePulse(time, minScale, maxScale);
+
+                control.Size = new Size(
+                    (int)(originalSize.Width * scale),
+                    (int)(originalSize.Height * scale)
+                );
+
+                if (elapsed > duration)
+                {
+                    control.Size = originalSize;
+                    timer.Stop();
+                    timer.Dispose();
+                }
+            };
+
+            timer.Start();
+        }
+
+        #endregion
+    }
+
+    #region Extension Methods for Graphics
+
+    /// <summary>
+    /// Extension methods for Graphics class
+    /// </summary>
+    public static class GraphicsExtensions
+    {
+        public static void FillRoundedRectangle(this Graphics graphics, Brush brush,
+            Rectangle rect, int radius)
+        {
+            graphics.FillRoundedRectangle(brush, rect.X, rect.Y, rect.Width, rect.Height, radius);
+        }
+
+        public static void FillRoundedRectangle(this Graphics graphics, Brush brush,
+            float x, float y, float width, float height, float radius)
+        {
+            using (var path = CreateRoundedRectanglePath(x, y, width, height, radius))
+            {
+                graphics.FillPath(brush, path);
+            }
+        }
+
+        public static void DrawRoundedRectangle(this Graphics graphics, Pen pen,
+            Rectangle rect, int radius)
+        {
+            graphics.DrawRoundedRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height, radius);
+        }
+
+        public static void DrawRoundedRectangle(this Graphics graphics, Pen pen,
+            float x, float y, float width, float height, float radius)
+        {
+            using (var path = CreateRoundedRectanglePath(x, y, width, height, radius))
+            {
+                graphics.DrawPath(pen, path);
+            }
+        }
+
+        private static GraphicsPath CreateRoundedRectanglePath(float x, float y,
+            float width, float height, float radius)
+        {
+            var path = new GraphicsPath();
+            var diameter = radius * 2;
+
+            path.AddArc(x, y, diameter, diameter, 180, 90);
+            path.AddArc(x + width - diameter, y, diameter, diameter, 270, 90);
+            path.AddArc(x + width - diameter, y + height - diameter, diameter, diameter, 0, 90);
+            path.AddArc(x, y + height - diameter, diameter, diameter, 90, 90);
+            path.CloseFigure();
+
+            return path;
+        }
+    }
+
+    #endregion
+}

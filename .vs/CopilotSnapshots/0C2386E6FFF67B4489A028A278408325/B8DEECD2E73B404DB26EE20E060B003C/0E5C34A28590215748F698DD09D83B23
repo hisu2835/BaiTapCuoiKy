@@ -1,0 +1,249 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    /// <summary>
+    /// 🎨 Enhanced UI Components cho DrawMaster Premium - Clean Version
+    /// </summary>
+    public static class EnhancedUIComponents
+    {
+        #region Enhanced Drawing Canvas
+
+        /// <summary>
+        /// Tạo canvas vẽ với hiệu ứng đặc biệt
+        /// </summary>
+        public class SpectacularDrawingCanvas : Panel
+        {
+            private bool _isGlowing = false;
+            private Color _glowColor = Color.FromArgb(100, 0, 150, 255);
+            private Timer _glowTimer;
+            private float _glowIntensity = 0;
+
+            public bool IsGlowing
+            {
+                get => _isGlowing;
+                set
+                {
+                    _isGlowing = value;
+                    if (value)
+                        StartGlowEffect();
+                    else
+                        StopGlowEffect();
+                }
+            }
+
+            public Color GlowColor
+            {
+                get => _glowColor;
+                set => _glowColor = value;
+            }
+
+            public SpectacularDrawingCanvas()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                BackColor = Color.White;
+            }
+
+            private void StartGlowEffect()
+            {
+                _glowTimer?.Stop();
+                _glowTimer = new Timer { Interval = 50 };
+                _glowTimer.Tick += (s, e) =>
+                {
+                    _glowIntensity += 0.1f;
+                    if (_glowIntensity > 1.0f) _glowIntensity = 0f;
+                    Invalidate();
+                };
+                _glowTimer.Start();
+            }
+
+            private void StopGlowEffect()
+            {
+                _glowTimer?.Stop();
+                _glowIntensity = 0;
+                Invalidate();
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                
+                if (_isGlowing)
+                {
+                    DrawGlowBorder(e.Graphics);
+                }
+                
+                DrawCanvasBorder(e.Graphics);
+            }
+
+            private void DrawGlowBorder(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                var alpha = (int)(100 * _glowIntensity);
+                var glowSize = (int)(10 * _glowIntensity);
+                
+                for (int i = glowSize; i > 0; i--)
+                {
+                    var glowAlpha = (int)(alpha * (1.0 - (double)i / glowSize));
+                    var glowColor = Color.FromArgb(glowAlpha, _glowColor);
+                    
+                    using (var pen = new Pen(glowColor, i))
+                    {
+                        g.DrawRectangle(pen, -i/2, -i/2, Width + i, Height + i);
+                    }
+                }
+            }
+
+            private void DrawCanvasBorder(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Simple border
+                using (var borderPen = new Pen(Color.FromArgb(100, 150, 150, 150), 3))
+                {
+                    g.DrawRectangle(borderPen, 1, 1, Width - 3, Height - 3);
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _glowTimer?.Stop();
+                    _glowTimer?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
+
+        #endregion
+
+        #region Enhanced Progress Bars
+
+        /// <summary>
+        /// Progress bar với hiệu ứng đẹp
+        /// </summary>
+        public class SpectacularProgressBar : Control
+        {
+            private int _value = 0;
+            private int _maximum = 100;
+            private Color _progressColor = Color.FromArgb(59, 130, 246);
+            private Timer _animationTimer;
+            private float _animationValue = 0;
+
+            public int Value
+            {
+                get => _value;
+                set
+                {
+                    _value = Math.Max(0, Math.Min(_maximum, value));
+                    Invalidate();
+                }
+            }
+
+            public int Maximum
+            {
+                get => _maximum;
+                set => _maximum = Math.Max(1, value);
+            }
+
+            public Color ProgressColor
+            {
+                get => _progressColor;
+                set
+                {
+                    _progressColor = value;
+                    Invalidate();
+                }
+            }
+
+            public SpectacularProgressBar()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                Height = 25;
+                
+                _animationTimer = new Timer { Interval = 50 };
+                _animationTimer.Tick += (s, e) =>
+                {
+                    var targetValue = (float)_value / _maximum;
+                    _animationValue += (targetValue - _animationValue) * 0.1f;
+                    Invalidate();
+                };
+                _animationTimer.Start();
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                DrawProgressBar(e.Graphics);
+            }
+
+            private void DrawProgressBar(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Background
+                using (var bgBrush = new SolidBrush(Color.FromArgb(240, 240, 240)))
+                {
+                    g.FillRectangle(bgBrush, ClientRectangle);
+                }
+
+                // Progress
+                var progressWidth = (int)(Width * _animationValue);
+                if (progressWidth > 0)
+                {
+                    var progressRect = new Rectangle(0, 0, progressWidth, Height);
+                    
+                    using (var progressBrush = new SolidBrush(_progressColor))
+                    {
+                        g.FillRectangle(progressBrush, progressRect);
+                    }
+
+                    // Shine effect
+                    var shineRect = new Rectangle(0, 0, progressWidth, Height / 2);
+                    using (var shineBrush = new SolidBrush(Color.FromArgb(100, 255, 255, 255)))
+                    {
+                        g.FillRectangle(shineBrush, shineRect);
+                    }
+                }
+
+                // Border
+                using (var borderPen = new Pen(Color.FromArgb(180, 180, 180), 1))
+                {
+                    g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+                }
+
+                // Text
+                using (var font = new Font("Segoe UI", 9, FontStyle.Bold))
+                using (var textBrush = new SolidBrush(Color.FromArgb(80, 80, 80)))
+                {
+                    var text = $"{_value}/{_maximum}";
+                    var textSize = g.MeasureString(text, font);
+                    var textPos = new PointF(
+                        (Width - textSize.Width) / 2,
+                        (Height - textSize.Height) / 2
+                    );
+                    g.DrawString(text, font, textBrush, textPos);
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _animationTimer?.Stop();
+                    _animationTimer?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
+
+        #endregion
+    }
+}

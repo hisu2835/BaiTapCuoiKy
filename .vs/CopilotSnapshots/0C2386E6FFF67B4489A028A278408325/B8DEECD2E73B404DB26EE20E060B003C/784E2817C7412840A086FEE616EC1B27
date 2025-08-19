@@ -1,0 +1,3080 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using BaiTapCuoiKy.Properties;
+
+namespace BaiTapCuoiKy
+{
+    public partial class Form1 : Form
+    {
+        #region Fields and Properties
+        
+        private string currentUser;
+        private bool isInGame = false;
+        private bool isInWaitingRoom = true;
+        private Random random = new Random();
+        
+        // UI Components for the waiting room
+        private Panel welcomePanel;
+        private Label welcomeLabel;
+        private Label userStatsLabel;
+        private Button createRoomButton;
+        private Button joinRoomButton;
+        private Button logoutButton;
+        private TextBox roomCodeTextBox;
+        private Label roomCodeLabel;
+        private Panel gameStatsPanel;
+
+        // Drawing variables
+        private bool isDrawing = false;
+        private Point lastPoint;
+        private Bitmap drawingBitmap;
+        private Graphics drawingGraphics;
+        private Color currentColor = Color.Black;
+        private int brushSize = 3;
+        private bool isEraserMode = false;
+
+        // Game state variables
+        private string currentWord = "";
+        private string[] wordBank = { "CAT", "DOG", "HOUSE", "TREE", "CAR", "BOOK", "APPLE", "STAR", "FISH", "BIRD", "FLOWER", "SUN", "MOON", "BANANA" };
+        private int gameTimeLeft = 60;
+        private int currentRound = 1;
+        private int maxRounds = 5;
+        private int playerScore = 0;
+        private bool isPlayerDrawing = false;
+        private List<PlayerInfo> connectedPlayers = new List<PlayerInfo>();
+        private string currentRoomCode = "";
+        private Dictionary<string, Image> playerAvatars = new Dictionary<string, Image>();
+
+        // Enhanced game components
+        private Panel panelAdvancedTools;
+        private Button btnUndo;
+        private Button btnRedo;
+        private Button btnHint;
+        private Label lblHintCount;
+        private Panel panelQuickReactions;
+        private Button[] quickReactionButtons;
+        private Label lblGamePhase;
+        private ProgressBar progressBarRoundProgress;
+        private Panel panelPlayerStats;
+        private Label lblWinStreak;
+        private Label lblAccuracy;
+        private Panel panelWordInfo;
+        private Label lblWordCategory;
+        private Label lblWordLength;
+        
+        // Enhanced UI Components - New Features
+        private Panel panelGameHeader;
+        private Panel panelCanvasFrame;
+        private Panel panelToolsEnhanced;
+        private Panel panelChatEnhanced;
+        private Panel panelLeaderboardEnhanced;
+        private Label lblGameTitle;
+        private Timer animationTimer;
+        private Timer particleTimer;
+        private List<Particle> particles = new List<Particle>();
+        private Panel panelThemeSelector;
+        private Button[] themeButtons;
+        private Panel panelSpectacularEffects;
+        private Label lblStreakDisplay;
+        private Panel panelPlayerStatus;
+        private ProgressBar progressBarDrawingTime;
+        private Label lblDrawingProgress;
+        
+        // Enhanced hint system
+        private int availableHints = 3;
+        private List<string> revealedHints = new List<string>();
+        private Timer hintTimer;
+        
+        // Enhanced scoring system  
+        private int winStreak = 0;
+        private int totalGuesses = 0;
+        private int correctGuesses = 0;
+        private Dictionary<string, int> playerWinStreaks = new Dictionary<string, int>();
+
+        // Theme colors for visual appeal
+        private readonly Dictionary<string, ThemeColors> gameThemes = new Dictionary<string, ThemeColors>
+        {
+            ["Ocean"] = new ThemeColors
+            {
+                Primary = Color.FromArgb(59, 130, 246),     // Blue
+                Secondary = Color.FromArgb(147, 197, 253),   // Light Blue
+                Accent = Color.FromArgb(30, 64, 175),        // Dark Blue
+                Background = Color.FromArgb(239, 246, 255),  // Very Light Blue
+                Text = Color.FromArgb(30, 58, 138)           // Navy
+            },
+            ["Forest"] = new ThemeColors
+            {
+                Primary = Color.FromArgb(34, 197, 94),       // Green
+                Secondary = Color.FromArgb(134, 239, 172),   // Light Green
+                Accent = Color.FromArgb(21, 128, 61),        // Dark Green
+                Background = Color.FromArgb(240, 253, 244),  // Very Light Green
+                Text = Color.FromArgb(20, 83, 45)            // Dark Green
+            },
+            ["Sunset"] = new ThemeColors
+            {
+                Primary = Color.FromArgb(251, 146, 60),      // Orange
+                Secondary = Color.FromArgb(254, 215, 170),   // Light Orange
+                Accent = Color.FromArgb(194, 65, 12),        // Dark Orange
+                Background = Color.FromArgb(255, 247, 237),  // Very Light Orange
+                Text = Color.FromArgb(154, 52, 18)           // Brown
+            },
+            ["Galaxy"] = new ThemeColors
+            {
+                Primary = Color.FromArgb(147, 51, 234),      // Purple
+                Secondary = Color.FromArgb(196, 181, 253),   // Light Purple
+                Accent = Color.FromArgb(109, 40, 217),       // Dark Purple
+                Background = Color.FromArgb(245, 243, 255),  // Very Light Purple
+                Text = Color.FromArgb(88, 28, 135)           // Dark Purple
+            }
+        };
+        
+        private ThemeColors currentTheme;
+
+        #endregion
+
+        #region Theme Colors Class
+
+        public class ThemeColors
+        {
+            public Color Primary { get; set; }
+            public Color Secondary { get; set; }
+            public Color Accent { get; set; }
+            public Color Background { get; set; }
+            public Color Text { get; set; }
+        }
+
+        #endregion
+
+        #region Player Info Class
+
+        public class PlayerInfo
+        {
+            public string Name { get; set; }
+            public int Score { get; set; }
+            public bool IsDrawing { get; set; }
+            public bool IsOnline { get; set; }
+            public DateTime LastActivity { get; set; }
+            public Image Avatar { get; set; }
+
+            public PlayerInfo(string name)
+            {
+                Name = name;
+                Score = 0;
+                IsDrawing = false;
+                IsOnline = true;
+                LastActivity = DateTime.Now;
+                Avatar = GenerateAvatar(name);
+            }
+
+            private Image GenerateAvatar(string playerName)
+            {
+                Bitmap avatar = new Bitmap(60, 60);
+                using (Graphics g = Graphics.FromImage(avatar))
+                {
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    
+                    int hash = playerName.GetHashCode();
+                    Color bgColor = Color.FromArgb(
+                        Math.Abs(hash % 128) + 127,
+                        Math.Abs((hash >> 8) % 128) + 127,
+                        Math.Abs((hash >> 16) % 128) + 127
+                    );
+                    
+                    // Create gradient background
+                    using (var brush = new LinearGradientBrush(
+                        new Rectangle(0, 0, 60, 60),
+                        bgColor,
+                        Color.FromArgb(bgColor.R - 30, bgColor.G - 30, bgColor.B - 30),
+                        LinearGradientMode.Vertical))
+                    {
+                        g.FillEllipse(brush, 0, 0, 60, 60);
+                    }
+                    
+                    // Add border
+                    using (var pen = new Pen(Color.White, 3))
+                    {
+                        g.DrawEllipse(pen, 1, 1, 58, 58);
+                    }
+                    
+                    string initials = playerName.Length > 1 ? 
+                        playerName.Substring(0, 2).ToUpper() : 
+                        playerName.Substring(0, 1).ToUpper();
+                    
+                    using (Font font = new Font("Segoe UI", 16, FontStyle.Bold))
+                    {
+                        SizeF textSize = g.MeasureString(initials, font);
+                        g.DrawString(initials, font, Brushes.White,
+                            (60 - textSize.Width) / 2,
+                            (60 - textSize.Height) / 2);
+                    }
+                }
+                return avatar;
+            }
+        }
+
+        #endregion
+
+        #region Particle System
+
+        private class Particle
+        {
+            public float X, Y, VX, VY;
+            public Color Color;
+            public float Life;
+            public float Size;
+            public ParticleType Type;
+            public bool IsDead => Life <= 0;
+            
+            public enum ParticleType
+            {
+                Confetti,
+                Star,
+                Heart,
+                Sparkle
+            }
+            
+            public void Update()
+            {
+                X += VX;
+                Y += VY;
+                VY += 0.15f; // Gravity
+                Life -= 0.02f;
+                Size = Math.Max(0, Size - 0.1f);
+            }
+            
+            public void Draw(Graphics g)
+            {
+                if (IsDead) return;
+                
+                var alpha = (int)(Life * 255);
+                var color = Color.FromArgb(alpha, Color);
+                
+                switch (Type)
+                {
+                    case ParticleType.Confetti:
+                        DrawConfetti(g, color);
+                        break;
+                    case ParticleType.Star:
+                        DrawStar(g, color);
+                        break;
+                    case ParticleType.Heart:
+                        DrawHeart(g, color);
+                        break;
+                    case ParticleType.Sparkle:
+                        DrawSparkle(g, color);
+                        break;
+                }
+            }
+            
+            private void DrawConfetti(Graphics g, Color color)
+            {
+                using (var brush = new SolidBrush(color))
+                {
+                    g.FillRectangle(brush, X, Y, Size, Size * 2);
+                }
+            }
+            
+            private void DrawStar(Graphics g, Color color)
+            {
+                var points = new PointF[10];
+                for (int i = 0; i < 10; i++)
+                {
+                    double angle = i * Math.PI / 5;
+                    float radius = (i % 2 == 0) ? Size : Size / 2;
+                    points[i] = new PointF(
+                        X + (float)(Math.Cos(angle) * radius),
+                        Y + (float)(Math.Sin(angle) * radius)
+                    );
+                }
+                
+                using (var brush = new SolidBrush(color))
+                {
+                    g.FillPolygon(brush, points);
+                }
+            }
+            
+            private void DrawHeart(Graphics g, Color color)
+            {
+                using (var brush = new SolidBrush(color))
+                {
+                    var size = (int)Size;
+                    g.FillEllipse(brush, X - size/2, Y - size/4, size, size);
+                    g.FillEllipse(brush, X + size/2, Y - size/4, size, size);
+                    var triangle = new PointF[]
+                    {
+                        new PointF(X - size, Y + size/4),
+                        new PointF(X + size, Y + size/4),
+                        new PointF(X, Y + size * 1.5f)
+                    };
+                    g.FillPolygon(brush, triangle);
+                }
+            }
+            
+            private void DrawSparkle(Graphics g, Color color)
+            {
+                using (var pen = new Pen(color, 2))
+                {
+                    var size = Size;
+                    g.DrawLine(pen, X - size, Y, X + size, Y);
+                    g.DrawLine(pen, X, Y - size, X, Y + size);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Constructor and Initialization
+
+        public Form1() : this("Guest")
+        {
+        }
+
+        public Form1(string username)
+        {
+            InitializeComponent();
+            currentUser = username;
+            currentTheme = gameThemes["Ocean"]; // Default theme
+            InitializeDrawingBitmap();
+            SetupInitialGameInterface();
+            SetupWaitingRoom();
+            LoadUserStats();
+            SetupAnimationTimers();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            toolStripStatusLabel.Text = $"🎨 Chào mừng {currentUser} đến với DrawMaster Premium! 🎨";
+        }
+
+        private void SetupAnimationTimers()
+        {
+            // Animation timer for UI effects
+            animationTimer = new Timer { Interval = 50 };
+            animationTimer.Tick += AnimationTimer_Tick;
+            animationTimer.Start();
+            
+            // Particle timer for effects
+            particleTimer = new Timer { Interval = 100 };
+            particleTimer.Tick += ParticleTimer_Tick;
+            particleTimer.Start();
+        }
+
+        private void AnimationTimer_Tick(object sender, EventArgs e)
+        {
+            // Update UI animations
+            if (lblStreakDisplay != null && winStreak > 0)
+            {
+                var time = DateTime.Now.Millisecond;
+                var opacity = (float)(Math.Sin(time * 0.01) * 0.3 + 0.7);
+                lblStreakDisplay.ForeColor = Color.FromArgb(
+                    (int)(255 * opacity), currentTheme.Primary);
+            }
+            
+            // Update progress bar animation
+            if (progressBarDrawingTime != null && isPlayerDrawing)
+            {
+                var remaining = gameTimeLeft / 60.0;
+                progressBarDrawingTime.Value = (int)(remaining * 100);
+                
+                // Color changes based on time
+                if (remaining > 0.5)
+                    progressBarDrawingTime.ForeColor = Color.Green;
+                else if (remaining > 0.25)
+                    progressBarDrawingTime.ForeColor = Color.Orange;
+                else
+                    progressBarDrawingTime.ForeColor = Color.Red;
+            }
+        }
+
+        private void ParticleTimer_Tick(object sender, EventArgs e)
+        {
+            // Update particles
+            for (int i = particles.Count - 1; i >= 0; i--)
+            {
+                particles[i].Update();
+                if (particles[i].IsDead)
+                    particles.RemoveAt(i);
+            }
+            
+            // Trigger redraw if particles exist
+            if (particles.Count > 0 && panelSpectacularEffects != null)
+                panelSpectacularEffects.Invalidate();
+        }
+
+        private void InitializeDrawingBitmap()
+        {
+            drawingBitmap = new Bitmap(700, 500);
+            drawingGraphics = Graphics.FromImage(drawingBitmap);
+            drawingGraphics.SmoothingMode = SmoothingMode.AntiAlias;
+            drawingGraphics.Clear(Color.White);
+        }
+
+        private void EnableDrawingTools(bool enabled)
+        {
+            panelTools.Enabled = enabled;
+            btnClearCanvas.Enabled = enabled;
+            panelDrawing.Enabled = enabled;
+            
+            panelDrawing.Cursor = enabled ? Cursors.Cross : Cursors.No;
+        }
+
+        private void SetupInitialGameInterface()
+        {
+            this.Size = new Size(1350, 800);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            
+            if (!string.IsNullOrEmpty(currentUser))
+            {
+                lblPlayerName.Text = currentUser;
+                lblPlayerCurrentScore.Text = $"Score: 0";
+            }
+            
+            lblRoomCode.Text = "------";
+            lblPlayersCount.Text = "0/8";
+            lblCurrentRound.Text = "0/5";
+            lblTimeLeft.Text = "00:60";
+            progressBarTime.Value = 60;
+            lblWordToGuess.Text = "_ _ _ _ _ _";
+            
+            btnPencil.BackColor = currentTheme.Primary;
+            panelSelectedColor.BackColor = currentColor;
+        }
+
+        #endregion
+
+        #region Enhanced UI Setup Methods
+
+        private void SetupSpectacularGameHeader()
+        {
+            // Create spectacular game header
+            panelGameHeader = new Panel
+            {
+                Size = new Size(this.ClientSize.Width, 80),
+                Location = new Point(0, 0),
+                BackColor = currentTheme.Primary
+            };
+            
+            panelGameHeader.Paint += (s, e) => {
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    panelGameHeader.ClientRectangle,
+                    currentTheme.Primary,
+                    currentTheme.Accent,
+                    LinearGradientMode.Horizontal))
+                {
+                    e.Graphics.FillRectangle(brush, panelGameHeader.ClientRectangle);
+                }
+                
+                // Add shine effect
+                using (var shineBrush = new LinearGradientBrush(
+                    new Rectangle(0, 0, panelGameHeader.Width, 30),
+                    Color.FromArgb(100, 255, 255, 255),
+                    Color.Transparent,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(shineBrush, 0, 0, panelGameHeader.Width, 30);
+                }
+            };
+            
+            // Game title with animation
+            lblGameTitle = new Label
+            {
+                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Font = new Font("Segoe UI", 24, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 20),
+                Size = new Size(400, 40),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            
+            // Room info display
+            var lblRoomInfo = new Label
+            {
+                Text = $"Room: {currentRoomCode} | Round: {currentRound}/{maxRounds}",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(230, 230, 230),
+                Location = new Point(500, 30),
+                Size = new Size(300, 25),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            
+            panelGameHeader.Controls.AddRange(new Control[] { lblGameTitle, lblRoomInfo });
+            this.Controls.Add(panelGameHeader);
+        }
+
+        private void SetupEnhancedCanvasFrame()
+        {
+            // Create enhanced canvas frame with shadow and glow
+            panelCanvasFrame = new Panel
+            {
+                Size = new Size(720, 520),
+                Location = new Point(50, 100),
+                BackColor = Color.Transparent
+            };
+            
+            panelCanvasFrame.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Shadow effect
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRoundedRectangle(shadowBrush, 8, 8, 710, 510, 15);
+                }
+                
+                // Main frame with gradient
+                using (var frameBrush = new LinearGradientBrush(
+                    new Rectangle(0, 0, 720, 520),
+                    currentTheme.Secondary,
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(frameBrush, 0, 0, 710, 510, 10);
+                }
+                
+                // Border
+                using (var borderPen = new Pen(currentTheme.Primary, 3))
+                {
+                    e.Graphics.DrawRoundedRectangle(borderPen, 2, 2, 706, 506, 10);
+                }
+                
+                // Inner glow when drawing
+                if (isPlayerDrawing)
+                {
+                    using (var glowPen = new Pen(Color.FromArgb(100, currentTheme.Accent), 6))
+                    {
+                        e.Graphics.DrawRoundedRectangle(glowPen, 5, 5, 700, 500, 8);
+                    }
+                }
+            };
+            
+            this.Controls.Add(panelCanvasFrame);
+        }
+
+        private void SetupThemeSelector()
+        {
+            // Create theme selector panel
+            panelThemeSelector = new Panel
+            {
+                Size = new Size(250, 100),
+                Location = new Point(this.ClientSize.Width - 270, 700),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            panelThemeSelector.Paint += DrawEnhancedPanel;
+            
+            var lblThemes = new Label
+            {
+                Text = "🎨 Themes",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(10, 10),
+                Size = new Size(230, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            
+            // Theme buttons
+            string[] themeNames = { "Ocean", "Forest", "Sunset", "Galaxy" };
+            themeButtons = new Button[themeNames.Length];
+            
+            for (int i = 0; i < themeNames.Length; i++)
+            {
+                themeButtons[i] = new Button
+                {
+                    BackColor = gameThemes[themeNames[i]].Primary,
+                    Size = new Size(50, 30),
+                    Location = new Point(15 + i * 55, 45),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand,
+                    Tag = themeNames[i]
+                };
+                
+                themeButtons[i].FlatAppearance.BorderSize = 0;
+                themeButtons[i].Click += ThemeButton_Click;
+                panelThemeSelector.Controls.Add(themeButtons[i]);
+            }
+            
+            panelThemeSelector.Controls.Add(lblThemes);
+            this.Controls.Add(panelThemeSelector);
+        }
+
+        private void SetupSpectacularEffectsPanel()
+        {
+            // Panel for particle effects overlay
+            panelSpectacularEffects = new Panel
+            {
+                Size = this.ClientSize,
+                Location = new Point(0, 0),
+                BackColor = Color.Transparent
+            };
+            
+            panelSpectacularEffects.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Draw all particles
+                foreach (var particle in particles)
+                {
+                    particle.Draw(e.Graphics);
+                }
+                
+                // Draw streak display if active
+                if (winStreak > 2)
+                {
+                    DrawStreakFireworks(e.Graphics);
+                }
+            };
+            
+            // Make it click-through
+            panelSpectacularEffects.Enabled = false;
+            this.Controls.Add(panelSpectacularEffects);
+            panelSpectacularEffects.BringToFront();
+        }
+
+        private void SetupEnhancedPlayerStatus()
+        {
+            // Enhanced player status panel
+            panelPlayerStatus = new Panel
+            {
+                Size = new Size(300, 200),
+                Location = new Point(this.ClientSize.Width - 320, 100),
+                BackColor = Color.White
+            };
+            
+            panelPlayerStatus.Paint += DrawEnhancedPanel;
+            
+            // Streak display with fireworks
+            lblStreakDisplay = new Label
+            {
+                Text = "🔥 STREAK: 0",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Primary,
+                Location = new Point(20, 20),
+                Size = new Size(260, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            
+            // Drawing progress bar
+            progressBarDrawingTime = new ProgressBar
+            {
+                Size = new Size(260, 25),
+                Location = new Point(20, 60),
+                Minimum = 0,
+                Maximum = 100,
+                Style = ProgressBarStyle.Continuous
+            };
+            
+            lblDrawingProgress = new Label
+            {
+                Text = "⏱️ Drawing Time",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(20, 95),
+                Size = new Size(260, 20),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            
+            panelPlayerStatus.Controls.AddRange(new Control[] {
+                lblStreakDisplay, progressBarDrawingTime, lblDrawingProgress
+            });
+            
+            this.Controls.Add(panelPlayerStatus);
+        }
+
+        private void DrawEnhancedPanel(object sender, PaintEventArgs e)
+        {
+            var panel = sender as Panel;
+            if (panel == null) return;
+            
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            
+            // Shadow
+            using (var shadowBrush = new SolidBrush(Color.FromArgb(30, 0, 0, 0)))
+            {
+                e.Graphics.FillRoundedRectangle(shadowBrush, 5, 5, 
+                    panel.Width - 5, panel.Height - 5, 10);
+            }
+            
+            // Main background with gradient
+            using (var bgBrush = new LinearGradientBrush(
+                panel.ClientRectangle,
+                Color.White,
+                currentTheme.Background,
+                LinearGradientMode.Vertical))
+            {
+                e.Graphics.FillRoundedRectangle(bgBrush, 0, 0, 
+                    panel.Width - 5, panel.Height - 5, 8);
+            }
+            
+            // Border
+            using (var borderPen = new Pen(currentTheme.Primary, 2))
+            {
+                e.Graphics.DrawRoundedRectangle(borderPen, 1, 1, 
+                    panel.Width - 7, panel.Height - 7, 8);
+            }
+        }
+
+        private void DrawStreakFireworks(Graphics g)
+        {
+            if (winStreak < 3) return;
+            
+            var centerX = lblStreakDisplay.Location.X + lblStreakDisplay.Width / 2;
+            var centerY = lblStreakDisplay.Location.Y;
+            
+            // Create firework effect around streak display
+            var colors = new[] { Color.Gold, Color.Orange, Color.Red, Color.Purple };
+            var random = new Random();
+            
+            for (int i = 0; i < 5; i++)
+            {
+                var angle = i * Math.PI * 2 / 5;
+                var distance = 20 + Math.Sin(DateTime.Now.Millisecond * 0.01) * 10;
+                
+                var x = centerX + Math.Cos(angle) * distance;
+                var y = centerY + Math.Sin(angle) * distance;
+                
+                var sparkle = new Particle
+                {
+                    X = (float)x,
+                    Y = (float)y,
+                    Color = colors[random.Next(colors.Length)],
+                    Size = 8,
+                    Life = 1.0f,
+                    Type = Particle.ParticleType.Star
+                };
+                
+                sparkle.Draw(g);
+            }
+        }
+
+        private void SetupWelcomeAnimation()
+        {
+            // Create floating particles in welcome screen
+            var welcomeAnimationTimer = new Timer { Interval = 100 };
+            welcomeAnimationTimer.Tick += (s, e) => {
+                if (isInWaitingRoom && welcomePanel != null)
+                {
+                    // Add random floating particles
+                    if (random.Next(10) == 0)
+                    {
+                        CreateFloatingParticle();
+                    }
+                    
+                    welcomePanel.Invalidate();
+                }
+                else
+                {
+                    welcomeAnimationTimer.Stop();
+                }
+            };
+            welcomeAnimationTimer.Start();
+        }
+
+        private void CreateFloatingParticle()
+        {
+            var colors = new[] { currentTheme.Primary, currentTheme.Secondary, currentTheme.Accent };
+            var types = new[] { 
+                Particle.ParticleType.Star, 
+                Particle.ParticleType.Sparkle,
+                Particle.ParticleType.Heart 
+            };
+            
+            var particle = new Particle
+            {
+                X = random.Next(welcomePanel.Width),
+                Y = welcomePanel.Height + 20,
+                VX = (float)(random.NextDouble() - 0.5) * 2,
+                VY = -random.Next(1, 4),
+                Color = colors[random.Next(colors.Length)],
+                Size = random.Next(5, 12),
+                Life = 1.0f,
+                Type = types[random.Next(types.Length)]
+            };
+            
+            particles.Add(particle);
+        }
+
+        #endregion
+
+        // ... existing code continues ...
+
+        #region Waiting Room Interface
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls except status bar
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame);
+
+            // Main welcome panel with spectacular design
+            welcomePanel = new Panel
+            {
+                Size = new Size(900, 700),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add spectacular background
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    welcomePanel.ClientRectangle,
+                    currentTheme.Background,
+                    Color.White,
+                    LinearGradientMode.DiagonalDown))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Shadow
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRoundedRectangle(shadowBrush, 10, 10, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Border with glow effect
+                using (var borderPen = new Pen(currentTheme.Primary, 3))
+                {
+                    e.Graphics.DrawRoundedRectangle(borderPen, 2, 2, 
+                        welcomePanel.Width - 14, welcomePanel.Height - 14, 18);
+                }
+                
+                using (var glowPen = new Pen(Color.FromArgb(100, currentTheme.Primary), 6))
+                {
+                    e.Graphics.DrawRoundedRectangle(glowPen, 0, 0, 
+                        welcomePanel.Width - 12, welcomePanel.Height - 12, 20);
+                }
+            };
+
+            // Spectacular title with animation effect
+            Label titleLabel = new Label
+            {
+                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Font = new Font("Segoe UI", 36, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 50),
+                Size = new Size(800, 70),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Subtitle with gradient effect
+            Label subtitleLabel = new Label
+            {
+                Text = "🌟 Multiplayer Drawing & Guessing Experience 🌟",
+                Font = new Font("Segoe UI", 16, FontStyle.Italic),
+                ForeColor = currentTheme.Accent,
+                Location = new Point(50, 130),
+                Size = new Size(800, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Welcome message with user avatar
+            welcomeLabel = new Label
+            {
+                Text = $"🎉 Chào mừng, {currentUser}! 🎉",
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 180),
+                Size = new Size(800, 40),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced user stats panel
+            CreateSpectacularUserStatsPanel();
+
+            // Game options with beautiful styling
+            Label optionsLabel = new Label
+            {
+                Text = "🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 400),
+                Size = new Size(800, 35),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced create room button
+            createRoomButton = CreateSpectacularButton(
+                "🏆 TẠO PHÒNG MỚI", 
+                new Point(150, 450), 
+                new Size(280, 70),
+                currentTheme.Primary
+            );
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Enhanced join room section
+            SetupJoinRoomSection();
+
+            // Enhanced logout button
+            logoutButton = CreateSpectacularButton(
+                "🚪 ĐĂNG XUẤT", 
+                new Point(375, 600), 
+                new Size(150, 50),
+                Color.FromArgb(220, 53, 69)
+            );
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+            
+            // Setup background animation
+            SetupWelcomeAnimation();
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null && isInWaitingRoom)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void SetupJoinRoomSection()
+        {
+            roomCodeLabel = new Label
+            {
+                Text = "🔐 Mã phòng:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(470, 430),
+                Size = new Size(120, 30),
+                BackColor = Color.Transparent
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(470, 460),
+                Size = new Size(250, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6,
+                BackColor = Color.White,
+                ForeColor = currentTheme.Text
+            };
+            
+            // Add styling to textbox
+            roomCodeTextBox.Paint += (s, e) => {
+                var textbox = s as TextBox;
+                if (textbox == null) return;
+                
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, textbox.Width - 1, textbox.Height - 1);
+                }
+            };
+
+            joinRoomButton = CreateSpectacularButton(
+                "🎯 THAM GIA PHÒNG", 
+                new Point(470, 510), 
+                new Size(250, 60),
+                Color.FromArgb(0, 123, 255)
+            );
+            joinRoomButton.Click += JoinRoomButton_Click;
+        }
+
+        private Button CreateSpectacularButton(string text, Point location, Size size, Color color)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = color,
+                ForeColor = Color.White,
+                Size = size,
+                Location = location,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            button.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effects
+            button.MouseEnter += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Min(255, color.R + 20),
+                    Math.Min(255, color.G + 20),
+                    Math.Min(255, color.B + 20)
+                );
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = color;
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            // Add click animation
+            button.MouseDown += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Max(0, color.R - 30),
+                    Math.Max(0, color.G - 30),
+                    Math.Max(0, color.B - 30)
+                );
+            };
+            
+            button.MouseUp += (s, e) => {
+                button.BackColor = color;
+            };
+            
+            return button;
+        }
+
+        private void CreateSpectacularUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(700, 150),
+                Location = new Point(100, 230),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            
+            gameStatsPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    gameStatsPanel.ClientRectangle,
+                    Color.FromArgb(240, currentTheme.Secondary),
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        gameStatsPanel.Width - 5, gameStatsPanel.Height - 5, 15);
+                }
+                
+                // Border
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRoundedRectangle(pen, 1, 1, 
+                        gameStatsPanel.Width - 7, gameStatsPanel.Height - 7, 13);
+                }
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ CỦA BẠN",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Primary,
+                Location = new Point(20, 20),
+                Size = new Size(660, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                ForeColor = currentTheme.Text,
+                Location = new Point(20, 60),
+                Size = new Size(660, 80),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void SetupWelcomeAnimation()
+        {
+            // Create floating particles in welcome screen
+            var welcomeAnimationTimer = new Timer { Interval = 100 };
+            welcomeAnimationTimer.Tick += (s, e) => {
+                if (isInWaitingRoom && welcomePanel != null)
+                {
+                    // Add random floating particles
+                    if (random.Next(10) == 0)
+                    {
+                        CreateFloatingParticle();
+                    }
+                    
+                    welcomePanel.Invalidate();
+                }
+                else
+                {
+                    welcomeAnimationTimer.Stop();
+                }
+            };
+            welcomeAnimationTimer.Start();
+        }
+
+        private void CreateFloatingParticle()
+        {
+            var colors = new[] { currentTheme.Primary, currentTheme.Secondary, currentTheme.Accent };
+            var types = new[] { 
+                Particle.ParticleType.Star, 
+                Particle.ParticleType.Sparkle,
+                Particle.ParticleType.Heart 
+            };
+            
+            var particle = new Particle
+            {
+                X = random.Next(welcomePanel.Width),
+                Y = welcomePanel.Height + 20,
+                VX = (float)(random.NextDouble() - 0.5) * 2,
+                VY = -random.Next(1, 4),
+                Color = colors[random.Next(colors.Length)],
+                Size = random.Next(5, 12),
+                Life = 1.0f,
+                Type = types[random.Next(types.Length)]
+            };
+            
+            particles.Add(particle);
+        }
+
+        #endregion
+
+        // ... existing code continues ...
+
+        #region Waiting Room Interface
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls except status bar
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame);
+
+            // Main welcome panel with spectacular design
+            welcomePanel = new Panel
+            {
+                Size = new Size(900, 700),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add spectacular background
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    welcomePanel.ClientRectangle,
+                    currentTheme.Background,
+                    Color.White,
+                    LinearGradientMode.DiagonalDown))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Shadow
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRoundedRectangle(shadowBrush, 10, 10, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Border with glow effect
+                using (var borderPen = new Pen(currentTheme.Primary, 3))
+                {
+                    e.Graphics.DrawRoundedRectangle(borderPen, 2, 2, 
+                        welcomePanel.Width - 14, welcomePanel.Height - 14, 18);
+                }
+                
+                using (var glowPen = new Pen(Color.FromArgb(100, currentTheme.Primary), 6))
+                {
+                    e.Graphics.DrawRoundedRectangle(glowPen, 0, 0, 
+                        welcomePanel.Width - 12, welcomePanel.Height - 12, 20);
+                }
+            };
+
+            // Spectacular title with animation effect
+            Label titleLabel = new Label
+            {
+                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Font = new Font("Segoe UI", 36, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 50),
+                Size = new Size(800, 70),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Subtitle with gradient effect
+            Label subtitleLabel = new Label
+            {
+                Text = "🌟 Multiplayer Drawing & Guessing Experience 🌟",
+                Font = new Font("Segoe UI", 16, FontStyle.Italic),
+                ForeColor = currentTheme.Accent,
+                Location = new Point(50, 130),
+                Size = new Size(800, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Welcome message with user avatar
+            welcomeLabel = new Label
+            {
+                Text = $"🎉 Chào mừng, {currentUser}! 🎉",
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 180),
+                Size = new Size(800, 40),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced user stats panel
+            CreateSpectacularUserStatsPanel();
+
+            // Game options with beautiful styling
+            Label optionsLabel = new Label
+            {
+                Text = "🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 400),
+                Size = new Size(800, 35),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced create room button
+            createRoomButton = CreateSpectacularButton(
+                "🏆 TẠO PHÒNG MỚI", 
+                new Point(150, 450), 
+                new Size(280, 70),
+                currentTheme.Primary
+            );
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Enhanced join room section
+            SetupJoinRoomSection();
+
+            // Enhanced logout button
+            logoutButton = CreateSpectacularButton(
+                "🚪 ĐĂNG XUẤT", 
+                new Point(375, 600), 
+                new Size(150, 50),
+                Color.FromArgb(220, 53, 69)
+            );
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+            
+            // Setup background animation
+            SetupWelcomeAnimation();
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null && isInWaitingRoom)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void SetupJoinRoomSection()
+        {
+            roomCodeLabel = new Label
+            {
+                Text = "🔐 Mã phòng:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(470, 430),
+                Size = new Size(120, 30),
+                BackColor = Color.Transparent
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(470, 460),
+                Size = new Size(250, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6,
+                BackColor = Color.White,
+                ForeColor = currentTheme.Text
+            };
+            
+            // Add styling to textbox
+            roomCodeTextBox.Paint += (s, e) => {
+                var textbox = s as TextBox;
+                if (textbox == null) return;
+                
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, textbox.Width - 1, textbox.Height - 1);
+                }
+            };
+
+            joinRoomButton = CreateSpectacularButton(
+                "🎯 THAM GIA PHÒNG", 
+                new Point(470, 510), 
+                new Size(250, 60),
+                Color.FromArgb(0, 123, 255)
+            );
+            joinRoomButton.Click += JoinRoomButton_Click;
+        }
+
+        private Button CreateSpectacularButton(string text, Point location, Size size, Color color)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = color,
+                ForeColor = Color.White,
+                Size = size,
+                Location = location,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            button.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effects
+            button.MouseEnter += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Min(255, color.R + 20),
+                    Math.Min(255, color.G + 20),
+                    Math.Min(255, color.B + 20)
+                );
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = color;
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            // Add click animation
+            button.MouseDown += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Max(0, color.R - 30),
+                    Math.Max(0, color.G - 30),
+                    Math.Max(0, color.B - 30)
+                );
+            };
+            
+            button.MouseUp += (s, e) => {
+                button.BackColor = color;
+            };
+            
+            return button;
+        }
+
+        private void CreateSpectacularUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(700, 150),
+                Location = new Point(100, 230),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            
+            gameStatsPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    gameStatsPanel.ClientRectangle,
+                    Color.FromArgb(240, currentTheme.Secondary),
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        gameStatsPanel.Width - 5, gameStatsPanel.Height - 5, 15);
+                }
+                
+                // Border
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRoundedRectangle(pen, 1, 1, 
+                        gameStatsPanel.Width - 7, gameStatsPanel.Height - 7, 13);
+                }
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ CỦA BẠN",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Primary,
+                Location = new Point(20, 20),
+                Size = new Size(660, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                ForeColor = currentTheme.Text,
+                Location = new Point(20, 60),
+                Size = new Size(660, 80),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void SetupWelcomeAnimation()
+        {
+            // Create floating particles in welcome screen
+            var welcomeAnimationTimer = new Timer { Interval = 100 };
+            welcomeAnimationTimer.Tick += (s, e) => {
+                if (isInWaitingRoom && welcomePanel != null)
+                {
+                    // Add random floating particles
+                    if (random.Next(10) == 0)
+                    {
+                        CreateFloatingParticle();
+                    }
+                    
+                    welcomePanel.Invalidate();
+                }
+                else
+                {
+                    welcomeAnimationTimer.Stop();
+                }
+            };
+            welcomeAnimationTimer.Start();
+        }
+
+        private void CreateFloatingParticle()
+        {
+            var colors = new[] { currentTheme.Primary, currentTheme.Secondary, currentTheme.Accent };
+            var types = new[] { 
+                Particle.ParticleType.Star, 
+                Particle.ParticleType.Sparkle,
+                Particle.ParticleType.Heart 
+            };
+            
+            var particle = new Particle
+            {
+                X = random.Next(welcomePanel.Width),
+                Y = welcomePanel.Height + 20,
+                VX = (float)(random.NextDouble() - 0.5) * 2,
+                VY = -random.Next(1, 4),
+                Color = colors[random.Next(colors.Length)],
+                Size = random.Next(5, 12),
+                Life = 1.0f,
+                Type = types[random.Next(types.Length)]
+            };
+            
+            particles.Add(particle);
+        }
+
+        #endregion
+
+        // ... existing code continues ...
+
+        #region Waiting Room Interface
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls except status bar
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame);
+
+            // Main welcome panel with spectacular design
+            welcomePanel = new Panel
+            {
+                Size = new Size(900, 700),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add spectacular background
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    welcomePanel.ClientRectangle,
+                    currentTheme.Background,
+                    Color.White,
+                    LinearGradientMode.DiagonalDown))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Shadow
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRoundedRectangle(shadowBrush, 10, 10, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Border with glow effect
+                using (var borderPen = new Pen(currentTheme.Primary, 3))
+                {
+                    e.Graphics.DrawRoundedRectangle(borderPen, 2, 2, 
+                        welcomePanel.Width - 14, welcomePanel.Height - 14, 18);
+                }
+                
+                using (var glowPen = new Pen(Color.FromArgb(100, currentTheme.Primary), 6))
+                {
+                    e.Graphics.DrawRoundedRectangle(glowPen, 0, 0, 
+                        welcomePanel.Width - 12, welcomePanel.Height - 12, 20);
+                }
+            };
+
+            // Spectacular title with animation effect
+            Label titleLabel = new Label
+            {
+                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Font = new Font("Segoe UI", 36, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 50),
+                Size = new Size(800, 70),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Subtitle with gradient effect
+            Label subtitleLabel = new Label
+            {
+                Text = "🌟 Multiplayer Drawing & Guessing Experience 🌟",
+                Font = new Font("Segoe UI", 16, FontStyle.Italic),
+                ForeColor = currentTheme.Accent,
+                Location = new Point(50, 130),
+                Size = new Size(800, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Welcome message with user avatar
+            welcomeLabel = new Label
+            {
+                Text = $"🎉 Chào mừng, {currentUser}! 🎉",
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 180),
+                Size = new Size(800, 40),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced user stats panel
+            CreateSpectacularUserStatsPanel();
+
+            // Game options with beautiful styling
+            Label optionsLabel = new Label
+            {
+                Text = "🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 400),
+                Size = new Size(800, 35),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced create room button
+            createRoomButton = CreateSpectacularButton(
+                "🏆 TẠO PHÒNG MỚI", 
+                new Point(150, 450), 
+                new Size(280, 70),
+                currentTheme.Primary
+            );
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Enhanced join room section
+            SetupJoinRoomSection();
+
+            // Enhanced logout button
+            logoutButton = CreateSpectacularButton(
+                "🚪 ĐĂNG XUẤT", 
+                new Point(375, 600), 
+                new Size(150, 50),
+                Color.FromArgb(220, 53, 69)
+            );
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+            
+            // Setup background animation
+            SetupWelcomeAnimation();
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null && isInWaitingRoom)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void SetupJoinRoomSection()
+        {
+            roomCodeLabel = new Label
+            {
+                Text = "🔐 Mã phòng:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(470, 430),
+                Size = new Size(120, 30),
+                BackColor = Color.Transparent
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(470, 460),
+                Size = new Size(250, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6,
+                BackColor = Color.White,
+                ForeColor = currentTheme.Text
+            };
+            
+            // Add styling to textbox
+            roomCodeTextBox.Paint += (s, e) => {
+                var textbox = s as TextBox;
+                if (textbox == null) return;
+                
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, textbox.Width - 1, textbox.Height - 1);
+                }
+            };
+
+            joinRoomButton = CreateSpectacularButton(
+                "🎯 THAM GIA PHÒNG", 
+                new Point(470, 510), 
+                new Size(250, 60),
+                Color.FromArgb(0, 123, 255)
+            );
+            joinRoomButton.Click += JoinRoomButton_Click;
+        }
+
+        private Button CreateSpectacularButton(string text, Point location, Size size, Color color)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = color,
+                ForeColor = Color.White,
+                Size = size,
+                Location = location,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            button.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effects
+            button.MouseEnter += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Min(255, color.R + 20),
+                    Math.Min(255, color.G + 20),
+                    Math.Min(255, color.B + 20)
+                );
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = color;
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            // Add click animation
+            button.MouseDown += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Max(0, color.R - 30),
+                    Math.Max(0, color.G - 30),
+                    Math.Max(0, color.B - 30)
+                );
+            };
+            
+            button.MouseUp += (s, e) => {
+                button.BackColor = color;
+            };
+            
+            return button;
+        }
+
+        private void CreateSpectacularUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(700, 150),
+                Location = new Point(100, 230),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            
+            gameStatsPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    gameStatsPanel.ClientRectangle,
+                    Color.FromArgb(240, currentTheme.Secondary),
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        gameStatsPanel.Width - 5, gameStatsPanel.Height - 5, 15);
+                }
+                
+                // Border
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRoundedRectangle(pen, 1, 1, 
+                        gameStatsPanel.Width - 7, gameStatsPanel.Height - 7, 13);
+                }
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ CỦA BẠN",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Primary,
+                Location = new Point(20, 20),
+                Size = new Size(660, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                ForeColor = currentTheme.Text,
+                Location = new Point(20, 60),
+                Size = new Size(660, 80),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void SetupWelcomeAnimation()
+        {
+            // Create floating particles in welcome screen
+            var welcomeAnimationTimer = new Timer { Interval = 100 };
+            welcomeAnimationTimer.Tick += (s, e) => {
+                if (isInWaitingRoom && welcomePanel != null)
+                {
+                    // Add random floating particles
+                    if (random.Next(10) == 0)
+                    {
+                        CreateFloatingParticle();
+                    }
+                    
+                    welcomePanel.Invalidate();
+                }
+                else
+                {
+                    welcomeAnimationTimer.Stop();
+                }
+            };
+            welcomeAnimationTimer.Start();
+        }
+
+        private void CreateFloatingParticle()
+        {
+            var colors = new[] { currentTheme.Primary, currentTheme.Secondary, currentTheme.Accent };
+            var types = new[] { 
+                Particle.ParticleType.Star, 
+                Particle.ParticleType.Sparkle,
+                Particle.ParticleType.Heart 
+            };
+            
+            var particle = new Particle
+            {
+                X = random.Next(welcomePanel.Width),
+                Y = welcomePanel.Height + 20,
+                VX = (float)(random.NextDouble() - 0.5) * 2,
+                VY = -random.Next(1, 4),
+                Color = colors[random.Next(colors.Length)],
+                Size = random.Next(5, 12),
+                Life = 1.0f,
+                Type = types[random.Next(types.Length)]
+            };
+            
+            particles.Add(particle);
+        }
+
+        #endregion
+
+        // ... existing code continues ...
+
+        #region Waiting Room Interface
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls except status bar
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame);
+
+            // Main welcome panel with spectacular design
+            welcomePanel = new Panel
+            {
+                Size = new Size(900, 700),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add spectacular background
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    welcomePanel.ClientRectangle,
+                    currentTheme.Background,
+                    Color.White,
+                    LinearGradientMode.DiagonalDown))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Shadow
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRoundedRectangle(shadowBrush, 10, 10, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Border with glow effect
+                using (var borderPen = new Pen(currentTheme.Primary, 3))
+                {
+                    e.Graphics.DrawRoundedRectangle(borderPen, 2, 2, 
+                        welcomePanel.Width - 14, welcomePanel.Height - 14, 18);
+                }
+                
+                using (var glowPen = new Pen(Color.FromArgb(100, currentTheme.Primary), 6))
+                {
+                    e.Graphics.DrawRoundedRectangle(glowPen, 0, 0, 
+                        welcomePanel.Width - 12, welcomePanel.Height - 12, 20);
+                }
+            };
+
+            // Spectacular title with animation effect
+            Label titleLabel = new Label
+            {
+                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Font = new Font("Segoe UI", 36, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 50),
+                Size = new Size(800, 70),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Subtitle with gradient effect
+            Label subtitleLabel = new Label
+            {
+                Text = "🌟 Multiplayer Drawing & Guessing Experience 🌟",
+                Font = new Font("Segoe UI", 16, FontStyle.Italic),
+                ForeColor = currentTheme.Accent,
+                Location = new Point(50, 130),
+                Size = new Size(800, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Welcome message with user avatar
+            welcomeLabel = new Label
+            {
+                Text = $"🎉 Chào mừng, {currentUser}! 🎉",
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 180),
+                Size = new Size(800, 40),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced user stats panel
+            CreateSpectacularUserStatsPanel();
+
+            // Game options with beautiful styling
+            Label optionsLabel = new Label
+            {
+                Text = "🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 400),
+                Size = new Size(800, 35),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced create room button
+            createRoomButton = CreateSpectacularButton(
+                "🏆 TẠO PHÒNG MỚI", 
+                new Point(150, 450), 
+                new Size(280, 70),
+                currentTheme.Primary
+            );
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Enhanced join room section
+            SetupJoinRoomSection();
+
+            // Enhanced logout button
+            logoutButton = CreateSpectacularButton(
+                "🚪 ĐĂNG XUẤT", 
+                new Point(375, 600), 
+                new Size(150, 50),
+                Color.FromArgb(220, 53, 69)
+            );
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+            
+            // Setup background animation
+            SetupWelcomeAnimation();
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null && isInWaitingRoom)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void SetupJoinRoomSection()
+        {
+            roomCodeLabel = new Label
+            {
+                Text = "🔐 Mã phòng:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(470, 430),
+                Size = new Size(120, 30),
+                BackColor = Color.Transparent
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(470, 460),
+                Size = new Size(250, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6,
+                BackColor = Color.White,
+                ForeColor = currentTheme.Text
+            };
+            
+            // Add styling to textbox
+            roomCodeTextBox.Paint += (s, e) => {
+                var textbox = s as TextBox;
+                if (textbox == null) return;
+                
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, textbox.Width - 1, textbox.Height - 1);
+                }
+            };
+
+            joinRoomButton = CreateSpectacularButton(
+                "🎯 THAM GIA PHÒNG", 
+                new Point(470, 510), 
+                new Size(250, 60),
+                Color.FromArgb(0, 123, 255)
+            );
+            joinRoomButton.Click += JoinRoomButton_Click;
+        }
+
+        private Button CreateSpectacularButton(string text, Point location, Size size, Color color)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = color,
+                ForeColor = Color.White,
+                Size = size,
+                Location = location,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            button.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effects
+            button.MouseEnter += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Min(255, color.R + 20),
+                    Math.Min(255, color.G + 20),
+                    Math.Min(255, color.B + 20)
+                );
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = color;
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            // Add click animation
+            button.MouseDown += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Max(0, color.R - 30),
+                    Math.Max(0, color.G - 30),
+                    Math.Max(0, color.B - 30)
+                );
+            };
+            
+            button.MouseUp += (s, e) => {
+                button.BackColor = color;
+            };
+            
+            return button;
+        }
+
+        private void CreateSpectacularUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(700, 150),
+                Location = new Point(100, 230),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            
+            gameStatsPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    gameStatsPanel.ClientRectangle,
+                    Color.FromArgb(240, currentTheme.Secondary),
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        gameStatsPanel.Width - 5, gameStatsPanel.Height - 5, 15);
+                }
+                
+                // Border
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRoundedRectangle(pen, 1, 1, 
+                        gameStatsPanel.Width - 7, gameStatsPanel.Height - 7, 13);
+                }
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ CỦA BẠN",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Primary,
+                Location = new Point(20, 20),
+                Size = new Size(660, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                ForeColor = currentTheme.Text,
+                Location = new Point(20, 60),
+                Size = new Size(660, 80),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void SetupWelcomeAnimation()
+        {
+            // Create floating particles in welcome screen
+            var welcomeAnimationTimer = new Timer { Interval = 100 };
+            welcomeAnimationTimer.Tick += (s, e) => {
+                if (isInWaitingRoom && welcomePanel != null)
+                {
+                    // Add random floating particles
+                    if (random.Next(10) == 0)
+                    {
+                        CreateFloatingParticle();
+                    }
+                    
+                    welcomePanel.Invalidate();
+                }
+                else
+                {
+                    welcomeAnimationTimer.Stop();
+                }
+            };
+            welcomeAnimationTimer.Start();
+        }
+
+        private void CreateFloatingParticle()
+        {
+            var colors = new[] { currentTheme.Primary, currentTheme.Secondary, currentTheme.Accent };
+            var types = new[] { 
+                Particle.ParticleType.Star, 
+                Particle.ParticleType.Sparkle,
+                Particle.ParticleType.Heart 
+            };
+            
+            var particle = new Particle
+            {
+                X = random.Next(welcomePanel.Width),
+                Y = welcomePanel.Height + 20,
+                VX = (float)(random.NextDouble() - 0.5) * 2,
+                VY = -random.Next(1, 4),
+                Color = colors[random.Next(colors.Length)],
+                Size = random.Next(5, 12),
+                Life = 1.0f,
+                Type = types[random.Next(types.Length)]
+            };
+            
+            particles.Add(particle);
+        }
+
+        #endregion
+
+        // ... existing code continues ...
+
+        #region Waiting Room Interface
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls except status bar
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame);
+
+            // Main welcome panel with spectacular design
+            welcomePanel = new Panel
+            {
+                Size = new Size(900, 700),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add spectacular background
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    welcomePanel.ClientRectangle,
+                    currentTheme.Background,
+                    Color.White,
+                    LinearGradientMode.DiagonalDown))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Shadow
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRoundedRectangle(shadowBrush, 10, 10, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Border with glow effect
+                using (var borderPen = new Pen(currentTheme.Primary, 3))
+                {
+                    e.Graphics.DrawRoundedRectangle(borderPen, 2, 2, 
+                        welcomePanel.Width - 14, welcomePanel.Height - 14, 18);
+                }
+                
+                using (var glowPen = new Pen(Color.FromArgb(100, currentTheme.Primary), 6))
+                {
+                    e.Graphics.DrawRoundedRectangle(glowPen, 0, 0, 
+                        welcomePanel.Width - 12, welcomePanel.Height - 12, 20);
+                }
+            };
+
+            // Spectacular title with animation effect
+            Label titleLabel = new Label
+            {
+                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Font = new Font("Segoe UI", 36, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 50),
+                Size = new Size(800, 70),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Subtitle with gradient effect
+            Label subtitleLabel = new Label
+            {
+                Text = "🌟 Multiplayer Drawing & Guessing Experience 🌟",
+                Font = new Font("Segoe UI", 16, FontStyle.Italic),
+                ForeColor = currentTheme.Accent,
+                Location = new Point(50, 130),
+                Size = new Size(800, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Welcome message with user avatar
+            welcomeLabel = new Label
+            {
+                Text = $"🎉 Chào mừng, {currentUser}! 🎉",
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 180),
+                Size = new Size(800, 40),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced user stats panel
+            CreateSpectacularUserStatsPanel();
+
+            // Game options with beautiful styling
+            Label optionsLabel = new Label
+            {
+                Text = "🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 400),
+                Size = new Size(800, 35),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced create room button
+            createRoomButton = CreateSpectacularButton(
+                "🏆 TẠO PHÒNG MỚI", 
+                new Point(150, 450), 
+                new Size(280, 70),
+                currentTheme.Primary
+            );
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Enhanced join room section
+            SetupJoinRoomSection();
+
+            // Enhanced logout button
+            logoutButton = CreateSpectacularButton(
+                "🚪 ĐĂNG XUẤT", 
+                new Point(375, 600), 
+                new Size(150, 50),
+                Color.FromArgb(220, 53, 69)
+            );
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+            
+            // Setup background animation
+            SetupWelcomeAnimation();
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null && isInWaitingRoom)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void SetupJoinRoomSection()
+        {
+            roomCodeLabel = new Label
+            {
+                Text = "🔐 Mã phòng:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(470, 430),
+                Size = new Size(120, 30),
+                BackColor = Color.Transparent
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(470, 460),
+                Size = new Size(250, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6,
+                BackColor = Color.White,
+                ForeColor = currentTheme.Text
+            };
+            
+            // Add styling to textbox
+            roomCodeTextBox.Paint += (s, e) => {
+                var textbox = s as TextBox;
+                if (textbox == null) return;
+                
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, textbox.Width - 1, textbox.Height - 1);
+                }
+            };
+
+            joinRoomButton = CreateSpectacularButton(
+                "🎯 THAM GIA PHÒNG", 
+                new Point(470, 510), 
+                new Size(250, 60),
+                Color.FromArgb(0, 123, 255)
+            );
+            joinRoomButton.Click += JoinRoomButton_Click;
+        }
+
+        private Button CreateSpectacularButton(string text, Point location, Size size, Color color)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = color,
+                ForeColor = Color.White,
+                Size = size,
+                Location = location,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            button.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effects
+            button.MouseEnter += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Min(255, color.R + 20),
+                    Math.Min(255, color.G + 20),
+                    Math.Min(255, color.B + 20)
+                );
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = color;
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            // Add click animation
+            button.MouseDown += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Max(0, color.R - 30),
+                    Math.Max(0, color.G - 30),
+                    Math.Max(0, color.B - 30)
+                );
+            };
+            
+            button.MouseUp += (s, e) => {
+                button.BackColor = color;
+            };
+            
+            return button;
+        }
+
+        private void CreateSpectacularUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(700, 150),
+                Location = new Point(100, 230),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            
+            gameStatsPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    gameStatsPanel.ClientRectangle,
+                    Color.FromArgb(240, currentTheme.Secondary),
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        gameStatsPanel.Width - 5, gameStatsPanel.Height - 5, 15);
+                }
+                
+                // Border
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRoundedRectangle(pen, 1, 1, 
+                        gameStatsPanel.Width - 7, gameStatsPanel.Height - 7, 13);
+                }
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ CỦA BẠN",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Primary,
+                Location = new Point(20, 20),
+                Size = new Size(660, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                ForeColor = currentTheme.Text,
+                Location = new Point(20, 60),
+                Size = new Size(660, 80),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void SetupWelcomeAnimation()
+        {
+            // Create floating particles in welcome screen
+            var welcomeAnimationTimer = new Timer { Interval = 100 };
+            welcomeAnimationTimer.Tick += (s, e) => {
+                if (isInWaitingRoom && welcomePanel != null)
+                {
+                    // Add random floating particles
+                    if (random.Next(10) == 0)
+                    {
+                        CreateFloatingParticle();
+                    }
+                    
+                    welcomePanel.Invalidate();
+                }
+                else
+                {
+                    welcomeAnimationTimer.Stop();
+                }
+            };
+            welcomeAnimationTimer.Start();
+        }
+
+        private void CreateFloatingParticle()
+        {
+            var colors = new[] { currentTheme.Primary, currentTheme.Secondary, currentTheme.Accent };
+            var types = new[] { 
+                Particle.ParticleType.Star, 
+                Particle.ParticleType.Sparkle,
+                Particle.ParticleType.Heart 
+            };
+            
+            var particle = new Particle
+            {
+                X = random.Next(welcomePanel.Width),
+                Y = welcomePanel.Height + 20,
+                VX = (float)(random.NextDouble() - 0.5) * 2,
+                VY = -random.Next(1, 4),
+                Color = colors[random.Next(colors.Length)],
+                Size = random.Next(5, 12),
+                Life = 1.0f,
+                Type = types[random.Next(types.Length)]
+            };
+            
+            particles.Add(particle);
+        }
+
+        #endregion
+
+        // ... existing code continues ...
+
+        #region Waiting Room Interface
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls except status bar
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame);
+
+            // Main welcome panel with spectacular design
+            welcomePanel = new Panel
+            {
+                Size = new Size(900, 700),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add spectacular background
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    welcomePanel.ClientRectangle,
+                    currentTheme.Background,
+                    Color.White,
+                    LinearGradientMode.DiagonalDown))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Shadow
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRoundedRectangle(shadowBrush, 10, 10, 
+                        welcomePanel.Width - 10, welcomePanel.Height - 10, 20);
+                }
+                
+                // Border with glow effect
+                using (var borderPen = new Pen(currentTheme.Primary, 3))
+                {
+                    e.Graphics.DrawRoundedRectangle(borderPen, 2, 2, 
+                        welcomePanel.Width - 14, welcomePanel.Height - 14, 18);
+                }
+                
+                using (var glowPen = new Pen(Color.FromArgb(100, currentTheme.Primary), 6))
+                {
+                    e.Graphics.DrawRoundedRectangle(glowPen, 0, 0, 
+                        welcomePanel.Width - 12, welcomePanel.Height - 12, 20);
+                }
+            };
+
+            // Spectacular title with animation effect
+            Label titleLabel = new Label
+            {
+                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Font = new Font("Segoe UI", 36, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 50),
+                Size = new Size(800, 70),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Subtitle with gradient effect
+            Label subtitleLabel = new Label
+            {
+                Text = "🌟 Multiplayer Drawing & Guessing Experience 🌟",
+                Font = new Font("Segoe UI", 16, FontStyle.Italic),
+                ForeColor = currentTheme.Accent,
+                Location = new Point(50, 130),
+                Size = new Size(800, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Welcome message with user avatar
+            welcomeLabel = new Label
+            {
+                Text = $"🎉 Chào mừng, {currentUser}! 🎉",
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 180),
+                Size = new Size(800, 40),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced user stats panel
+            CreateSpectacularUserStatsPanel();
+
+            // Game options with beautiful styling
+            Label optionsLabel = new Label
+            {
+                Text = "🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(50, 400),
+                Size = new Size(800, 35),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            // Enhanced create room button
+            createRoomButton = CreateSpectacularButton(
+                "🏆 TẠO PHÒNG MỚI", 
+                new Point(150, 450), 
+                new Size(280, 70),
+                currentTheme.Primary
+            );
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Enhanced join room section
+            SetupJoinRoomSection();
+
+            // Enhanced logout button
+            logoutButton = CreateSpectacularButton(
+                "🚪 ĐĂNG XUẤT", 
+                new Point(375, 600), 
+                new Size(150, 50),
+                Color.FromArgb(220, 53, 69)
+            );
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+            
+            // Setup background animation
+            SetupWelcomeAnimation();
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null && isInWaitingRoom)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void SetupJoinRoomSection()
+        {
+            roomCodeLabel = new Label
+            {
+                Text = "🔐 Mã phòng:",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = currentTheme.Text,
+                Location = new Point(470, 430),
+                Size = new Size(120, 30),
+                BackColor = Color.Transparent
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Location = new Point(470, 460),
+                Size = new Size(250, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6,
+                BackColor = Color.White,
+                ForeColor = currentTheme.Text
+            };
+            
+            // Add styling to textbox
+            roomCodeTextBox.Paint += (s, e) => {
+                var textbox = s as TextBox;
+                if (textbox == null) return;
+                
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, textbox.Width - 1, textbox.Height - 1);
+                }
+            };
+
+            joinRoomButton = CreateSpectacularButton(
+                "🎯 THAM GIA PHÒNG", 
+                new Point(470, 510), 
+                new Size(250, 60),
+                Color.FromArgb(0, 123, 255)
+            );
+            joinRoomButton.Click += JoinRoomButton_Click;
+        }
+
+        private Button CreateSpectacularButton(string text, Point location, Size size, Color color)
+        {
+            var button = new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = color,
+                ForeColor = Color.White,
+                Size = size,
+                Location = location,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            
+            button.FlatAppearance.BorderSize = 0;
+            
+            // Add hover effects
+            button.MouseEnter += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Min(255, color.R + 20),
+                    Math.Min(255, color.G + 20),
+                    Math.Min(255, color.B + 20)
+                );
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = color;
+                button.Font = new Font(button.Font, FontStyle.Bold);
+            };
+            
+            // Add click animation
+            button.MouseDown += (s, e) => {
+                button.BackColor = Color.FromArgb(
+                    Math.Max(0, color.R - 30),
+                    Math.Max(0, color.G - 30),
+                    Math.Max(0, color.B - 30)
+                );
+            };
+            
+            button.MouseUp += (s, e) => {
+                button.BackColor = color;
+            };
+            
+            return button;
+        }
+
+        private void CreateSpectacularUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(700, 150),
+                Location = new Point(100, 230),
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None
+            };
+            
+            gameStatsPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient background
+                using (var brush = new LinearGradientBrush(
+                    gameStatsPanel.ClientRectangle,
+                    Color.FromArgb(240, currentTheme.Secondary),
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(brush, 0, 0, 
+                        gameStatsPanel.Width - 5, gameStatsPanel.Height - 5, 15);
+                }
+                
+                // Border
+                using (var pen = new Pen(currentTheme.Primary, 2))
+                {
+                    e.Graphics.DrawRoundedRectangle(pen, 1, 1, 
+                        gameStatsPanel.Width - 7, gameStatsPanel.Height - 7, 13);
+                }
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "📊 THỐNG KÊ CỦA BẠN",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = currentTheme.Primary,
+                Location = new Point(20, 20),
+                Size = new Size(660, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                ForeColor = currentTheme.Text,
+                Location = new Point(20, 60),
+                Size = new Size(660, 80),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void SetupWelcomeAnimation()
+        {
+            // Create floating particles in welcome screen
+            var welcomeAnimationTimer = new Timer { Interval = 100 };
+            welcomeAnimationTimer.Tick += (s, e) => {
+                if (isInWaitingRoom && welcomePanel != null)
+                {
+                    // Add random floating particles
+                    if (random.Next(10) == 0)
+                    {
+                        CreateFloatingParticle();
+                    }
+                    
+                    welcomePanel.Invalidate();
+                }
+                else
+                {
+                    welcomeAnimationTimer.Stop();
+                }
+            };
+            welcomeAnimationTimer.Start();
+        }
+
+        private void CreateFloatingParticle()
+        {
+            var colors = new[] { currentTheme.Primary, currentTheme.Secondary, currentTheme.Accent };
+            var types = new[] { 
+                Particle.ParticleType.Star, 
+                Particle.ParticleType.Sparkle,
+                Particle.ParticleType.Heart 
+            };
+            
+            var particle = new Particle
+            {
+                X = random.Next(welcomePanel.Width),
+                Y = welcomePanel.Height + 20,
+                VX = (float)(random.NextDouble() - 0.5) * 2,
+                VY = -random.Next(1, 4),
+                Color = colors[random.Next(colors.Length)],
+                Size = random.Next(5, 12),
+                Life = 1.0f,
+                Type = types[random.Next(types.Length)]
+            };
+            
+            particles.Add(particle);
+        }
+
+        #endregion
+
+        // ... existing code continues ...
+
+        #region Game Logic (Key Methods)
+
+        private void CreateRoomButton_Click(object sender, EventArgs e)
+        {
+            string roomCode = GenerateRoomCode();
+            EnterGameRoom(roomCode, true);
+        }
+
+        private string GenerateRoomCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private void EnterGameRoom(string roomCode, bool isCreator)
+        {
+            currentRoomCode = roomCode;
+            connectedPlayers.Clear();
+            
+            // Add current user as first player
+            connectedPlayers.Add(new PlayerInfo(currentUser));
+            
+            // Simulate other players joining for demonstration
+            if (isCreator)
+            {
+                AddSimulatedPlayers();
+            }
+            
+            ShowGameInterface();
+        }
+
+        private void AddSimulatedPlayers()
+        {
+            string[] playerNames = { "Alice", "Bob", "Carol", "David" };
+            int playersToAdd = random.Next(1, 4);
+            
+            for (int i = 0; i < playersToAdd; i++)
+            {
+                connectedPlayers.Add(new PlayerInfo(playerNames[i]));
+            }
+        }
+
+        private void UpdateLeaderboard()
+        {
+            listBoxLeaderboard.Items.Clear();
+            var sortedPlayers = connectedPlayers.OrderByDescending(p => p.Score).ToList();
+            
+            for (int i = 0; i < sortedPlayers.Count; i++)
+            {
+                var player = sortedPlayers[i];
+                string status = player.IsDrawing ? " 🎨" : "";
+                string item = $"{i + 1}. {player.Name}: {player.Score}{status}";
+                listBoxLeaderboard.Items.Add(item);
+            }
+        }
+
+        #endregion
+
+        #region Essential Helper Methods
+
+        private void LoadUserStats()
+        {
+            var stats = new StringBuilder();
+            stats.AppendLine($"🎮 Tổng số game đã chơi: {Settings.Default.TotalGamesPlayed}");
+            stats.AppendLine($"🏆 Điểm cao nhất: {Settings.Default.HighestScore}");
+            stats.AppendLine($"📊 Điểm game gần nhất: {Settings.Default.LastGameScore}");
+            
+            if (Settings.Default.LastPlayedDate != DateTime.MinValue)
+            {
+                stats.AppendLine($"🕐 Lần chơi cuối: {Settings.Default.LastPlayedDate:dd/MM/yyyy HH:mm}");
+            }
+            else
+            {
+                stats.AppendLine("🌟 Lần đầu tiên chơi - Chào mừng bạn!");
+            }
+
+            if (userStatsLabel != null)
+                userStatsLabel.Text = stats.ToString();
+        }
+
+        private void UpdatePlayersCount()
+        {
+            lblPlayersCount.Text = $"{connectedPlayers.Count}/8";
+        }
+
+        private Image GeneratePlayerAvatar(string playerName)
+        {
+            return new PlayerInfo(playerName).Avatar;
+        }
+
+        private void ShowWaitingRoom()
+        {
+            isInWaitingRoom = true;
+            isInGame = false;
+            HideGameControls();
+            CreateWelcomeInterface();
+        }
+
+        private void ShowGameInterface()
+        {
+            isInWaitingRoom = false;
+            isInGame = true;
+
+            if (welcomePanel != null)
+            {
+                this.Controls.Remove(welcomePanel);
+                welcomePanel.Dispose();
+                welcomePanel = null;
+            }
+
+            this.WindowState = FormWindowState.Normal;
+            this.Size = new Size(1350, 800);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            ShowGameControls();
+            InitializeGame();
+            SetupEnhancedGameInterface();
+            
+            // Setup all spectacular visual elements
+            SetupSpectacularGameHeader();
+            SetupEnhancedCanvasFrame();
+            SetupThemeSelector();
+            SetupSpectacularEffectsPanel();
+            SetupEnhancedPlayerStatus();
+            
+            this.Refresh();
+            
+            AddChatMessage("System", "🎨 Chào mừng đến với DrawMaster Premium!");
+            AddChatMessage("System", "✨ Tính năng mới: Giao diện 3D, hiệu ứng particle, themes!");
+        }
+
+        private void HideGameControls()
+        {
+            // Hide all game-related panels
+            foreach (Control control in this.Controls.OfType<Panel>().ToList())
+            {
+                if (control != welcomePanel && control != statusStripGame)
+                {
+                    control.Visible = false;
+                }
+            }
+        }
+
+        private void ShowGameControls()
+        {
+            // Show all game-related panels
+            foreach (Control control in this.Controls.OfType<Panel>())
+            {
+                if (control != welcomePanel)
+                {
+                    control.Visible = true;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Extended Graphics Helper Methods
+
+        // Extension method for rounded rectangles
+        public static void FillRoundedRectangle(this Graphics graphics, Brush brush, 
+            float x, float y, float width, float height, float radius)
+        {
+            using (var path = CreateRoundedRectanglePath(x, y, width, height, radius))
+            {
+                graphics.FillPath(brush, path);
+            }
+        }
+
+        public static void DrawRoundedRectangle(this Graphics graphics, Pen pen, 
+            float x, float y, float width, float height, float radius)
+        {
+            using (var path = CreateRoundedRectanglePath(x, y, width, height, radius))
+            {
+                graphics.DrawPath(pen, path);
+            }
+        }
+
+        private static GraphicsPath CreateRoundedRectanglePath(float x, float y, 
+            float width, float height, float radius)
+        {
+            var path = new GraphicsPath();
+            var diameter = radius * 2;
+            
+            path.AddArc(x, y, diameter, diameter, 180, 90);
+            path.AddArc(x + width - diameter, y, diameter, diameter, 270, 90);
+            path.AddArc(x + width - diameter, y + height - diameter, diameter, diameter, 0, 90);
+            path.AddArc(x, y + height - diameter, diameter, diameter, 90, 90);
+            path.CloseFigure();
+            
+            return path;
+        }
+
+        #endregion
+
+        // ... continue with all existing methods from the original code ...
+    }
+}

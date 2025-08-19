@@ -1,0 +1,293 @@
+﻿using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    // Lightweight, self-contained game UI similar to the screenshot
+    public class GameViewControl : UserControl
+    {
+        // Left: Drawing
+        private Panel panelTopBar;
+        private Label lblHeader;
+        private Panel panelDrawing;
+        private Panel panelTools;
+        private Button btnPencil;
+        private Button btnEraser;
+        private Button btnClear;
+        private Panel panelSelectedColor;
+        private Label lblColor;
+        private TrackBar trackBrush;
+        private Label lblBrush;
+        private Button btnCBlack, btnCWhite, btnCRed, btnCBlue, btnCGreen, btnCYellow;
+
+        // Middle/right: Leaderboard & Chat
+        private GroupBox groupLeaderboard;
+        private ListView lvLeaderboard;
+        private ColumnHeader colRank, colPlayer, colScore, colStatus;
+
+        private GroupBox groupChat;
+        private ListBox lbChat;
+        private TextBox txtChat;
+        private Button btnSend;
+
+        // Right sidebar
+        private Panel panelSidebar;
+        private PictureBox avatarBox;
+        private Label lblYou, lblPlayerName, lblScoreTitle, lblScoreValue;
+        private GroupBox groupRoundInfo;
+        private Label lblWordTitle, lblWord, lblTimeTitle, lblTime, lblRoundTitle, lblRound;
+        private ProgressBar progressTime;
+        private GroupBox groupRoomInfo;
+        private Label lblRoomCodeTitle, lblRoomCode, lblPlayersOnlineTitle, lblPlayersOnline;
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // GameViewControl
+            // 
+            this.Name = "GameViewControl";
+            this.ResumeLayout(false);
+
+        }
+
+        private Button btnStartGame, btnLeave, btnBackLobby;
+
+        // Drawing state
+        private Bitmap _canvas;
+        private Graphics _g;
+        private bool _drawing;
+        private Point _last;
+        private Color _currentColor = Color.Black;
+        private int _brushSize = 4;
+        private bool _eraser;
+
+        public string RoomCode
+        {
+            get => lblRoomCode?.Text; 
+            set { if (lblRoomCode != null) lblRoomCode.Text = value; }
+        }
+
+        public string PlayerName
+        {
+            get => lblPlayerName?.Text; 
+            set { if (lblPlayerName != null) lblPlayerName.Text = value; }
+        }
+
+        public int PlayersOnline
+        {
+            set { if (lblPlayersOnline != null) lblPlayersOnline.Text = value.ToString(); }
+        }
+
+        public GameViewControl()
+        {
+            DoubleBuffered = true;
+            BackColor = Color.FromArgb(245, 247, 250);
+            BuildLayout();
+            InitCanvas();
+        }
+
+        private void BuildLayout()
+        {
+            SuspendLayout();
+
+            // Top bar
+            panelTopBar = new Panel { Height = 40, Dock = DockStyle.Top };
+            panelTopBar.Paint += (s, e) =>
+            {
+                using (var brush = new LinearGradientBrush(panelTopBar.ClientRectangle,
+                    Color.FromArgb(67, 82, 161), Color.FromArgb(45, 125, 245), LinearGradientMode.Horizontal))
+                {
+                    e.Graphics.FillRectangle(brush, panelTopBar.ClientRectangle);
+                }
+            };
+            lblHeader = new Label
+            {
+                Text = "?? Multiplayer Game Room",
+                ForeColor = Color.White,
+                AutoSize = false,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold)
+            };
+            panelTopBar.Controls.Add(lblHeader);
+            Controls.Add(panelTopBar);
+
+            // Left drawing panel
+            panelDrawing = new Panel
+            {
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(20, 60),
+                Size = new Size(760, 520)
+            };
+            panelDrawing.Paint += (s, e) => { if (_canvas != null) e.Graphics.DrawImage(_canvas, 0, 0); };
+            panelDrawing.MouseDown += (s, e) => { _drawing = true; _last = e.Location; };
+            panelDrawing.MouseMove += (s, e) =>
+            {
+                if (!_drawing) return;
+                using (var pen = new Pen(_eraser ? Color.White : _currentColor, _brushSize))
+                { pen.StartCap = LineCap.Round; pen.EndCap = LineCap.Round; _g.DrawLine(pen, _last, e.Location); }
+                _last = e.Location; panelDrawing.Invalidate();
+            };
+            panelDrawing.MouseUp += (s, e) => { _drawing = false; };
+            Controls.Add(panelDrawing);
+
+            // Tools panel
+            panelTools = new Panel
+            {
+                Location = new Point(20, 590),
+                Size = new Size(760, 70),
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.FromArgb(250, 252, 255)
+            };
+            btnPencil = new Button { Text = "?? Pencil", Location = new Point(8, 8), Size = new Size(80, 30) };
+            btnEraser = new Button { Text = "?? Eraser", Location = new Point(8, 38), Size = new Size(80, 25) };
+            btnPencil.Click += (s, e) => { _eraser = false; btnPencil.BackColor = Color.LightSkyBlue; btnEraser.BackColor = SystemColors.Control; };
+            btnEraser.Click += (s, e) => { _eraser = true; btnEraser.BackColor = Color.LightPink; btnPencil.BackColor = SystemColors.Control; };
+
+            btnCBlack = MakeColorButton(Color.Black, new Point(100, 8));
+            btnCWhite = MakeColorButton(Color.White, new Point(140, 8));
+            btnCRed   = MakeColorButton(Color.Red,   new Point(180, 8));
+            btnCBlue  = MakeColorButton(Color.RoyalBlue, new Point(220, 8));
+            btnCGreen = MakeColorButton(Color.ForestGreen, new Point(260, 8));
+            btnCYellow= MakeColorButton(Color.Gold,  new Point(300, 8));
+
+            lblColor = new Label { Text = "?? Color:", Location = new Point(350, 12), AutoSize = true };
+            panelSelectedColor = new Panel { BackColor = _currentColor, Location = new Point(400, 10), Size = new Size(24, 24), BorderStyle = BorderStyle.FixedSingle };
+
+            lblBrush = new Label { Text = "??? Brush Size:", Location = new Point(450, 12), AutoSize = true };
+            trackBrush = new TrackBar { Minimum = 1, Maximum = 30, Value = _brushSize, TickStyle = TickStyle.None, Width = 180, Location = new Point(540, 8) };
+            trackBrush.ValueChanged += (s, e) => _brushSize = trackBrush.Value;
+
+            btnClear = new Button { Text = "?? Clear", Location = new Point(700, 8), Size = new Size(50, 50), BackColor = Color.IndianRed, ForeColor = Color.White };
+            btnClear.Click += (s, e) => { _g.Clear(Color.White); panelDrawing.Invalidate(); };
+
+            panelTools.Controls.AddRange(new Control[] {
+                btnPencil, btnEraser, btnCBlack, btnCWhite, btnCRed, btnCBlue, btnCGreen, btnCYellow,
+                lblColor, panelSelectedColor, lblBrush, trackBrush, btnClear
+            });
+            Controls.Add(panelTools);
+
+            // Leaderboard
+            groupLeaderboard = new GroupBox
+            {
+                Text = "?? Leaderboard",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(800, 60),
+                Size = new Size(360, 300)
+            };
+            lvLeaderboard = new ListView
+            {
+                View = View.Details, FullRowSelect = true, GridLines = true,
+                Location = new Point(12, 26), Size = new Size(336, 260)
+            };
+            colRank = new ColumnHeader { Text = "#", Width = 30 };
+            colPlayer = new ColumnHeader { Text = "Player", Width = 150 };
+            colScore = new ColumnHeader { Text = "Score", Width = 70 };
+            colStatus = new ColumnHeader { Text = "Status", Width = 80 };
+            lvLeaderboard.Columns.AddRange(new[] { colRank, colPlayer, colScore, colStatus });
+            groupLeaderboard.Controls.Add(lvLeaderboard);
+            Controls.Add(groupLeaderboard);
+
+            // Chat
+            groupChat = new GroupBox
+            {
+                Text = "?? Chat_Guess",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(800, 370),
+                Size = new Size(360, 290)
+            };
+            lbChat = new ListBox { Location = new Point(12, 26), Size = new Size(336, 210) };
+            txtChat = new TextBox { Location = new Point(12, 244), Size = new Size(260, 24) };
+            btnSend = new Button { Text = "Send", Location = new Point(280, 242), Size = new Size(68, 26), BackColor = Color.SeaGreen, ForeColor = Color.White };
+            btnSend.Click += (s, e) => { if (!string.IsNullOrWhiteSpace(txtChat.Text)) { lbChat.Items.Add(txtChat.Text.Trim()); txtChat.Clear(); } };
+            groupChat.Controls.AddRange(new Control[] { lbChat, txtChat, btnSend });
+            Controls.Add(groupChat);
+
+            // Right sidebar
+            panelSidebar = new Panel { Location = new Point(1180, 60), Size = new Size(260, 600), BackColor = Color.Transparent };
+            avatarBox = new PictureBox { Location = new Point(10, 10), Size = new Size(70, 70), BackColor = Color.WhiteSmoke, BorderStyle = BorderStyle.FixedSingle, SizeMode = PictureBoxSizeMode.Zoom };
+            lblYou = new Label { Text = "You", Location = new Point(90, 10), AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblPlayerName = new Label { Text = "Player1", Location = new Point(90, 32), AutoSize = true, ForeColor = Color.RoyalBlue };
+            lblScoreTitle = new Label { Text = "Score:", Location = new Point(90, 58), AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblScoreValue = new Label { Text = "0", Location = new Point(140, 58), AutoSize = true, ForeColor = Color.SeaGreen };
+
+            groupRoundInfo = new GroupBox { Text = "?? Word to draw:", Location = new Point(10, 95), Size = new Size(240, 190) };
+            lblWordTitle = new Label { Text = "Word:", Location = new Point(12, 30), AutoSize = true };
+            lblWord = new Label { Text = "- - - - -", Location = new Point(70, 30), AutoSize = true, ForeColor = Color.IndianRed };
+            lblTimeTitle = new Label { Text = "Time Left:", Location = new Point(12, 60), AutoSize = true };
+            lblTime = new Label { Text = "00:60", Location = new Point(120, 60), AutoSize = true, ForeColor = Color.IndianRed, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblRoundTitle = new Label { Text = "Round:", Location = new Point(12, 90), AutoSize = true };
+            lblRound = new Label { Text = "1/5", Location = new Point(120, 90), AutoSize = true };
+            progressTime = new ProgressBar { Location = new Point(12, 120), Size = new Size(215, 20), Value = 60, Maximum = 60 };
+            groupRoundInfo.Controls.AddRange(new Control[] { lblWordTitle, lblWord, lblTimeTitle, lblTime, lblRoundTitle, lblRound, progressTime });
+
+            groupRoomInfo = new GroupBox { Text = "Room Info", Location = new Point(10, 290), Size = new Size(240, 110) };
+            lblRoomCodeTitle = new Label { Text = "Room Code:", Location = new Point(12, 30), AutoSize = true };
+            lblRoomCode = new Label { Text = "ABC123", Location = new Point(120, 30), AutoSize = true, ForeColor = Color.RoyalBlue, Cursor = Cursors.Hand };
+            lblRoomCode.Click += (s, e) => { try { Clipboard.SetText(lblRoomCode.Text); } catch { } };
+            lblPlayersOnlineTitle = new Label { Text = "Players Online:", Location = new Point(12, 60), AutoSize = true };
+            lblPlayersOnline = new Label { Text = "3/8", Location = new Point(120, 60), AutoSize = true };
+            groupRoomInfo.Controls.AddRange(new Control[] { lblRoomCodeTitle, lblRoomCode, lblPlayersOnlineTitle, lblPlayersOnline });
+
+            btnStartGame = new Button { Text = "? Start Game", Location = new Point(10, 410), Size = new Size(240, 40), BackColor = Color.SeaGreen, ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            btnLeave = new Button { Text = "? Leave", Location = new Point(10, 460), Size = new Size(115, 36), BackColor = Color.IndianRed, ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            btnBackLobby = new Button { Text = "?? Lobby", Location = new Point(135, 460), Size = new Size(115, 36), BackColor = Color.Goldenrod, ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+
+            panelSidebar.Controls.AddRange(new Control[] {
+                avatarBox, lblYou, lblPlayerName, lblScoreTitle, lblScoreValue,
+                groupRoundInfo, groupRoomInfo, btnStartGame, btnLeave, btnBackLobby
+            });
+            Controls.Add(panelSidebar);
+
+            ResumeLayout(false);
+        }
+
+        private Button MakeColorButton(Color color, Point location)
+        {
+            var btn = new Button { BackColor = color, Location = location, Size = new Size(32, 24) };
+            btn.FlatStyle = FlatStyle.Flat; btn.FlatAppearance.BorderSize = 1;
+            btn.Click += (s, e) => { _currentColor = color; panelSelectedColor.BackColor = color; _eraser = false; };
+            return btn;
+        }
+
+        private void InitCanvas()
+        {
+            _canvas = new Bitmap(760, 520);
+            _g = Graphics.FromImage(_canvas);
+            _g.SmoothingMode = SmoothingMode.AntiAlias;
+            _g.Clear(Color.White);
+        }
+
+        public void AddChat(string text)
+        {
+            lbChat.Items.Add(text);
+            if (lbChat.Items.Count > 0)
+                lbChat.TopIndex = lbChat.Items.Count - 1;
+        }
+
+        public void SetRoundInfo(string word, int seconds, int round, int maxRound)
+        {
+            lblWord.Text = word;
+            lblTime.Text = $"00:{seconds:00}";
+            progressTime.Maximum = seconds; progressTime.Value = seconds;
+            lblRound.Text = $"{round}/{maxRound}";
+        }
+
+        public void SetLeaderboard((int rank, string player, int score, string status)[] entries)
+        {
+            lvLeaderboard.Items.Clear();
+            foreach (var e in entries)
+            {
+                var item = new ListViewItem(e.rank.ToString());
+                item.SubItems.Add(e.player);
+                item.SubItems.Add(e.score.ToString());
+                item.SubItems.Add(e.status);
+                lvLeaderboard.Items.Add(item);
+            }
+        }
+    }
+}

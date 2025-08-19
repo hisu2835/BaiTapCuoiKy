@@ -1,0 +1,1740 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using BaiTapCuoiKy.Properties;
+
+namespace BaiTapCuoiKy
+{
+    public partial class Form1 : Form
+    {
+        #region Fields and Properties
+        
+        private string currentUser;
+        private bool isInGame = false;
+        private bool isInWaitingRoom = true;
+        private Random random = new Random();
+        
+        // UI Components for the waiting room
+        private Panel welcomePanel;
+        private Label welcomeLabel;
+        private Label userStatsLabel;
+        private Button createRoomButton;
+        private Button joinRoomButton;
+        private Button logoutButton;
+        private TextBox roomCodeTextBox;
+        private Label roomCodeLabel;
+        private Panel gameStatsPanel;
+
+        // Drawing variables
+        private bool isDrawing = false;
+        private Point lastPoint;
+        private Bitmap drawingBitmap;
+        private Graphics drawingGraphics;
+        private Color currentColor = Color.Black;
+        private int brushSize = 3;
+        private bool isEraserMode = false;
+
+        // Game state variables
+        private string currentWord = "";
+        private string[] wordBank = { "CAT", "DOG", "HOUSE", "TREE", "CAR", "BOOK", "APPLE", "STAR", "FISH", "BIRD", "FLOWER", "SUN", "MOON", "BANANA" };
+        private int gameTimeLeft = 60;
+        private int currentRound = 1;
+        private int maxRounds = 5;
+        private int playerScore = 0;
+        private bool isPlayerDrawing = false;
+        private List<PlayerInfo> connectedPlayers = new List<PlayerInfo>();
+        private string currentRoomCode = "";
+        private Dictionary<string, Image> playerAvatars = new Dictionary<string, Image>();
+
+        // Enhanced game components
+        private Panel panelAdvancedTools;
+        private Button btnUndo;
+        private Button btnRedo;
+        private Button btnHint;
+        private Label lblHintCount;
+        private Panel panelQuickReactions;
+        private Button[] quickReactionButtons;
+        private Label lblGamePhase;
+        private ProgressBar progressBarRoundProgress;
+        private Panel panelPlayerStats;
+        private Label lblWinStreak;
+        private Label lblAccuracy;
+        private Panel panelWordInfo;
+        private Label lblWordCategory;
+        private Label lblWordLength;
+        
+        // Enhanced hint system
+        private int availableHints = 3;
+        private List<string> revealedHints = new List<string>();
+        private Timer hintTimer;
+        
+        // Enhanced scoring system  
+        private int winStreak = 0;
+        private int totalGuesses = 0;
+        private int correctGuesses = 0;
+        private Dictionary<string, int> playerWinStreaks = new Dictionary<string, int>();
+
+        #endregion
+
+        #region Player Info Class
+
+        public class PlayerInfo
+        {
+            public string Name { get; set; }
+            public int Score { get; set; }
+            public bool IsDrawing { get; set; }
+            public bool IsOnline { get; set; }
+            public DateTime LastActivity { get; set; }
+            public Image Avatar { get; set; }
+
+            public PlayerInfo(string name)
+            {
+                Name = name;
+                Score = 0;
+                IsDrawing = false;
+                IsOnline = true;
+                LastActivity = DateTime.Now;
+                Avatar = GenerateAvatar(name);
+            }
+
+            private Image GenerateAvatar(string playerName)
+            {
+                Bitmap avatar = new Bitmap(60, 60);
+                using (Graphics g = Graphics.FromImage(avatar))
+                {
+                    int hash = playerName.GetHashCode();
+                    Color bgColor = Color.FromArgb(
+                        Math.Abs(hash % 128) + 127,
+                        Math.Abs((hash >> 8) % 128) + 127,
+                        Math.Abs((hash >> 16) % 128) + 127
+                    );
+                    
+                    g.FillEllipse(new SolidBrush(bgColor), 0, 0, 60, 60);
+                    
+                    string initials = playerName.Length > 1 ? 
+                        playerName.Substring(0, 2).ToUpper() : 
+                        playerName.Substring(0, 1).ToUpper();
+                    
+                    using (Font font = new Font("Segoe UI", 16, FontStyle.Bold))
+                    {
+                        SizeF textSize = g.MeasureString(initials, font);
+                        g.DrawString(initials, font, Brushes.White,
+                            (60 - textSize.Width) / 2,
+                            (60 - textSize.Height) / 2);
+                    }
+                }
+                return avatar;
+            }
+        }
+
+        #endregion
+
+        #region Constructor and Initialization
+
+        public Form1() : this("Guest")
+        {
+        }
+
+        public Form1(string username)
+        {
+            InitializeComponent();
+            currentUser = username;
+            InitializeDrawingBitmap();
+            SetupInitialGameInterface();
+            SetupWaitingRoom();
+            LoadUserStats();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            toolStripStatusLabel.Text = $"Chào m?ng {currentUser} ??n v?i DrawMaster!";
+        }
+
+        private void InitializeDrawingBitmap()
+        {
+            drawingBitmap = new Bitmap(700, 500);
+            drawingGraphics = Graphics.FromImage(drawingBitmap);
+            drawingGraphics.SmoothingMode = SmoothingMode.AntiAlias;
+            drawingGraphics.Clear(Color.White);
+        }
+
+        private void EnableDrawingTools(bool enabled)
+        {
+            panelTools.Enabled = enabled;
+            btnClearCanvas.Enabled = enabled;
+            panelDrawing.Enabled = enabled;
+            
+            panelDrawing.Cursor = enabled ? Cursors.Cross : Cursors.No;
+        }
+
+        private void SetupInitialGameInterface()
+        {
+            this.Size = new Size(1350, 800);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            
+            if (!string.IsNullOrEmpty(currentUser))
+            {
+                lblPlayerName.Text = currentUser;
+                lblPlayerCurrentScore.Text = $"Score: 0";
+            }
+            
+            lblRoomCode.Text = "------";
+            lblPlayersCount.Text = "0/8";
+            lblCurrentRound.Text = "0/5";
+            lblTimeLeft.Text = "00:60";
+            progressBarTime.Value = 60;
+            lblWordToGuess.Text = "_ _ _ _ _ _";
+            
+            btnPencil.BackColor = Color.FromArgb(45, 125, 245);
+            panelSelectedColor.BackColor = currentColor;
+        }
+
+        #endregion
+
+        #region Waiting Room Interface
+
+        private void CreateWelcomeInterface()
+        {
+            // Clear existing controls except status bar
+            this.Controls.Clear();
+            this.Controls.Add(statusStripGame);
+
+            // Main welcome panel
+            welcomePanel = new Panel
+            {
+                Size = new Size(800, 600),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+                                            (this.ClientSize.Height - welcomePanel.Height) / 2);
+
+            // Add shadow effect
+            welcomePanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                // Shadow
+                using (var brush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRectangle(brush, 5, 5, welcomePanel.Width, welcomePanel.Height);
+                }
+                // Main panel
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 0, welcomePanel.Width - 5, welcomePanel.Height - 5);
+                }
+                // Border
+                using (var pen = new Pen(Color.FromArgb(45, 125, 245), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 1, 1, welcomePanel.Width - 7, welcomePanel.Height - 7);
+                }
+            };
+
+            // Title
+            Label titleLabel = new Label
+            {
+                Text = "?? DRAWMASTER ??",
+                Font = new Font("Segoe UI", 32, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(50, 50),
+                Size = new Size(700, 60),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Welcome message
+            welcomeLabel = new Label
+            {
+                Text = $"Chào m?ng, {currentUser}!",
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 130),
+                Size = new Size(700, 40),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // User stats panel
+            CreateUserStatsPanel();
+
+            // Game options label
+            Label optionsLabel = new Label
+            {
+                Text = "Ch?n m?t tùy ch?n ?? b?t ??u:",
+                Font = new Font("Segoe UI", 14),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 320),
+                Size = new Size(700, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Create room button
+            createRoomButton = new Button
+            {
+                Text = "??? T?O PHÒNG M?I",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                BackColor = Color.FromArgb(40, 167, 69),
+                ForeColor = Color.White,
+                Size = new Size(300, 60),
+                Location = new Point(100, 370),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            createRoomButton.FlatAppearance.BorderSize = 0;
+            createRoomButton.Click += CreateRoomButton_Click;
+
+            // Join room section
+            roomCodeLabel = new Label
+            {
+                Text = "Mã phòng:",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(450, 350),
+                Size = new Size(100, 25)
+            };
+
+            roomCodeTextBox = new TextBox
+            {
+                Font = new Font("Segoe UI", 14),
+                Location = new Point(450, 375),
+                Size = new Size(200, 35),
+                BorderStyle = BorderStyle.FixedSingle,
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 6
+            };
+
+            joinRoomButton = new Button
+            {
+                Text = "?? THAM GIA PHÒNG",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                BackColor = Color.FromArgb(0, 123, 255),
+                ForeColor = Color.White,
+                Size = new Size(300, 60),
+                Location = new Point(400, 420),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            joinRoomButton.FlatAppearance.BorderSize = 0;
+            joinRoomButton.Click += JoinRoomButton_Click;
+
+            // Logout button
+            logoutButton = new Button
+            {
+                Text = "?? ??NG XU?T",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BackColor = Color.FromArgb(220, 53, 69),
+                ForeColor = Color.White,
+                Size = new Size(150, 40),
+                Location = new Point(325, 520),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            logoutButton.FlatAppearance.BorderSize = 0;
+            logoutButton.Click += LogoutButton_Click;
+
+            // Add all controls to welcome panel
+            welcomePanel.Controls.AddRange(new Control[] {
+                titleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
+            });
+
+            this.Controls.Add(welcomePanel);
+
+            // Handle resize
+            this.Resize += (s, e) => {
+                if (welcomePanel != null && isInWaitingRoom)
+                {
+                    welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
+                                                    (this.ClientSize.Height - welcomePanel.Height) / 2);
+                }
+            };
+        }
+
+        private void CreateUserStatsPanel()
+        {
+            gameStatsPanel = new Panel
+            {
+                Size = new Size(600, 120),
+                Location = new Point(100, 180),
+                BackColor = Color.FromArgb(248, 249, 250),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label statsTitle = new Label
+            {
+                Text = "?? TH?NG KÊ C?A B?N",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(20, 15),
+                Size = new Size(560, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            userStatsLabel = new Label
+            {
+                Font = new Font("Segoe UI", 11),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(20, 50),
+                Size = new Size(560, 60),
+                TextAlign = ContentAlignment.TopCenter
+            };
+
+            gameStatsPanel.Controls.AddRange(new Control[] { statsTitle, userStatsLabel });
+        }
+
+        private void LoadUserStats()
+        {
+            var stats = new StringBuilder();
+            stats.AppendLine($"?? T?ng s? game ?ã ch?i: {Settings.Default.TotalGamesPlayed}");
+            stats.AppendLine($"?? ?i?m cao nh?t: {Settings.Default.HighestScore}");
+            stats.AppendLine($"?? ?i?m game g?n nh?t: {Settings.Default.LastGameScore}");
+            
+            if (Settings.Default.LastPlayedDate != DateTime.MinValue)
+            {
+                stats.AppendLine($"?? L?n ch?i cu?i: {Settings.Default.LastPlayedDate:dd/MM/yyyy HH:mm}");
+            }
+            else
+            {
+                stats.AppendLine("?? L?n ??u tiên ch?i - Chào m?ng b?n!");
+            }
+
+            if (userStatsLabel != null)
+                userStatsLabel.Text = stats.ToString();
+        }
+
+        #endregion
+
+        #region Waiting Room Events
+
+        private void JoinRoomButton_Click(object sender, EventArgs e)
+        {
+            string roomCode = roomCodeTextBox.Text.Trim().ToUpper();
+            
+            if (string.IsNullOrEmpty(roomCode))
+            {
+                MessageBox.Show("Vui lòng nh?p mã phòng!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (roomCode.Length != 6)
+            {
+                MessageBox.Show("Mã phòng ph?i có 6 ký t?!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Tham gia phòng: {roomCode}\n\nB?n có mu?n vào phòng game không?",
+                "Tham gia phòng",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                EnterGameRoom(roomCode, false);
+            }
+        }
+
+        private void LogoutButton_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "B?n có ch?c ch?n mu?n ??ng xu?t không? ",
+                "Xác nh?n ??ng xu?t",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                this.Close();
+                
+                // Show login form again
+                var loginForm = new LoginForm();
+                loginForm.LoginSuccessful += (username) =>
+                {
+                    var gameForm = new Form1(username);
+                    gameForm.Show();
+                };
+                loginForm.Show();
+            }
+        }
+
+        #endregion
+
+        #region Game Logic
+
+        private void InitializeGame()
+        {
+            // Reset game state
+            currentRound = 1;
+            playerScore = 0;
+            gameTimeLeft = 60;
+            
+            // Reset all player drawing status
+            foreach (var player in connectedPlayers)
+            {
+                player.IsDrawing = false;
+            }
+            
+            // Update UI
+            lblCurrentRound.Text = $"{currentRound}/{maxRounds}";
+            lblPlayerCurrentScore.Text = $"Score: {playerScore}";
+            lblTimeLeft.Text = "01:00";
+            progressBarTime.Value = 60;
+            
+            // Clear drawing
+            if (drawingGraphics != null)
+            {
+                drawingGraphics.Clear(Color.White);
+                panelDrawing.Invalidate();
+            }
+            
+            // Add welcome message to chat
+            AddChatMessage("System", $"?? Chào m?ng ??n v?i phòng {currentRoomCode}!");
+            AddChatMessage("System", "?? Nh?n 'Start Game' ?? b?t ??u cu?c phiêu l?u v? v?i!");
+            AddChatMessage("System", "?? M?i l??t có 60 giây ?? v? ho?c ?oán t?!");
+        }
+
+        private void StartNewRound()
+        {
+            // Choose random word
+            currentWord = wordBank[random.Next(wordBank.Length)];
+            
+            // Determine who draws (rotate through players)
+            foreach (var player in connectedPlayers)
+            {
+                player.IsDrawing = false;
+            }
+            
+            int drawerIndex = (currentRound - 1) % connectedPlayers.Count;
+            connectedPlayers[drawerIndex].IsDrawing = true;
+            isPlayerDrawing = connectedPlayers[drawerIndex].Name == currentUser;
+            
+            // Reset hints for new round
+            availableHints = 3;
+            revealedHints.Clear();
+            UpdateHintDisplay();
+            
+            // Update word display and setup hints
+            if (isPlayerDrawing)
+            {
+                lblWordToGuess.Text = currentWord;
+                lblCurrentWord.Text = "?? T? c?a b?n:";
+                
+                if (lblGamePhase != null)
+                    this.Controls.Remove(lblGamePhase);
+                
+                lblGamePhase = new Label
+                {
+                    Text = "?? DRAWING PHASE - V? t? ?? ng??i khác ?oán!",
+                    Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(40, 167, 69),
+                    Location = new Point(20, 50),
+                    Size = new Size(400, 25),
+                    BackColor = Color.FromArgb(212, 237, 218),
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+                this.Controls.Add(lblGamePhase);
+                
+                AddChatMessage("System", $"?? L??t c?a b?n! Hãy v? t?: {currentWord}");
+                EnableDrawingTools(true);
+                
+                // Show category hint for drawer
+                var category = GetWordCategory(currentWord);
+                AddChatMessage("System", $"?? Th? lo?i: {category}");
+                
+                // Hide word info panel for drawer
+                panelWordInfo.Visible = false;
+            }
+            else
+            {
+                string hiddenWord = new string('_', currentWord.Length).Replace("", " ").Trim();
+                lblWordToGuess.Text = hiddenWord;
+                lblCurrentWord.Text = "?? ?oán t?:";
+                
+                if (lblGamePhase != null)
+                    this.Controls.Remove(lblGamePhase);
+                
+                lblGamePhase = new Label
+                {
+                    Text = "?? GUESSING PHASE - Quan sát và ?oán t?!",
+                    Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(0, 123, 255),
+                    Location = new Point(20, 50),
+                    Size = new Size(400, 25),
+                    BackColor = Color.FromArgb(217, 237, 247),
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+                this.Controls.Add(lblGamePhase);
+                
+                AddChatMessage("System", $"?? L??t c?a {connectedPlayers[drawerIndex].Name}! Hãy ?oán t?!");
+                EnableDrawingTools(false);
+                
+                // Show word info panel for guessers
+                UpdateWordInfoPanel();
+                
+                // Start automatic hint system
+                StartAutomaticHints();
+            }
+            
+            // Start timer
+            gameTimeLeft = 60;
+            progressBarTime.Value = 60;
+            timerGame.Start();
+            
+            // Clear previous drawing
+            if (drawingGraphics != null)
+            {
+                drawingGraphics.Clear(Color.White);
+                panelDrawing.Invalidate();
+            }
+            
+            // Update UI components
+            lblGameStatus.Text = isPlayerDrawing ? 
+                "?? L??t c?a b?n - Hãy v? tranh th?t ??p ?? ng??i khác ?oán!" : 
+                "?? Quan sát tranh v? và ?oán t? trong chat!";
+            
+            UpdateLeaderboard();
+            UpdatePlayerStats();
+            progressBarRoundProgress.Value = currentRound - 1;
+            
+            AddChatMessage("System", $"?? Vòng {currentRound}/{maxRounds} b?t ??u! Th?i gian: {gameTimeLeft}s");
+            
+            // Add some encouraging messages
+            if (currentRound == 1)
+            {
+                AddChatMessage("System", "?? Game b?t ??u! Chúc các b?n ch?i vui v?!");
+            }
+            else if (currentRound == maxRounds)
+            {
+                AddChatMessage("System", "?? Vòng cu?i cùng! Hãy c? g?ng h?t mình!");
+            }
+        }
+
+        private void UpdateWordInfoPanel()
+        {
+            if (!isPlayerDrawing)
+            {
+                panelWordInfo.Visible = true;
+                lblWordCategory.Text = "?? Category: Hidden";
+                lblWordLength.Text = $"?? Length: {currentWord.Length} letters";
+            }
+        }
+
+        private void StartAutomaticHints()
+        {
+            if (hintTimer != null)
+            {
+                hintTimer.Stop();
+                hintTimer.Dispose();
+            }
+            
+            hintTimer = new Timer();
+            hintTimer.Interval = 20000; // 20 seconds
+            hintTimer.Tick += (s, e) => {
+                if (!isPlayerDrawing && availableHints > 0 && timerGame.Enabled)
+                {
+                    RevealAutoHint();
+                }
+            };
+            hintTimer.Start();
+        }
+
+        private void RevealAutoHint()
+        {
+            if (availableHints > 0)
+            {
+                string hint = GetNextHint();
+                if (!string.IsNullOrEmpty(hint))
+                {
+                    revealedHints.Add(hint);
+                    availableHints--;
+                    UpdateHintDisplay();
+                    AddChatMessage("?? Auto Hint", hint);
+                    
+                    // Update word info panel
+                    if (revealedHints.Count == 1)
+                    {
+                        lblWordCategory.Text = $"?? Category: {GetWordCategory(currentWord)}";
+                    }
+                }
+            }
+        }
+
+        private void EndRound(bool wordGuessed = false, string guesserName = "")
+        {
+            timerGame.Stop();
+            
+            if (wordGuessed && !string.IsNullOrEmpty(guesserName))
+            {
+                int roundScore = Math.Max(10, gameTimeLeft * 2);
+                
+                var guesser = connectedPlayers.FirstOrDefault(p => p.Name == guesserName);
+                if (guesser != null)
+                {
+                    guesser.Score += roundScore;
+                    
+                    if (guesser.Name == currentUser)
+                    {
+                        playerScore = guesser.Score;
+                        lblPlayerCurrentScore.Text = $"Score: {playerScore}";
+                    }
+                }
+                
+                AddChatMessage("System", $"?? {guesserName} ?oán ?úng! +{roundScore} ?i?m!");
+            }
+            else if (isPlayerDrawing)
+            {
+                AddChatMessage("System", $"? H?t th?i gian! T? ?úng là: {currentWord}");
+            }
+            
+            currentRound++;
+            lblCurrentRound.Text = $"{currentRound}/{maxRounds}";
+            
+            UpdateLeaderboard();
+            
+            if (currentRound <= maxRounds)
+            {
+                Task.Delay(3000).ContinueWith(t => {
+                    if (this.InvokeRequired)
+                    {
+                        this.Invoke(new Action(StartNewRound));
+                    }
+                    else
+                    {
+                        StartNewRound();
+                    }
+                });
+            }
+            else
+            {
+                EndGame();
+            }
+        }
+
+        private void EndGame()
+        {
+            EnableDrawingTools(false);
+            
+            var winner = connectedPlayers.OrderByDescending(p => p.Score).FirstOrDefault();
+            
+            AddChatMessage("System", "?? Game k?t thúc!");
+            if (winner != null)
+            {
+                AddChatMessage("System", $"?? Ng??i chi?n th?ng: {winner.Name} v?i {winner.Score} ?i?m!");
+                if (winner.Name == currentUser)
+                {
+                    AddChatMessage("System", "?? Chúc m?ng b?n ?ã th?ng!");
+                }
+            }
+            
+            AddChatMessage("System", "?? Nh?n 'Start Game' ?? ch?i l?i!");
+            lblGameStatus.Text = "?? Game ?ã k?t thúc! Nh?n 'Start Game' ?? ch?i l?i.";
+            
+            btnStartGame.Enabled = true;
+            UpdateLeaderboard();
+        }
+
+        #endregion
+
+        #region Enhanced Game Control Events
+
+        private void btnStartGame_Click(object sender, EventArgs e)
+        {
+            btnStartGame.Enabled = false;
+            AddChatMessage("System", "?? Game b?t ??u! Chu?n b? s?n sàng!");
+            StartNewRound();
+        }
+
+        private void btnLeaveGame_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "B?n có ch?c ch?n mu?n r?i kh?i game không?",
+                "Xác nh?n r?i game",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                LeaveGame();
+            }
+        }
+
+        private void btnBackToWaitingRoom_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "B?n có mu?n quay v? phòng ch? không?",
+                "Quay v? phòng ch?",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                LeaveGame();
+            }
+        }
+
+        private void LeaveGame()
+        {
+            timerGame.Stop();
+            connectedPlayers.Clear();
+            currentRoomCode = "";
+            
+            ShowWaitingRoom();
+            LoadUserStats();
+        }
+
+        #endregion
+
+        #region Timer Events
+
+        private void timerGame_Tick(object sender, EventArgs e)
+        {
+            gameTimeLeft--;
+            lblTimeLeft.Text = $"00:{gameTimeLeft:D2}";
+            progressBarTime.Value = Math.Max(0, gameTimeLeft);
+            
+            // Enhanced visual feedback based on time left
+            if (gameTimeLeft <= 10)
+            {
+                // Critical time - red and flashing
+                lblTimeLeft.ForeColor = Color.FromArgb(239, 68, 68);
+                
+                if (gameTimeLeft % 2 == 0)
+                {
+                    lblTimeLeft.Font = new Font(lblTimeLeft.Font, FontStyle.Bold);
+                    PlayTimerWarningSound();
+                }
+                else
+                {
+                    lblTimeLeft.Font = new Font(lblTimeLeft.Font, FontStyle.Regular);
+                }
+            }
+            else if (gameTimeLeft <= 20)
+            {
+                // Warning time - orange
+                lblTimeLeft.ForeColor = Color.FromArgb(245, 158, 11);
+                lblTimeLeft.Font = new Font(lblTimeLeft.Font, FontStyle.Bold);
+            }
+            else
+            {
+                // Safe time - green
+                lblTimeLeft.ForeColor = Color.FromArgb(34, 197, 94);
+                lblTimeLeft.Font = new Font(lblTimeLeft.Font, FontStyle.Regular);
+            }
+            
+            if (gameTimeLeft <= 0)
+            {
+                AddChatMessage("System", "? H?t th?i gian!");
+                
+                // Time's up flash effect
+                FlashPanel(panelDrawing, Color.FromArgb(254, 226, 226), 3);
+                
+                EndRound(false);
+            }
+        }
+
+        #endregion
+
+        #region Drawing Events
+
+        private void panelDrawing_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (!isPlayerDrawing || !isInGame) return;
+            
+            isDrawing = true;
+            lastPoint = e.Location;
+        }
+
+        private void panelDrawing_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!isDrawing || !isPlayerDrawing || !isInGame) return;
+            
+            using (var pen = new Pen(isEraserMode ? Color.White : currentColor, brushSize))
+            {
+                pen.StartCap = LineCap.Round;
+                pen.EndCap = LineCap.Round;
+                drawingGraphics.DrawLine(pen, lastPoint, e.Location);
+            }
+            
+            lastPoint = e.Location;
+            panelDrawing.Invalidate();
+        }
+
+        private void panelDrawing_MouseUp(object sender, MouseEventArgs e)
+        {
+            isDrawing = false;
+        }
+
+        private void panelDrawing_Paint(object sender, PaintEventArgs e)
+        {
+            if (drawingBitmap != null)
+            {
+                e.Graphics.DrawImage(drawingBitmap, 0, 0);
+            }
+        }
+
+        #endregion
+
+        #region Tool Events
+
+        private void btnPencil_Click(object sender, EventArgs e)
+        {
+            isEraserMode = false;
+            btnPencil.BackColor = Color.FromArgb(45, 125, 245);
+            btnEraser.BackColor = Color.FromArgb(255, 193, 203);
+        }
+
+        private void btnEraser_Click(object sender, EventArgs e)
+        {
+            isEraserMode = true;
+            btnEraser.BackColor = Color.FromArgb(220, 53, 69);
+            btnPencil.BackColor = Color.FromArgb(173, 216, 230);
+        }
+
+        private void btnColor_Click(object sender, EventArgs e)
+        {
+            if (sender is Button colorButton)
+            {
+                currentColor = colorButton.BackColor;
+                panelSelectedColor.BackColor = currentColor;
+                isEraserMode = false;
+                btnPencil.BackColor = Color.FromArgb(45, 125, 245);
+                btnEraser.BackColor = Color.FromArgb(255, 193, 203);
+            }
+        }
+
+        private void trackBarBrushSize_ValueChanged(object sender, EventArgs e)
+        {
+            brushSize = trackBarBrushSize.Value;
+        }
+
+        private void btnClearCanvas_Click(object sender, EventArgs e)
+        {
+            if (!isPlayerDrawing) return;
+            
+            drawingGraphics.Clear(Color.White);
+            panelDrawing.Invalidate();
+        }
+
+        #endregion
+
+        #region Chat Events
+
+        private void btnSendMessage_Click(object sender, EventArgs e)
+        {
+            SendChatMessage();
+        }
+
+        private void txtChatInput_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                SendChatMessage();
+                e.Handled = true;
+            }
+        }
+
+        #endregion
+
+        #region UI State Management
+
+        private void SetupWaitingRoom()
+        {
+            this.WindowState = FormWindowState.Maximized;
+            this.Text = $"DrawMaster - Chào m?ng {currentUser}";
+            ShowWaitingRoom();
+        }
+
+        private void ShowWaitingRoom()
+        {
+            isInWaitingRoom = true;
+            isInGame = false;
+            HideGameControls();
+            CreateWelcomeInterface();
+        }
+
+        private void ShowGameInterface()
+        {
+            isInWaitingRoom = false;
+            isInGame = true;
+
+            if (welcomePanel != null)
+            {
+                this.Controls.Remove(welcomePanel);
+                welcomePanel.Dispose();
+                welcomePanel = null;
+            }
+
+            this.WindowState = FormWindowState.Normal;
+            this.Size = new Size(1350, 800);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            ShowGameControls();
+            InitializeGame();
+            SetupEnhancedGameInterface();
+            this.Refresh();
+            
+            AddChatMessage("System", "?? Chào m?ng ??n v?i DrawMaster Enhanced!");
+            AddChatMessage("System", "? Tính n?ng m?i: G?i ý thông minh, ph?n ?ng nhanh, th?ng kê chi ti?t!");
+            AddChatMessage("System", "?? Dùng nút Hint ?? nh?n g?i ý, ho?c click emoji ?? ph?n ?ng!");
+        }
+
+        private void HideGameControls()
+        {
+            panelTopBar.Visible = false;
+            panelDrawing.Visible = false;
+            btnClearCanvas.Visible = false;
+            panelTools.Visible = false;
+            panelChat.Visible = false;
+            panelLeaderboard.Visible = false;
+            panelCurrentPlayer.Visible = false;
+            panelGameInfo.Visible = false;
+            panelRoomInfo.Visible = false;
+            btnStartGame.Visible = false;
+            btnLeaveGame.Visible = false;
+            btnBackToWaitingRoom.Visible = false;
+            lblGameStatus.Visible = false;
+            
+            if (panelAdvancedTools != null) panelAdvancedTools.Visible = false;
+            if (panelQuickReactions != null) panelQuickReactions.Visible = false;
+            if (panelPlayerStats != null) panelPlayerStats.Visible = false;
+            if (panelWordInfo != null) panelWordInfo.Visible = false;
+            if (lblGamePhase != null) lblGamePhase.Visible = false;
+        }
+
+        private void ShowGameControls()
+        {
+            panelTopBar.Visible = true;
+            panelDrawing.Visible = true;
+            btnClearCanvas.Visible = true;
+            panelTools.Visible = true;
+            panelChat.Visible = true;
+            panelLeaderboard.Visible = true;
+            panelCurrentPlayer.Visible = true;
+            panelGameInfo.Visible = true;
+            panelRoomInfo.Visible = true;
+            btnStartGame.Visible = true;
+            btnLeaveGame.Visible = true;
+            btnBackToWaitingRoom.Visible = true;
+            lblGameStatus.Visible = true;
+            
+            if (panelAdvancedTools != null) panelAdvancedTools.Visible = true;
+            if (panelQuickReactions != null) panelQuickReactions.Visible = true;
+            if (panelPlayerStats != null) panelPlayerStats.Visible = true;
+            if (panelWordInfo != null) panelWordInfo.Visible = !isPlayerDrawing;
+            if (lblGamePhase != null) lblGamePhase.Visible = true;
+        }
+
+        #endregion
+
+        #region Chat and Messaging
+
+        private void AddChatMessage(string sender, string message)
+        {
+            string timestamp = DateTime.Now.ToString("HH:mm");
+            string chatLine = $"[{timestamp}] {sender}: {message}";
+            
+            listBoxChat.Items.Add(chatLine);
+            
+            if (listBoxChat.Items.Count > 0)
+            {
+                listBoxChat.TopIndex = listBoxChat.Items.Count - 1;
+            }
+            
+            if (listBoxChat.Items.Count > 100)
+            {
+                listBoxChat.Items.RemoveAt(0);
+            }
+        }
+
+        private void SendChatMessage()
+        {
+            string message = txtChatInput.Text.Trim();
+            if (string.IsNullOrEmpty(message)) return;
+            
+            if (message.StartsWith("/"))
+            {
+                ProcessEnhancedChatCommand(message);
+                txtChatInput.Clear();
+                return;
+            }
+            
+            if (!isPlayerDrawing && isInGame && timerGame.Enabled)
+            {
+                ProcessGuessWithEnhancedFeedback(message);
+            }
+            else
+            {
+                AddChatMessage(currentUser, message);
+            }
+            
+            txtChatInput.Clear();
+        }
+
+        private void ProcessEnhancedChatCommand(string command)
+        {
+            string cmd = command.ToLower().Split(' ')[0];
+            
+            switch (cmd)
+            {
+                case "/hint":
+                    BtnHint_Click(null, null);
+                    break;
+                case "/stats":
+                    ShowPlayerStats();
+                    break;
+                case "/help":
+                    ShowEnhancedChatHelp();
+                    break;
+                default:
+                    AddChatMessage("System", "? Unknown command. Type /help for available commands.");
+                    break;
+            }
+        }
+
+        private void ShowPlayerStats()
+        {
+            AddChatMessage("System", "?? YOUR STATS:");
+            AddChatMessage("System", $"?? Score: {playerScore}");
+            AddChatMessage("System", $"?? Win Streak: {winStreak}");
+            AddChatMessage("System", GetAccuracyText());
+            AddChatMessage("System", $"?? Round: {currentRound}/{maxRounds}");
+        }
+
+        private void ShowEnhancedChatHelp()
+        {
+            AddChatMessage("System", "?? ENHANCED COMMANDS:");
+            AddChatMessage("System", "/hint - Get a hint about the word");
+            AddChatMessage("System", "/stats - Show your current statistics");
+            AddChatMessage("System", "/help - Show this help");
+            AddChatMessage("System", "? Click emoji buttons for quick reactions!");
+        }
+
+        private void ProcessGuessWithEnhancedFeedback(string guess)
+        {
+            totalGuesses++;
+            
+            if (string.Equals(guess, currentWord, StringComparison.OrdinalIgnoreCase))
+            {
+                correctGuesses++;
+                winStreak++;
+                playerWinStreaks[currentUser] = winStreak;
+                
+                AddChatMessage(currentUser, guess + " ?");
+                AddChatMessage("System", $"?? {currentUser} ?oán ?úng t? '{currentWord}'!");
+                AddChatMessage("System", $"? +{Math.Max(10, gameTimeLeft * 2)} ?i?m! Streak: {winStreak}");
+                
+                // Add visual celebration effects
+                CreateSuccessParticles(new Point(panelChat.Location.X + 100, panelChat.Location.Y + 50));
+                PlaySuccessSound();
+                
+                // Flash effect for correct answer
+                var flashTimer = new Timer { Interval = 100 };
+                int flashCount = 0;
+                
+                flashTimer.Tick += (s, e) => {
+                    if (flashCount < 6)
+                    {
+                        panelDrawing.BackColor = flashCount % 2 == 0 ? 
+                            Color.FromArgb(220, 252, 231) : Color.White; // Green flash
+                        flashCount++;
+                    }
+                    else
+                    {
+                        panelDrawing.BackColor = Color.White;
+                        flashTimer.Stop();
+                        flashTimer.Dispose();
+                    }
+                    panelDrawing.Invalidate();
+                };
+                
+                flashTimer.Start();
+                
+                UpdatePlayerStats();
+                EndRound(true, currentUser);
+            }
+            else
+            {
+                double similarity = CalculateStringSimilarity(guess, currentWord);
+                
+                if (similarity > 0.8)
+                {
+                    AddChatMessage(currentUser, guess + " ????");
+                    AddChatMessage("System", "???? R?t r?t g?n! Ch? còn m?t chút n?a!");
+                    
+                    // Orange flash for very close
+                    FlashPanel(panelChat, Color.FromArgb(255, 237, 213), 2);
+                }
+                else if (similarity > 0.6)
+                {
+                    AddChatMessage(currentUser, guess + " ??");
+                    AddChatMessage("System", "?? R?t g?n ?úng r?i! Th? l?i!");
+                    
+                    // Yellow flash for close
+                    FlashPanel(panelChat, Color.FromArgb(254, 249, 195), 1);
+                }
+                else
+                {
+                    AddChatMessage(currentUser, guess);
+                    winStreak = 0;
+                    playerWinStreaks[currentUser] = 0;
+                    UpdatePlayerStats();
+                }
+            }
+        }
+
+        private void FlashPanel(Panel panel, Color flashColor, int times)
+        {
+            var originalColor = panel.BackColor;
+            var flashTimer = new Timer { Interval = 150 };
+            int flashCount = 0;
+            
+            flashTimer.Tick += (s, e) => {
+                if (flashCount < times * 2)
+                {
+                    panel.BackColor = flashCount % 2 == 0 ? flashColor : originalColor;
+                    flashCount++;
+                }
+                else
+                {
+                    panel.BackColor = originalColor;
+                    flashTimer.Stop();
+                    flashTimer.Dispose();
+                }
+            };
+            
+            flashTimer.Start();
+        }
+
+        private void EndRound(bool wordGuessed = false, string guesserName = "")
+        {
+            timerGame.Stop();
+            
+            if (wordGuessed && !string.IsNullOrEmpty(guesserName))
+            {
+                int roundScore = Math.Max(10, gameTimeLeft * 2);
+                
+                var guesser = connectedPlayers.FirstOrDefault(p => p.Name == guesserName);
+                if (guesser != null)
+                {
+                    guesser.Score += roundScore;
+                    
+                    if (guesser.Name == currentUser)
+                    {
+                        playerScore = guesser.Score;
+                        lblPlayerCurrentScore.Text = $"Score: {playerScore}";
+                    }
+                }
+                
+                AddChatMessage("System", $"?? {guesserName} ?oán ?úng! +{roundScore} ?i?m!");
+            }
+            else if (isPlayerDrawing)
+            {
+                AddChatMessage("System", $"? H?t th?i gian! T? ?úng là: {currentWord}");
+            }
+            
+            currentRound++;
+            lblCurrentRound.Text = $"{currentRound}/{maxRounds}";
+            
+            UpdateLeaderboard();
+            
+            if (currentRound <= maxRounds)
+            {
+                Task.Delay(3000).ContinueWith(t => {
+                    if (this.InvokeRequired)
+                    {
+                        this.Invoke(new Action(StartNewRound));
+                    }
+                    else
+                    {
+                        StartNewRound();
+                    }
+                });
+            }
+            else
+            {
+                EndGame();
+            }
+        }
+
+        private void EndGame()
+        {
+            EnableDrawingTools(false);
+            
+            var winner = connectedPlayers.OrderByDescending(p => p.Score).FirstOrDefault();
+            
+            AddChatMessage("System", "?? Game k?t thúc!");
+            if (winner != null)
+            {
+                AddChatMessage("System", $"?? Ng??i chi?n th?ng: {winner.Name} v?i {winner.Score} ?i?m!");
+                if (winner.Name == currentUser)
+                {
+                    AddChatMessage("System", "?? Chúc m?ng b?n ?ã th?ng!");
+                }
+            }
+            
+            AddChatMessage("System", "?? Nh?n 'Start Game' ?? ch?i l?i!");
+            lblGameStatus.Text = "?? Game ?ã k?t thúc! Nh?n 'Start Game' ?? ch?i l?i.";
+            
+            btnStartGame.Enabled = true;
+            UpdateLeaderboard();
+        }
+
+        #endregion
+
+        #region Enhanced Game Visual Effects
+
+        private void SetupParticleEffects()
+        {
+            // Add particle effects for correct guesses
+            var particleTimer = new Timer { Interval = 100 };
+            var particles = new List<Particle>();
+            
+            particleTimer.Tick += (s, e) => {
+                // Update particle positions
+                for (int i = particles.Count - 1; i >= 0; i--)
+                {
+                    particles[i].Update();
+                    if (particles[i].IsDead)
+                        particles.RemoveAt(i);
+                }
+                
+                // Trigger redraw if particles exist
+                if (particles.Count > 0)
+                    this.Invalidate();
+            };
+            
+            animationTimer.Start();
+        }
+
+        private class Particle
+        {
+            public float X, Y, VX, VY;
+            public Color Color;
+            public float Life;
+            public bool IsDead => Life <= 0;
+            
+            public void Update()
+            {
+                X += VX;
+                Y += VY;
+                VY += 0.1f; // Gravity
+                Life -= 0.02f;
+            }
+        }
+
+        private void CreateSuccessParticles(Point location)
+        {
+            var colors = new[] { 
+                Color.FromArgb(34, 197, 94),   // Green
+                Color.FromArgb(245, 158, 11),  // Yellow
+                Color.FromArgb(59, 130, 246),  // Blue
+                Color.FromArgb(239, 68, 68)    // Red
+            };
+            
+            var random = new Random();
+            
+            for (int i = 0; i < 20; i++)
+            {
+                // Create confetti particles for celebration
+                var particle = new Particle
+                {
+                    X = location.X,
+                    Y = location.Y,
+                    VX = (float)(random.NextDouble() - 0.5) * 10,
+                    VY = (float)(random.NextDouble() - 1) * 8,
+                    Color = colors[random.Next(colors.Length)],
+                    Life = 1.0f
+                };
+                
+                // Add to particle system
+            }
+        }
+
+        #endregion
+
+        #region Enhanced User Experience
+
+        private void SetupSoundEffects()
+        {
+            // Note: For future implementation of sound effects
+            // System.Media.SoundPlayer can be used for basic sounds
+            
+            // Placeholder for sound effect methods
+        }
+
+        private void PlaySuccessSound()
+        {
+            try
+            {
+                // Play success sound effect
+                System.Media.SystemSounds.Exclamation.Play();
+            }
+            catch { /* Ignore if sound fails */ }
+        }
+
+        private void PlayTimerWarningSound()
+        {
+            try
+            {
+                // Play warning sound when time is running out
+                if (gameTimeLeft <= 10)
+                    System.Media.SystemSounds.Hand.Play();
+            }
+            catch { /* Ignore if sound fails */ }
+        }
+
+        private void SetupToolTips()
+        {
+            var toolTip = new ToolTip
+            {
+                AutoPopDelay = 3000,
+                InitialDelay = 500,
+                ReshowDelay = 500,
+                ShowAlways = true
+            };
+
+            // Add helpful tooltips
+            toolTip.SetToolTip(btnPencil, "??? Pencil Tool - Draw with selected color");
+            toolTip.SetToolTip(btnEraser, "?? Eraser Tool - Remove drawings");
+            toolTip.SetToolTip(trackBarBrushSize, "??? Adjust brush size (1-20px)");
+            toolTip.SetToolTip(btnClearCanvas, "??? Clear entire canvas");
+            toolTip.SetToolTip(panelSelectedColor, "?? Current selected color");
+            
+            if (btnHint != null)
+                toolTip.SetToolTip(btnHint, "?? Get a smart hint about the word");
+        }
+
+        #endregion
+
+        #region New Enhanced Features
+
+        private void SetupAdvancedTools()
+        {
+            // Create advanced tools panel
+            panelAdvancedTools = new Panel
+            {
+                Size = new Size(250, 150),
+                Location = new Point(this.ClientSize.Width - 270, 100),
+                BackColor = Color.FromArgb(255, 255, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            // Add shadow effect
+            panelAdvancedTools.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                // Shadow
+                using (var brush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRectangle(brush, 5, 5, panelAdvancedTools.Width, panelAdvancedTools.Height);
+                }
+                // Main panel
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 0, panelAdvancedTools.Width - 5, panelAdvancedTools.Height - 5);
+                }
+                // Border
+                using (var pen = new Pen(Color.FromArgb(45, 125, 245), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 1, 1, panelAdvancedTools.Width - 7, panelAdvancedTools.Height - 7);
+                }
+            };
+
+            // Undo button
+            btnUndo = new Button
+            {
+                Text = "?? Hoàn tác",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BackColor = Color.FromArgb(255, 255, 255),
+                ForeColor = Color.FromArgb(65, 105, 225),
+                Size = new Size(100, 40),
+                Location = new Point(20, 20),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            btnUndo.FlatAppearance.BorderSize = 0;
+            btnUndo.Click += BtnUndo_Click;
+
+            // Redo button
+            btnRedo = new Button
+            {
+                Text = "?? Làm l?i",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BackColor = Color.FromArgb(255, 255, 255),
+                ForeColor = Color.FromArgb(76, 175, 80),
+                Size = new Size(100, 40),
+                Location = new Point(130, 20),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            btnRedo.FlatAppearance.BorderSize = 0;
+            btnRedo.Click += BtnRedo_Click;
+
+            // Hint button
+            btnHint = new Button
+            {
+                Text = "?? G?i ý",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BackColor = Color.FromArgb(255, 255, 255),
+                ForeColor = Color.FromArgb(255, 193, 7),
+                Size = new Size(100, 40),
+                Location = new Point(20, 80),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            btnHint.FlatAppearance.BorderSize = 0;
+            btnHint.Click += BtnHint_Click;
+
+            // Hint count label
+            lblHintCount = new Label
+            {
+                Text = "?? 3",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(255, 69, 58),
+                Location = new Point(130, 90),
+                Size = new Size(100, 25),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Add controls to advanced tools panel
+            panelAdvancedTools.Controls.AddRange(new Control[] { btnUndo, btnRedo, btnHint, lblHintCount });
+            this.Controls.Add(panelAdvancedTools);
+        }
+
+        private void SetupQuickReactions()
+        {
+            // Create quick reactions panel
+            panelQuickReactions = new Panel
+            {
+                Size = new Size(250, 100),
+                Location = new Point(this.ClientSize.Width - 270, 260),
+                BackColor = Color.FromArgb(255, 255, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            // Add shadow effect
+            panelQuickReactions.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                // Shadow
+                using (var brush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRectangle(brush, 5, 5, panelQuickReactions.Width, panelQuickReactions.Height);
+                }
+                // Main panel
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 0, panelQuickReactions.Width - 5, panelQuickReactions.Height - 5);
+                }
+                // Border
+                using (var pen = new Pen(Color.FromArgb(45, 125, 245), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 1, 1, panelQuickReactions.Width - 7, panelQuickReactions.Height - 7);
+                }
+            };
+
+            // Quick reaction buttons
+            string[] reactions = { "??", "??", "??", "??", "??" };
+            quickReactionButtons = new Button[reactions.Length];
+            
+            for (int i = 0; i < reactions.Length; i++)
+            {
+                quickReactionButtons[i] = new Button
+                {
+                    Text = reactions[i],
+                    Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                    BackColor = Color.FromArgb(240, 248, 255),
+                    ForeColor = Color.FromArgb(67, 82, 161),
+                    Size = new Size(50, 50),
+                    Location = new Point(20 + i * 60, 25),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand,
+                    Tag = reactions[i]
+                };
+                quickReactionButtons[i].FlatAppearance.BorderSize = 0;
+                quickReactionButtons[i].Click += QuickReaction_Click;
+                panelQuickReactions.Controls.Add(quickReactionButtons[i]);
+            }
+
+            this.Controls.Add(panelQuickReactions);
+        }
+
+        private void SetupPlayerStats()
+        {
+            // Create player stats panel
+            panelPlayerStats = new Panel
+            {
+                Size = new Size(300, 150),
+                Location = new Point(this.ClientSize.Width - 310, 370),
+                BackColor = Color.FromArgb(255, 255, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            // Add shadow effect
+            panelPlayerStats.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                // Shadow
+                using (var brush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRectangle(brush, 5, 5, panelPlayerStats.Width, panelPlayerStats.Height);
+                }
+                // Main panel
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 0, panelPlayerStats.Width - 5, panelPlayerStats.Height - 5);
+                }
+                // Border
+                using (var pen = new Pen(Color.FromArgb(45, 125, 245), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 1, 1, panelPlayerStats.Width - 7, panelPlayerStats.Height - 7);
+                }
+            };
+
+            // Player stats labels
+            lblWinStreak = new Label
+            {
+                Text = "?? Streak: 0",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(67, 175, 106),
+                Location = new Point(20, 20),
+                Size = new Size(250, 25),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            lblAccuracy = new Label
+            {
+                Text = "?? Accuracy: 0%",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(67, 175, 239),
+                Location = new Point(20, 60),
+                Size = new Size(250, 25),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            // Add controls to player stats panel
+            panelPlayerStats.Controls.AddRange(new Control[] { lblWinStreak, lblAccuracy });
+            this.Controls.Add(panelPlayerStats);
+        }
+
+        private void SetupWordInfo()
+        {
+            // Create word info panel
+            panelWordInfo = new Panel
+            {
+                Size = new Size(250, 100),
+                Location = new Point(this.ClientSize.Width - 270, 530),
+                BackColor = Color.FromArgb(255, 255, 255),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            // Add shadow effect
+            panelWordInfo.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                // Shadow
+                using (var brush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
+                {
+                    e.Graphics.FillRectangle(brush, 5, 5, panelWordInfo.Width, panelWordInfo.Height);
+                }
+                // Main panel
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 0, panelWordInfo.Width - 5, panelWordInfo.Height - 5);
+                }
+                // Border
+                using (var pen = new Pen(Color.FromArgb(45, 125, 245), 2))
+                {
+                    e.Graphics.DrawRectangle(pen, 1, 1, panelWordInfo.Width - 7, panelWordInfo.Height - 7);
+                }
+            };
+
+            // Word info labels
+            lblWordCategory = new Label
+            {
+                Text = "?? Category: Hidden",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.FromArgb(108, 117, 125),
+                Location = new Point(20, 10),
+                Size = new Size(210, 20),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            lblWordLength = new Label
+            {
+                Text = "?? Length: 0 letters",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.FromArgb(108, 117, 125),
+                Location = new Point(20, 40),
+                Size = new Size(210, 20),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            // Add controls to word info panel
+            panelWordInfo.Controls.AddRange(new Control[] { lblWordCategory, lblWordLength });
+            this.Controls.Add(panelWordInfo);
+        }
+
+        private void SetupEnhancedGameInterface()
+        {
+            if (!string.IsNullOrEmpty(currentUser))
+            {
+                try
+                {
+                    pictureBoxPlayerAvatar.Image = GeneratePlayerAvatar(currentUser);
+                    lblPlayerName.Text = currentUser;
+                    lblPlayerCurrentScore.Text = $"Score: {playerScore}";
+                }
+                catch
+                {
+                    lblPlayerName.Text = currentUser;
+                    lblPlayerCurrentScore.Text = $"Score: {playerScore}";
+                }
+            }
+            
+            UpdateLeaderboard();
+            lblRoomCode.Text = currentRoomCode;
+            UpdatePlayersCount();
+            
+            if (drawingBitmap != null)
+                drawingBitmap.Dispose();
+            
+            drawingBitmap = new Bitmap(700, 500);
+            drawingGraphics = Graphics.FromImage(drawingBitmap);
+            drawingGraphics.SmoothingMode = SmoothingMode.AntiAlias;
+            drawingGraphics.Clear(Color.White);
+            
+            btnPencil.BackColor = Color.FromArgb(45, 125, 245);
+            btnEraser.BackColor = Color.FromArgb(255, 193, 203);
+            panelSelectedColor.BackColor = currentColor;
+            
+            SetupAdvancedTools();
+            SetupQuickReactions();
+            SetupPlayerStats();
+            SetupWordInfo();
+            
+            // Setup modern visual design
+            SetupModernGameInterface();
+            SetupToolTips();
+            SetupParticleEffects();
+            
+            panelDrawing.Invalidate();
+        }
+
+        #endregion
+
+        #region Form Events
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+            Application.Exit();
+        }
+
+        #endregion
+    }
+}

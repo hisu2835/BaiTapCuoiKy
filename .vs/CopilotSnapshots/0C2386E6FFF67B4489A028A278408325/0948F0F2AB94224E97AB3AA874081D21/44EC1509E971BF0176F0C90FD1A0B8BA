@@ -1,0 +1,596 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+
+namespace BaiTapCuoiKy
+{
+    public partial class LoginForm : Form
+    {
+        public event Action<string> LoginSuccessful;
+        
+        private bool isLoginMode = true; // true = login, false = register
+        private Dictionary<string, UserAccount> userAccounts;
+        private string accountsFilePath = "accounts.dat";
+
+        public LoginForm()
+        {
+            InitializeComponent();
+            LoadUserAccounts();
+            SetupForm();
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // LoginForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(900, 600);
+            this.Name = "LoginForm";
+            this.Text = "DrawMaster - ??ng nh?p";
+            this.ResumeLayout(false);
+        }
+
+        private void SetupForm()
+        {
+            this.Text = "DrawMaster - Đăng nhập";
+            this.Size = new Size(900, 600);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            
+            CreateLoginInterface();
+        }
+
+        private void CreateLoginInterface()
+        {
+            this.Controls.Clear();
+            this.BackColor = Color.FromArgb(240, 248, 255);
+
+            // Main container
+            Panel mainPanel = new Panel
+            {
+                Size = new Size(800, 500),
+                Location = new Point(50, 50),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+
+            // Add shadow effect
+            mainPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var brush = new SolidBrush(Color.FromArgb(200, 200, 200)))
+                {
+                    e.Graphics.FillRectangle(brush, 2, 2, mainPanel.Width, mainPanel.Height);
+                }
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    e.Graphics.FillRectangle(brush, 0, 0, mainPanel.Width - 2, mainPanel.Height - 2);
+                }
+            };
+
+            // Left panel with image/branding
+            Panel leftPanel = new Panel
+            {
+                Size = new Size(350, 500),
+                Location = new Point(0, 0),
+                BackColor = Color.FromArgb(45, 125, 245)
+            };
+
+            leftPanel.Paint += (s, e) => {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var brush = new LinearGradientBrush(
+                    leftPanel.ClientRectangle,
+                    Color.FromArgb(45, 125, 245),
+                    Color.FromArgb(30, 90, 200),
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(brush, leftPanel.ClientRectangle);
+                }
+            };
+
+            // Branding content in left panel
+            Label brandTitle = new Label
+            {
+                Text = "DrawMaster",
+                Font = new Font("Segoe UI", 32, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(50, 100),
+                Size = new Size(250, 50),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Label brandSubtitle = new Label
+            {
+                Text = "Multiplayer Drawing Game",
+                Font = new Font("Segoe UI", 14),
+                ForeColor = Color.FromArgb(200, 220, 255),
+                Location = new Point(50, 160),
+                Size = new Size(250, 30),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Game features
+            Label featuresLabel = new Label
+            {
+                Text = "? V? và ?oán cùng b?n bè\n?? Công c? v? chuyên nghi?p\n?? Chat th?i gian th?c\n?? H? th?ng ?i?m s?\n?? H? tr? ti?ng Vi?t",
+                Font = new Font("Segoe UI", 12),
+                ForeColor = Color.White,
+                Location = new Point(30, 250),
+                Size = new Size(290, 150),
+                TextAlign = ContentAlignment.TopLeft
+            };
+
+            leftPanel.Controls.AddRange(new Control[] { brandTitle, brandSubtitle, featuresLabel });
+
+            // Right panel with login/register form
+            Panel rightPanel = new Panel
+            {
+                Size = new Size(450, 500),
+                Location = new Point(350, 0),
+                BackColor = Color.White
+            };
+
+            CreateLoginForm(rightPanel);
+
+            mainPanel.Controls.AddRange(new Control[] { leftPanel, rightPanel });
+            this.Controls.Add(mainPanel);
+        }
+
+        private void CreateLoginForm(Panel parentPanel)
+        {
+            parentPanel.Controls.Clear();
+
+            // Header
+            Label headerLabel = new Label
+            {
+                Text = isLoginMode ? "ĐĂNG NHẬP" : "ĐĂNG KÝ",
+                Font = new Font("Segoe UI", 24, FontStyle.Bold),
+                ForeColor = Color.FromArgb(45, 125, 245),
+                Location = new Point(50, 50),
+                Size = new Size(350, 40),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Username/Email field
+            Label usernameLabel = new Label
+            {
+                Text = isLoginMode ? "Tên đăng nhập hoặc Email:" : "Tên đăng nhập:",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 120),
+                Size = new Size(350, 25)
+            };
+
+            TextBox usernameTextBox = new TextBox
+            {
+                Name = "usernameTextBox",
+                Font = new Font("Segoe UI", 12),
+                Location = new Point(50, 150),
+                Size = new Size(350, 30),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Password field
+            Label passwordLabel = new Label
+            {
+                Text = "Mật khẩu:",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 190),
+                Size = new Size(350, 25)
+            };
+
+            TextBox passwordTextBox = new TextBox
+            {
+                Name = "passwordTextBox",
+                Font = new Font("Segoe UI", 12),
+                Location = new Point(50, 220),
+                Size = new Size(350, 30),
+                BorderStyle = BorderStyle.FixedSingle,
+                UseSystemPasswordChar = true
+            };
+
+            // Confirm password field (only for registration)
+            Label confirmPasswordLabel = new Label
+            {
+                Name = "confirmPasswordLabel",
+                Text = "Xác nhận mật khẩu:",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 260),
+                Size = new Size(350, 25),
+                Visible = !isLoginMode
+            };
+
+            TextBox confirmPasswordTextBox = new TextBox
+            {
+                Name = "confirmPasswordTextBox",
+                Font = new Font("Segoe UI", 12),
+                Location = new Point(50, 290),
+                Size = new Size(350, 30),
+                BorderStyle = BorderStyle.FixedSingle,
+                UseSystemPasswordChar = true,
+                Visible = !isLoginMode
+            };
+
+            // Email field (only for registration)
+            Label emailLabel = new Label
+            {
+                Name = "emailLabel",
+                Text = "Email:",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Location = new Point(50, 330),
+                Size = new Size(350, 25),
+                Visible = !isLoginMode
+            };
+
+            TextBox emailTextBox = new TextBox
+            {
+                Name = "emailTextBox",
+                Font = new Font("Segoe UI", 12),
+                Location = new Point(50, 360),
+                Size = new Size(350, 30),
+                BorderStyle = BorderStyle.FixedSingle,
+                Visible = !isLoginMode
+            };
+
+            // Main action button
+            Button actionButton = new Button
+            {
+                Text = isLoginMode ? "??NG NH?P" : "??NG KÝ",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = Color.FromArgb(45, 125, 245),
+                ForeColor = Color.White,
+                Size = new Size(350, 45),
+                Location = new Point(50, isLoginMode ? 280 : 410),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            actionButton.FlatAppearance.BorderSize = 0;
+            actionButton.Click += ActionButton_Click;
+
+            // Social login section (only for login mode)
+            Panel socialPanel = CreateSocialLoginPanel();
+            socialPanel.Location = new Point(50, isLoginMode ? 340 : 470);
+            socialPanel.Visible = isLoginMode;
+
+            // Toggle between login/register
+            LinkLabel toggleLabel = new LinkLabel
+            {
+                Text = isLoginMode ? "Ch?a có tài kho?n? ??ng ký ngay" : "?ã có tài kho?n? ??ng nh?p",
+                Font = new Font("Segoe UI", 10),
+                Location = new Point(50, isLoginMode ? 450 : 520),
+                Size = new Size(350, 20),
+                TextAlign = ContentAlignment.MiddleCenter,
+                LinkColor = Color.FromArgb(45, 125, 245)
+            };
+            toggleLabel.Click += ToggleMode_Click;
+
+            parentPanel.Controls.AddRange(new Control[] { 
+                headerLabel, usernameLabel, usernameTextBox, passwordLabel, passwordTextBox,
+                confirmPasswordLabel, confirmPasswordTextBox, emailLabel, emailTextBox,
+                actionButton, socialPanel, toggleLabel 
+            });
+        }
+
+        private Panel CreateSocialLoginPanel()
+        {
+            Panel socialPanel = new Panel
+            {
+                Size = new Size(350, 100),
+                BackColor = Color.Transparent
+            };
+
+            Label socialLabel = new Label
+            {
+                Text = "HO?C ??NG NH?P B?NG",
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                ForeColor = Color.Gray,
+                Location = new Point(0, 10),
+                Size = new Size(350, 20),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            // Social login buttons
+            Button facebookBtn = CreateSocialButton("Facebook", Color.FromArgb(24, 119, 242), 0);
+            Button googleBtn = CreateSocialButton("Google", Color.FromArgb(219, 68, 55), 120);
+            Button githubBtn = CreateSocialButton("GitHub", Color.FromArgb(33, 41, 52), 240);
+
+            facebookBtn.Click += (s, e) => SocialLogin("Facebook");
+            googleBtn.Click += (s, e) => SocialLogin("Google");
+            githubBtn.Click += (s, e) => SocialLogin("GitHub");
+
+            socialPanel.Controls.AddRange(new Control[] { socialLabel, facebookBtn, googleBtn, githubBtn });
+            return socialPanel;
+        }
+
+        private Button CreateSocialButton(string text, Color backColor, int xOffset)
+        {
+            return new Button
+            {
+                Text = text,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                BackColor = backColor,
+                ForeColor = Color.White,
+                Size = new Size(100, 35),
+                Location = new Point(xOffset, 40),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+        }
+
+        private void ActionButton_Click(object sender, EventArgs e)
+        {
+            var usernameTextBox = this.Controls.Find("usernameTextBox", true).FirstOrDefault() as TextBox;
+            var passwordTextBox = this.Controls.Find("passwordTextBox", true).FirstOrDefault() as TextBox;
+            var confirmPasswordTextBox = this.Controls.Find("confirmPasswordTextBox", true).FirstOrDefault() as TextBox;
+            var emailTextBox = this.Controls.Find("emailTextBox", true).FirstOrDefault() as TextBox;
+
+            if (usernameTextBox == null || passwordTextBox == null)
+                return;
+
+            string username = usernameTextBox.Text.Trim();
+            string password = passwordTextBox.Text;
+
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Vui lòng nh?p ??y ?? thông tin!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (isLoginMode)
+            {
+                // Login logic
+                if (ValidateLogin(username, password))
+                {
+                    string displayName = GetDisplayName(username);
+                    MessageBox.Show($"??ng nh?p thành công! Chào m?ng {displayName}!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoginSuccessful?.Invoke(displayName);
+                    // Close the form to exit the Application.Run loop in Program.cs
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Tên ??ng nh?p ho?c m?t kh?u không ?ứng!", "L?i ??ng nh?p", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                // Registration logic
+                if (confirmPasswordTextBox == null || emailTextBox == null)
+                    return;
+
+                string confirmPassword = confirmPasswordTextBox.Text;
+                string email = emailTextBox.Text.Trim();
+
+                if (string.IsNullOrEmpty(confirmPassword) || string.IsNullOrEmpty(email))
+                {
+                    MessageBox.Show("Vui lòng nh?p ??y ?? thông tin!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (password != confirmPassword)
+                {
+                    MessageBox.Show("M?t kh?u xác nh?n không kh?p!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (!IsValidEmail(email))
+                {
+                    MessageBox.Show("Email không h?p l?!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (userAccounts.ContainsKey(username.ToLower()))
+                {
+                    MessageBox.Show("Tên ??ng nh?p ?ã t?n t?i!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (userAccounts.Values.Any(u => u.Email.ToLower() == email.ToLower()))
+                {
+                    MessageBox.Show("Email ?ã ???c s? d?ng!", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Create new account
+                var newAccount = new UserAccount
+                {
+                    Username = username,
+                    Password = password, // In production, this should be hashed
+                    Email = email,
+                    DisplayName = username,
+                    CreatedDate = DateTime.Now,
+                    LoginProvider = "Local"
+                };
+
+                userAccounts[username.ToLower()] = newAccount;
+                SaveUserAccounts();
+
+                MessageBox.Show("??ng ký thành công! B?n có th? ??ng nh?p ngay bây gi?.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                
+                // Switch to login mode
+                isLoginMode = true;
+                CreateLoginForm(this.Controls[0].Controls[1] as Panel);
+            }
+        }
+
+        private void SocialLogin(string provider)
+        {
+            // Simulate social login (in a real app, this would integrate with OAuth APIs)
+            string username = $"{provider}User_{DateTime.Now.Ticks % 10000}";
+            string email = $"{username}@{provider.ToLower()}.com";
+            
+            // Check if user already exists with this email
+            var existingUser = userAccounts.Values.FirstOrDefault(u => u.Email.ToLower() == email.ToLower());
+            
+            if (existingUser == null)
+            {
+                // Create new social account
+                var socialAccount = new UserAccount
+                {
+                    Username = username,
+                    Password = "", // Social accounts don't need passwords
+                    Email = email,
+                    DisplayName = $"{provider} User",
+                    CreatedDate = DateTime.Now,
+                    LoginProvider = provider
+                };
+
+                userAccounts[username.ToLower()] = socialAccount;
+                SaveUserAccounts();
+            }
+            else
+            {
+                username = existingUser.Username;
+            }
+
+            MessageBox.Show($"??ng nh?p {provider} thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            LoginSuccessful?.Invoke(GetDisplayName(username));
+            // Close the form to exit the Application.Run loop in Program.cs
+            this.Close();
+        }
+
+        private void ToggleMode_Click(object sender, EventArgs e)
+        {
+            isLoginMode = !isLoginMode;
+            CreateLoginForm(this.Controls[0].Controls[1] as Panel);
+        }
+
+        private bool ValidateLogin(string username, string password)
+        {
+            string key = username.ToLower();
+            if (userAccounts.ContainsKey(key))
+            {
+                var account = userAccounts[key];
+                return account.Password == password || account.LoginProvider != "Local";
+            }
+
+            // Check by email
+            var userByEmail = userAccounts.Values.FirstOrDefault(u => u.Email.ToLower() == username.ToLower());
+            if (userByEmail != null)
+            {
+                return userByEmail.Password == password || userByEmail.LoginProvider != "Local";
+            }
+
+            return false;
+        }
+
+        private string GetDisplayName(string username)
+        {
+            string key = username.ToLower();
+            if (userAccounts.ContainsKey(key))
+            {
+                return userAccounts[key].DisplayName;
+            }
+
+            var userByEmail = userAccounts.Values.FirstOrDefault(u => u.Email.ToLower() == username.ToLower());
+            return userByEmail?.DisplayName ?? username;
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void LoadUserAccounts()
+        {
+            userAccounts = new Dictionary<string, UserAccount>();
+
+            if (File.Exists(accountsFilePath))
+            {
+                try
+                {
+                    string[] lines = File.ReadAllLines(accountsFilePath);
+                    
+                    foreach (string line in lines)
+                    {
+                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        
+                        string[] parts = line.Split('|');
+                        if (parts.Length >= 6)
+                        {
+                            var account = new UserAccount
+                            {
+                                Username = parts[0],
+                                Password = parts[1],
+                                Email = parts[2],
+                                DisplayName = parts[3],
+                                CreatedDate = DateTime.TryParse(parts[4], out DateTime date) ? date : DateTime.Now,
+                                LoginProvider = parts[5]
+                            };
+                            userAccounts[account.Username.ToLower()] = account;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"L?i khi t?i d? li?u tài kho?n: {ex.Message}", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            // Create default admin account if no accounts exist
+            if (userAccounts.Count == 0)
+            {
+                var adminAccount = new UserAccount
+                {
+                    Username = "admin",
+                    Password = "admin123",
+                    Email = "admin@drawmaster.com",
+                    DisplayName = "Administrator",
+                    CreatedDate = DateTime.Now,
+                    LoginProvider = "Local"
+                };
+                userAccounts["admin"] = adminAccount;
+                SaveUserAccounts();
+            }
+        }
+
+        private void SaveUserAccounts()
+        {
+            try
+            {
+                var lines = userAccounts.Values.Select(account => 
+                    $"{account.Username}|{account.Password}|{account.Email}|{account.DisplayName}|{account.CreatedDate:yyyy-MM-dd HH:mm:ss}|{account.LoginProvider}"
+                ).ToArray();
+                
+                File.WriteAllLines(accountsFilePath, lines);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"L?i khi l?u d? li?u tài kho?n: {ex.Message}", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+    }
+
+    public class UserAccount
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string Email { get; set; }
+        public string DisplayName { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public string LoginProvider { get; set; } // "Local", "Facebook", "Google", "GitHub"
+    }
+}

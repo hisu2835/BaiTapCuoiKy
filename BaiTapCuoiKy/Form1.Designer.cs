@@ -103,7 +103,7 @@
             this.lblTitle.ForeColor = System.Drawing.Color.White;
             this.lblTitle.Location = new System.Drawing.Point(20, 15);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(250, 45);
+            this.lblTitle.Size = new System.Drawing.Size(302, 45);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "🎨 DRAWMASTER";
             this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -117,10 +117,10 @@
             this.panelDrawing.Name = "panelDrawing";
             this.panelDrawing.Size = new System.Drawing.Size(700, 500);
             this.panelDrawing.TabIndex = 1;
+            this.panelDrawing.Paint += new System.Windows.Forms.PaintEventHandler(this.panelDrawing_Paint);
             this.panelDrawing.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseDown);
             this.panelDrawing.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseMove);
             this.panelDrawing.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panelDrawing_MouseUp);
-            this.panelDrawing.Paint += new System.Windows.Forms.PaintEventHandler(this.panelDrawing_Paint);
             // 
             // btnClearCanvas
             // 
@@ -162,7 +162,7 @@
             this.lblBrushSize.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblBrushSize.Location = new System.Drawing.Point(400, 15);
             this.lblBrushSize.Name = "lblBrushSize";
-            this.lblBrushSize.Size = new System.Drawing.Size(94, 15);
+            this.lblBrushSize.Size = new System.Drawing.Size(84, 15);
             this.lblBrushSize.TabIndex = 11;
             this.lblBrushSize.Text = "🖌️ Brush Size:";
             // 
@@ -235,8 +235,8 @@
             // btnColorWhite
             // 
             this.btnColorWhite.BackColor = System.Drawing.Color.White;
-            this.btnColorWhite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnColorWhite.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.btnColorWhite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnColorWhite.Location = new System.Drawing.Point(175, 10);
             this.btnColorWhite.Name = "btnColorWhite";
             this.btnColorWhite.Size = new System.Drawing.Size(35, 35);
@@ -250,7 +250,7 @@
             this.lblSelectedColor.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblSelectedColor.Location = new System.Drawing.Point(315, 15);
             this.lblSelectedColor.Name = "lblSelectedColor";
-            this.lblSelectedColor.Size = new System.Drawing.Size(64, 15);
+            this.lblSelectedColor.Size = new System.Drawing.Size(55, 15);
             this.lblSelectedColor.TabIndex = 3;
             this.lblSelectedColor.Text = "🎨 Color:";
             // 
@@ -307,7 +307,7 @@
             this.lblChat.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(125)))), ((int)(((byte)(245)))));
             this.lblChat.Location = new System.Drawing.Point(15, 15);
             this.lblChat.Name = "lblChat";
-            this.lblChat.Size = new System.Drawing.Size(153, 25);
+            this.lblChat.Size = new System.Drawing.Size(141, 25);
             this.lblChat.TabIndex = 3;
             this.lblChat.Text = "💬 Chat & Guess";
             // 
@@ -318,7 +318,7 @@
             this.listBoxChat.ItemHeight = 15;
             this.listBoxChat.Location = new System.Drawing.Point(15, 50);
             this.listBoxChat.Name = "listBoxChat";
-            this.listBoxChat.Size = new System.Drawing.Size(290, 180);
+            this.listBoxChat.Size = new System.Drawing.Size(290, 154);
             this.listBoxChat.TabIndex = 2;
             // 
             // txtChatInput
@@ -361,7 +361,7 @@
             this.lblLeaderboard.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(140)))), ((int)(((byte)(0)))));
             this.lblLeaderboard.Location = new System.Drawing.Point(15, 15);
             this.lblLeaderboard.Name = "lblLeaderboard";
-            this.lblLeaderboard.Size = new System.Drawing.Size(155, 25);
+            this.lblLeaderboard.Size = new System.Drawing.Size(153, 25);
             this.lblLeaderboard.TabIndex = 1;
             this.lblLeaderboard.Text = "🏆 Leaderboard";
             // 
@@ -396,7 +396,6 @@
             // columnScore
             // 
             this.columnScore.Text = "Score";
-            this.columnScore.Width = 60;
             // 
             // columnStatus
             // 
@@ -432,7 +431,7 @@
             this.lblCurrentPlayer.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.lblCurrentPlayer.Location = new System.Drawing.Point(85, 15);
             this.lblCurrentPlayer.Name = "lblCurrentPlayer";
-            this.lblCurrentPlayer.Size = new System.Drawing.Size(33, 19);
+            this.lblCurrentPlayer.Size = new System.Drawing.Size(34, 19);
             this.lblCurrentPlayer.TabIndex = 1;
             this.lblCurrentPlayer.Text = "You";
             // 
@@ -454,7 +453,7 @@
             this.lblPlayerCurrentScore.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
             this.lblPlayerCurrentScore.Location = new System.Drawing.Point(15, 90);
             this.lblPlayerCurrentScore.Name = "lblPlayerCurrentScore";
-            this.lblPlayerCurrentScore.Size = new System.Drawing.Size(89, 30);
+            this.lblPlayerCurrentScore.Size = new System.Drawing.Size(95, 30);
             this.lblPlayerCurrentScore.TabIndex = 3;
             this.lblPlayerCurrentScore.Text = "Score: 0";
             // 
@@ -481,7 +480,7 @@
             this.lblCurrentWord.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
             this.lblCurrentWord.Location = new System.Drawing.Point(15, 15);
             this.lblCurrentWord.Name = "lblCurrentWord";
-            this.lblCurrentWord.Size = new System.Drawing.Size(115, 19);
+            this.lblCurrentWord.Size = new System.Drawing.Size(131, 19);
             this.lblCurrentWord.TabIndex = 0;
             this.lblCurrentWord.Text = "🎯 Word to draw:";
             // 
@@ -492,7 +491,7 @@
             this.lblWordToGuess.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(53)))), ((int)(((byte)(69)))));
             this.lblWordToGuess.Location = new System.Drawing.Point(15, 40);
             this.lblWordToGuess.Name = "lblWordToGuess";
-            this.lblWordToGuess.Size = new System.Drawing.Size(113, 25);
+            this.lblWordToGuess.Size = new System.Drawing.Size(85, 25);
             this.lblWordToGuess.TabIndex = 1;
             this.lblWordToGuess.Text = "_ _ _ _ _ _";
             // 
@@ -502,7 +501,7 @@
             this.lblTimer.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.lblTimer.Location = new System.Drawing.Point(15, 80);
             this.lblTimer.Name = "lblTimer";
-            this.lblTimer.Size = new System.Drawing.Size(87, 19);
+            this.lblTimer.Size = new System.Drawing.Size(99, 19);
             this.lblTimer.TabIndex = 2;
             this.lblTimer.Text = "⏱️ Time Left:";
             // 
@@ -513,7 +512,7 @@
             this.lblTimeLeft.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(53)))), ((int)(((byte)(69)))));
             this.lblTimeLeft.Location = new System.Drawing.Point(110, 80);
             this.lblTimeLeft.Name = "lblTimeLeft";
-            this.lblTimeLeft.Size = new System.Drawing.Size(54, 21);
+            this.lblTimeLeft.Size = new System.Drawing.Size(50, 21);
             this.lblTimeLeft.TabIndex = 3;
             this.lblTimeLeft.Text = "00:60";
             // 
@@ -523,7 +522,7 @@
             this.lblRound.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.lblRound.Location = new System.Drawing.Point(15, 110);
             this.lblRound.Name = "lblRound";
-            this.lblRound.Size = new System.Drawing.Size(72, 19);
+            this.lblRound.Size = new System.Drawing.Size(80, 19);
             this.lblRound.TabIndex = 4;
             this.lblRound.Text = "🔄 Round:";
             // 
@@ -534,7 +533,7 @@
             this.lblCurrentRound.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(125)))), ((int)(((byte)(245)))));
             this.lblCurrentRound.Location = new System.Drawing.Point(90, 110);
             this.lblCurrentRound.Name = "lblCurrentRound";
-            this.lblCurrentRound.Size = new System.Drawing.Size(36, 21);
+            this.lblCurrentRound.Size = new System.Drawing.Size(35, 21);
             this.lblCurrentRound.TabIndex = 5;
             this.lblCurrentRound.Text = "1/5";
             // 
@@ -567,7 +566,7 @@
             this.lblRoomCodeTitle.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblRoomCodeTitle.Location = new System.Drawing.Point(15, 15);
             this.lblRoomCodeTitle.Name = "lblRoomCodeTitle";
-            this.lblRoomCodeTitle.Size = new System.Drawing.Size(93, 15);
+            this.lblRoomCodeTitle.Size = new System.Drawing.Size(90, 15);
             this.lblRoomCodeTitle.TabIndex = 0;
             this.lblRoomCodeTitle.Text = "🏠 Room Code:";
             // 
@@ -578,7 +577,7 @@
             this.lblRoomCode.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(125)))), ((int)(((byte)(245)))));
             this.lblRoomCode.Location = new System.Drawing.Point(15, 35);
             this.lblRoomCode.Name = "lblRoomCode";
-            this.lblRoomCode.Size = new System.Drawing.Size(70, 21);
+            this.lblRoomCode.Size = new System.Drawing.Size(68, 21);
             this.lblRoomCode.TabIndex = 1;
             this.lblRoomCode.Text = "ABC123";
             // 
@@ -588,7 +587,7 @@
             this.lblPlayersOnline.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblPlayersOnline.Location = new System.Drawing.Point(15, 65);
             this.lblPlayersOnline.Name = "lblPlayersOnline";
-            this.lblPlayersOnline.Size = new System.Drawing.Size(103, 15);
+            this.lblPlayersOnline.Size = new System.Drawing.Size(104, 15);
             this.lblPlayersOnline.TabIndex = 2;
             this.lblPlayersOnline.Text = "👥 Players Online:";
             // 
@@ -599,7 +598,7 @@
             this.lblPlayersCount.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
             this.lblPlayersCount.Location = new System.Drawing.Point(125, 65);
             this.lblPlayersCount.Name = "lblPlayersCount";
-            this.lblPlayersCount.Size = new System.Drawing.Size(25, 19);
+            this.lblPlayersCount.Size = new System.Drawing.Size(31, 19);
             this.lblPlayersCount.TabIndex = 3;
             this.lblPlayersCount.Text = "3/8";
             // 
@@ -649,18 +648,19 @@
             // 
             // statusStripGame
             // 
+            this.statusStripGame.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStripGame.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel});
-            this.statusStripGame.Location = new System.Drawing.Point(0, 690);
+            this.statusStripGame.Location = new System.Drawing.Point(0, 681);
             this.statusStripGame.Name = "statusStripGame";
-            this.statusStripGame.Size = new System.Drawing.Size(1300, 22);
+            this.statusStripGame.Size = new System.Drawing.Size(1354, 22);
             this.statusStripGame.TabIndex = 12;
             this.statusStripGame.Text = "statusStrip1";
             // 
             // toolStripStatusLabel
             // 
             this.toolStripStatusLabel.Name = "toolStripStatusLabel";
-            this.toolStripStatusLabel.Size = new System.Drawing.Size(118, 17);
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(113, 17);
             this.toolStripStatusLabel.Text = "DrawMaster - Ready";
             // 
             // lblGameStatus
@@ -670,7 +670,7 @@
             this.lblGameStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(125)))), ((int)(((byte)(245)))));
             this.lblGameStatus.Location = new System.Drawing.Point(740, 695);
             this.lblGameStatus.Name = "lblGameStatus";
-            this.lblGameStatus.Size = new System.Drawing.Size(211, 21);
+            this.lblGameStatus.Size = new System.Drawing.Size(221, 21);
             this.lblGameStatus.TabIndex = 13;
             this.lblGameStatus.Text = "Waiting for players to join...";
             // 
@@ -682,7 +682,7 @@
             this.panelTopBar.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelTopBar.Location = new System.Drawing.Point(0, 0);
             this.panelTopBar.Name = "panelTopBar";
-            this.panelTopBar.Size = new System.Drawing.Size(1300, 70);
+            this.panelTopBar.Size = new System.Drawing.Size(1354, 70);
             this.panelTopBar.TabIndex = 14;
             // 
             // lblRoomTitle
@@ -692,7 +692,7 @@
             this.lblRoomTitle.ForeColor = System.Drawing.Color.White;
             this.lblRoomTitle.Location = new System.Drawing.Point(740, 25);
             this.lblRoomTitle.Name = "lblRoomTitle";
-            this.lblRoomTitle.Size = new System.Drawing.Size(264, 25);
+            this.lblRoomTitle.Size = new System.Drawing.Size(255, 25);
             this.lblRoomTitle.TabIndex = 1;
             this.lblRoomTitle.Text = "🎮 Multiplayer Game Room";
             // 
@@ -701,7 +701,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
-            this.ClientSize = new System.Drawing.Size(1300, 712);
+            this.ClientSize = new System.Drawing.Size(1354, 703);
             this.Controls.Add(this.panelTopBar);
             this.Controls.Add(this.lblGameStatus);
             this.Controls.Add(this.statusStripGame);
@@ -742,6 +742,7 @@
             this.panelTopBar.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
 
         #endregion

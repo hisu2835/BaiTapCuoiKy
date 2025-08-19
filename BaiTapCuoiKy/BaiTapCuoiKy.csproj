@@ -52,6 +52,13 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Form1Extensions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GameEffects.cs" />
+    <Compile Include="GameViewControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -66,9 +73,15 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RoomCreationDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameViewControl.resx">
+      <DependentUpon>GameViewControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -79,23 +92,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="BUILD_SUMMARY.md" />
-    <None Include="DRAWING_GUESSING_SUMMARY.md" />
-    <None Include="DRAWMASTER_COMPLETE_SYSTEM.md" />
-    <None Include="DRAWMASTER_COMPLETION_SUMMARY.md" />
-    <None Include="DRAWMASTER_GAME_DESIGN.md" />
-    <None Include="ENHANCED_DRAWING_GUESSING_INTERFACE.md" />
-    <None Include="ENHANCED_GAME_INTERFACE.md" />
-    <None Include="ENHANCED_GAME_TEST_GUIDE.md" />
-    <None Include="FORM1_DESIGNER_FIX_COMPLETE.md" />
-    <None Include="GAME_INTERFACE_DESIGN.md" />
-    <None Include="GAME_INTERFACE_FIX.md" />
-    <None Include="INITIAL_SCREEN_FEATURE.md" />
-    <None Include="LOGIN_FLOW_FIX.md" />
-    <None Include="LOGIN_REGISTRATION_COMPLETE.md" />
-    <None Include="MULTIPLAYER_DRAWING_COMPLETE.md" />
-    <None Include="MULTIPLAYER_DRAWING_GAME.md" />
-    <None Include="NETWORK_PROGRAMMING_PLATFORM.md" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -105,9 +101,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="ROOM_CREATION_GAME_INTERFACE.md" />
-    <None Include="ROOM_CREATION_TEST_GUIDE.md" />
-    <None Include="WAITING_ROOM_SIMPLIFIED.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

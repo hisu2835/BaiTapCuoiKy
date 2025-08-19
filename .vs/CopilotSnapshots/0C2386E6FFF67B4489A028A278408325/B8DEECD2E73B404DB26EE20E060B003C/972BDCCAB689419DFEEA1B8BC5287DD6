@@ -1,0 +1,871 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    /// <summary>
+    /// 🎨 Enhanced UI Components cho DrawMaster Premium
+    /// Tạo ra các control với diện mạo đẹp và hiệu ứng đặc biệt
+    /// </summary>
+    public static class EnhancedUIComponents
+    {
+        #region Enhanced Drawing Canvas
+
+        /// <summary>
+        /// Tạo canvas vẽ với hiệu ứng đặc biệt
+        /// </summary>
+        public class SpectacularDrawingCanvas : Panel
+        {
+            private bool _isGlowing = false;
+            private Color _glowColor = Color.FromArgb(100, 0, 150, 255);
+            private Timer _glowTimer;
+            private float _glowIntensity = 0;
+
+            public bool IsGlowing
+            {
+                get => _isGlowing;
+                set
+                {
+                    _isGlowing = value;
+                    if (value)
+                        StartGlowEffect();
+                    else
+                        StopGlowEffect();
+                }
+            }
+
+            public Color GlowColor
+            {
+                get => _glowColor;
+                set => _glowColor = value;
+            }
+
+            public SpectacularDrawingCanvas()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                BackColor = Color.White;
+            }
+
+            private void StartGlowEffect()
+            {
+                _glowTimer?.Stop();
+                _glowTimer = new Timer { Interval = 50 };
+                _glowTimer.Tick += (s, e) =>
+                {
+                    _glowIntensity += 0.1f;
+                    if (_glowIntensity > 1.0f) _glowIntensity = 0f;
+                    Invalidate();
+                };
+                _glowTimer.Start();
+            }
+
+            private void StopGlowEffect()
+            {
+                _glowTimer?.Stop();
+                _glowIntensity = 0;
+                Invalidate();
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                
+                if (_isGlowing)
+                {
+                    DrawGlowBorder(e.Graphics);
+                }
+                
+                DrawCanvasBorder(e.Graphics);
+            }
+
+            private void DrawGlowBorder(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                var alpha = (int)(100 * _glowIntensity);
+                var glowSize = (int)(10 * _glowIntensity);
+                
+                for (int i = glowSize; i > 0; i--)
+                {
+                    var glowAlpha = (int)(alpha * (1.0 - (double)i / glowSize));
+                    var glowColor = Color.FromArgb(glowAlpha, _glowColor);
+                    
+                    using (var pen = new Pen(glowColor, i))
+                    {
+                        g.DrawRectangle(pen, -i/2, -i/2, Width + i, Height + i);
+                    }
+                }
+            }
+
+            private void DrawCanvasBorder(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                
+                // Gradient border
+                using (var borderBrush = new LinearGradientBrush(
+                    new Rectangle(0, 0, Width, Height),
+                    Color.FromArgb(200, 100, 100, 100),
+                    Color.FromArgb(100, 150, 150, 150),
+                    LinearGradientMode.Diagonal))
+                {
+                    using (var pen = new Pen(borderBrush, 3))
+                    {
+                        g.DrawRectangle(pen, 1, 1, Width - 3, Height - 3);
+                    }
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _glowTimer?.Stop();
+                    _glowTimer?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
+
+        #endregion
+
+        #region Enhanced Leaderboard
+
+        /// <summary>
+        /// Bảng xếp hạng với animation và hiệu ứng đẹp
+        /// </summary>
+        public class AnimatedLeaderboard : Panel
+        {
+            private List<PlayerRankItem> _players = new List<PlayerRankItem>();
+            private Timer _animationTimer;
+            private float _animationTime = 0;
+
+            public class PlayerRankItem
+            {
+                public string Name { get; set; }
+                public int Score { get; set; }
+                public Color Color { get; set; }
+                public Image Avatar { get; set; }
+                public float AnimationOffset { get; set; }
+                public bool IsDrawing { get; set; }
+            }
+
+            public AnimatedLeaderboard()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                BackColor = Color.Transparent;
+                
+                _animationTimer = new Timer { Interval = 50 };
+                _animationTimer.Tick += (s, e) =>
+                {
+                    _animationTime += 0.1f;
+                    Invalidate();
+                };
+                _animationTimer.Start();
+            }
+
+            public void UpdatePlayers(List<PlayerRankItem> players)
+            {
+                _players = players.OrderByDescending(p => p.Score).ToList();
+                Invalidate();
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                DrawLeaderboard(e.Graphics);
+            }
+
+            private void DrawLeaderboard(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+                // Background
+                using (var bgBrush = new LinearGradientBrush(
+                    ClientRectangle,
+                    Color.FromArgb(240, 248, 255),
+                    Color.FromArgb(230, 238, 255),
+                    LinearGradientMode.Vertical))
+                {
+                    g.FillRoundedRectangle(bgBrush, ClientRectangle, 10);
+                }
+
+                // Title
+                using (var titleFont = new Font("Segoe UI", 14, FontStyle.Bold))
+                {
+                    var titleRect = new Rectangle(0, 10, Width, 30);
+                    GameEffects.DrawGradientText(g, "🏆 LEADERBOARD", titleFont, titleRect,
+                        Color.FromArgb(30, 64, 175), Color.FromArgb(59, 130, 246));
+                }
+
+                // Player entries
+                var entryHeight = 40;
+                var startY = 50;
+
+                for (int i = 0; i < Math.Min(_players.Count, 8); i++)
+                {
+                    var player = _players[i];
+                    var yPos = startY + i * entryHeight;
+                    
+                    // Animation offset
+                    var bounce = GameEffects.CalculateBounce(_animationTime + i * 0.2f, 2);
+                    yPos += (int)bounce;
+
+                    DrawPlayerEntry(g, player, i + 1, new Rectangle(10, yPos, Width - 20, entryHeight - 5));
+                }
+
+                // Border
+                using (var borderPen = new Pen(Color.FromArgb(59, 130, 246), 2))
+                {
+                    g.DrawRoundedRectangle(borderPen, 1, 1, Width - 3, Height - 3, 10);
+                }
+            }
+
+            private void DrawPlayerEntry(Graphics g, PlayerRankItem player, int rank, Rectangle bounds)
+            {
+                // Background for current entry
+                var bgColor = player.IsDrawing ? 
+                    Color.FromArgb(220, 252, 231) : // Green for drawing player
+                    Color.FromArgb(255, 255, 255);   // White for others
+
+                if (rank <= 3)
+                {
+                    // Special colors for top 3
+                    bgColor = rank switch
+                    {
+                        1 => Color.FromArgb(255, 215, 0, 50),   // Gold
+                        2 => Color.FromArgb(192, 192, 192, 50), // Silver  
+                        3 => Color.FromArgb(205, 127, 50, 50),  // Bronze
+                        _ => bgColor
+                    };
+                }
+
+                using (var bgBrush = new SolidBrush(bgColor))
+                {
+                    g.FillRoundedRectangle(bgBrush, bounds, 5);
+                }
+
+                // Rank circle
+                var rankSize = 25;
+                var rankRect = new Rectangle(bounds.X + 5, bounds.Y + (bounds.Height - rankSize) / 2, rankSize, rankSize);
+                
+                var rankColor = rank switch
+                {
+                    1 => Color.Gold,
+                    2 => Color.Silver,
+                    3 => Color.FromArgb(205, 127, 50),
+                    _ => Color.FromArgb(100, 100, 100)
+                };
+
+                using (var rankBrush = new SolidBrush(rankColor))
+                {
+                    g.FillEllipse(rankBrush, rankRect);
+                }
+
+                using (var rankFont = new Font("Segoe UI", 10, FontStyle.Bold))
+                using (var rankTextBrush = new SolidBrush(Color.White))
+                {
+                    var rankText = rank.ToString();
+                    var textSize = g.MeasureString(rankText, rankFont);
+                    var textPos = new PointF(
+                        rankRect.X + (rankRect.Width - textSize.Width) / 2,
+                        rankRect.Y + (rankRect.Height - textSize.Height) / 2
+                    );
+                    g.DrawString(rankText, rankFont, rankTextBrush, textPos);
+                }
+
+                // Avatar
+                if (player.Avatar != null)
+                {
+                    var avatarSize = 30;
+                    var avatarRect = new Rectangle(bounds.X + 40, bounds.Y + (bounds.Height - avatarSize) / 2, avatarSize, avatarSize);
+                    g.DrawImage(player.Avatar, avatarRect);
+                }
+
+                // Player name
+                using (var nameFont = new Font("Segoe UI", 11, FontStyle.Bold))
+                using (var nameBrush = new SolidBrush(Color.FromArgb(50, 50, 50)))
+                {
+                    var nameRect = new Rectangle(bounds.X + 80, bounds.Y + 5, bounds.Width - 150, 20);
+                    g.DrawString(player.Name, nameFont, nameBrush, nameRect);
+                }
+
+                // Score
+                using (var scoreFont = new Font("Segoe UI", 10, FontStyle.Bold))
+                using (var scoreBrush = new SolidBrush(Color.FromArgb(100, 100, 100)))
+                {
+                    var scoreText = $"{player.Score} pts";
+                    var scoreRect = new Rectangle(bounds.X + 80, bounds.Y + 22, bounds.Width - 150, 15);
+                    g.DrawString(scoreText, scoreFont, scoreBrush, scoreRect);
+                }
+
+                // Drawing indicator
+                if (player.IsDrawing)
+                {
+                    using (var drawingBrush = new SolidBrush(Color.FromArgb(34, 197, 94)))
+                    using (var drawingFont = new Font("Segoe UI", 9, FontStyle.Bold))
+                    {
+                        var indicatorRect = new Rectangle(bounds.Right - 60, bounds.Y + (bounds.Height - 20) / 2, 50, 20);
+                        g.FillRoundedRectangle(drawingBrush, indicatorRect, 10);
+                        
+                        using (var textBrush = new SolidBrush(Color.White))
+                        {
+                            g.DrawString("🎨", drawingFont, textBrush, indicatorRect.X + 15, indicatorRect.Y + 2);
+                        }
+                    }
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _animationTimer?.Stop();
+                    _animationTimer?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
+
+        #endregion
+
+        #region Enhanced Chat Box
+
+        /// <summary>
+        /// Chat box với animation và hiệu ứng đặc biệt
+        /// </summary>
+        public class SpectacularChatBox : Panel
+        {
+            private List<ChatMessage> _messages = new List<ChatMessage>();
+            private Timer _animationTimer;
+            private VScrollBar _scrollBar;
+
+            public class ChatMessage
+            {
+                public string Sender { get; set; }
+                public string Message { get; set; }
+                public DateTime Timestamp { get; set; }
+                public Color SenderColor { get; set; }
+                public MessageType Type { get; set; }
+                public float AnimationProgress { get; set; } = 0;
+            }
+
+            public enum MessageType
+            {
+                Normal,
+                System,
+                Success,
+                Warning,
+                Guess
+            }
+
+            public SpectacularChatBox()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                BackColor = Color.White;
+                
+                _scrollBar = new VScrollBar
+                {
+                    Dock = DockStyle.Right,
+                    Width = 20
+                };
+                Controls.Add(_scrollBar);
+                
+                _animationTimer = new Timer { Interval = 50 };
+                _animationTimer.Tick += (s, e) =>
+                {
+                    bool needsUpdate = false;
+                    foreach (var message in _messages)
+                    {
+                        if (message.AnimationProgress < 1.0f)
+                        {
+                            message.AnimationProgress += 0.1f;
+                            needsUpdate = true;
+                        }
+                    }
+                    if (needsUpdate) Invalidate();
+                };
+                _animationTimer.Start();
+            }
+
+            public void AddMessage(string sender, string message, MessageType type = MessageType.Normal)
+            {
+                var chatMessage = new ChatMessage
+                {
+                    Sender = sender,
+                    Message = message,
+                    Timestamp = DateTime.Now,
+                    Type = type,
+                    SenderColor = GetSenderColor(sender, type),
+                    AnimationProgress = 0
+                };
+
+                _messages.Add(chatMessage);
+                
+                // Keep only last 50 messages
+                if (_messages.Count > 50)
+                {
+                    _messages.RemoveAt(0);
+                }
+
+                Invalidate();
+                ScrollToBottom();
+            }
+
+            private Color GetSenderColor(string sender, MessageType type)
+            {
+                return type switch
+                {
+                    MessageType.System => Color.FromArgb(108, 117, 125),
+                    MessageType.Success => Color.FromArgb(40, 167, 69),
+                    MessageType.Warning => Color.FromArgb(255, 193, 7),
+                    MessageType.Guess => Color.FromArgb(0, 123, 255),
+                    _ => Color.FromArgb(sender.GetHashCode())
+                };
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                DrawChat(e.Graphics);
+            }
+
+            private void DrawChat(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+                // Background
+                using (var bgBrush = new LinearGradientBrush(
+                    ClientRectangle,
+                    Color.FromArgb(248, 249, 250),
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    g.FillRectangle(bgBrush, ClientRectangle);
+                }
+
+                // Messages
+                var messageHeight = 25;
+                var y = 10;
+                var chatWidth = Width - _scrollBar.Width - 20;
+
+                foreach (var message in _messages)
+                {
+                    if (y > Height) break;
+
+                    var messageRect = new Rectangle(10, y, chatWidth, messageHeight);
+                    DrawChatMessage(g, message, messageRect);
+                    y += messageHeight + 5;
+                }
+
+                // Border
+                using (var borderPen = new Pen(Color.FromArgb(220, 220, 220), 1))
+                {
+                    g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+                }
+            }
+
+            private void DrawChatMessage(Graphics g, ChatMessage message, Rectangle bounds)
+            {
+                // Animation effect
+                var alpha = (int)(255 * message.AnimationProgress);
+                var slideOffset = (int)((1 - message.AnimationProgress) * 20);
+
+                var animatedBounds = new Rectangle(
+                    bounds.X - slideOffset, bounds.Y,
+                    bounds.Width, bounds.Height);
+
+                // Message background based on type
+                Color bgColor = message.Type switch
+                {
+                    MessageType.System => Color.FromArgb(alpha / 4, 108, 117, 125),
+                    MessageType.Success => Color.FromArgb(alpha / 4, 40, 167, 69),
+                    MessageType.Warning => Color.FromArgb(alpha / 4, 255, 193, 7),
+                    MessageType.Guess => Color.FromArgb(alpha / 4, 0, 123, 255),
+                    _ => Color.Transparent
+                };
+
+                if (bgColor != Color.Transparent)
+                {
+                    using (var bgBrush = new SolidBrush(bgColor))
+                    {
+                        g.FillRoundedRectangle(bgBrush, animatedBounds, 5);
+                    }
+                }
+
+                // Timestamp
+                using (var timeFont = new Font("Segoe UI", 8))
+                using (var timeBrush = new SolidBrush(Color.FromArgb(alpha, 150, 150, 150)))
+                {
+                    var timeText = message.Timestamp.ToString("HH:mm");
+                    g.DrawString(timeText, timeFont, timeBrush, animatedBounds.X, animatedBounds.Y);
+                }
+
+                // Sender name
+                using (var senderFont = new Font("Segoe UI", 9, FontStyle.Bold))
+                using (var senderBrush = new SolidBrush(Color.FromArgb(alpha, message.SenderColor)))
+                {
+                    var senderX = animatedBounds.X + 40;
+                    g.DrawString(message.Sender + ":", senderFont, senderBrush, senderX, animatedBounds.Y);
+                }
+
+                // Message text
+                using (var messageFont = new Font("Segoe UI", 9))
+                using (var messageBrush = new SolidBrush(Color.FromArgb(alpha, 50, 50, 50)))
+                {
+                    var messageX = animatedBounds.X + 40 + message.Sender.Length * 7;
+                    g.DrawString(message.Message, messageFont, messageBrush, messageX, animatedBounds.Y);
+                }
+            }
+
+            private void ScrollToBottom()
+            {
+                // Implement scrolling logic
+                _scrollBar.Value = _scrollBar.Maximum;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _animationTimer?.Stop();
+                    _animationTimer?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
+
+        #endregion
+
+        #region Enhanced Tool Palette
+
+        /// <summary>
+        /// Bảng công cụ vẽ với hiệu ứng đẹp
+        /// </summary>
+        public class SpectacularToolPalette : Panel
+        {
+            private List<ToolButton> _tools = new List<ToolButton>();
+            private ToolButton _selectedTool;
+
+            public class ToolButton
+            {
+                public string Name { get; set; }
+                public string Icon { get; set; }
+                public Color Color { get; set; }
+                public Rectangle Bounds { get; set; }
+                public bool IsSelected { get; set; }
+                public Action ClickAction { get; set; }
+            }
+
+            public SpectacularToolPalette()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                BackColor = Color.Transparent;
+                
+                InitializeTools();
+            }
+
+            private void InitializeTools()
+            {
+                _tools.AddRange(new[]
+                {
+                    new ToolButton { Name = "Pencil", Icon = "✏️", Color = Color.FromArgb(45, 125, 245) },
+                    new ToolButton { Name = "Eraser", Icon = "🧽", Color = Color.FromArgb(220, 53, 69) },
+                    new ToolButton { Name = "Brush", Icon = "🖌️", Color = Color.FromArgb(40, 167, 69) },
+                    new ToolButton { Name = "Spray", Icon = "💨", Color = Color.FromArgb(255, 193, 7) }
+                });
+
+                // Color palette
+                var colors = new[] 
+                { 
+                    Color.Black, Color.Red, Color.Blue, Color.Green, 
+                    Color.Yellow, Color.Purple, Color.Orange, Color.Pink 
+                };
+
+                foreach (var color in colors)
+                {
+                    _tools.Add(new ToolButton 
+                    { 
+                        Name = $"Color", 
+                        Icon = "⬛", 
+                        Color = color 
+                    });
+                }
+
+                LayoutTools();
+            }
+
+            private void LayoutTools()
+            {
+                var toolSize = 40;
+                var margin = 5;
+                var x = margin;
+                var y = margin;
+
+                for (int i = 0; i < _tools.Count; i++)
+                {
+                    _tools[i].Bounds = new Rectangle(x, y, toolSize, toolSize);
+                    
+                    x += toolSize + margin;
+                    if (x + toolSize > Width)
+                    {
+                        x = margin;
+                        y += toolSize + margin;
+                    }
+                }
+
+                Height = y + toolSize + margin;
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                DrawToolPalette(e.Graphics);
+            }
+
+            private void DrawToolPalette(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Background
+                using (var bgBrush = new LinearGradientBrush(
+                    ClientRectangle,
+                    Color.FromArgb(240, 240, 240),
+                    Color.FromArgb(250, 250, 250),
+                    LinearGradientMode.Vertical))
+                {
+                    g.FillRoundedRectangle(bgBrush, ClientRectangle, 10);
+                }
+
+                // Tools
+                foreach (var tool in _tools)
+                {
+                    DrawTool(g, tool);
+                }
+
+                // Border
+                using (var borderPen = new Pen(Color.FromArgb(200, 200, 200), 1))
+                {
+                    g.DrawRoundedRectangle(borderPen, 0, 0, Width - 1, Height - 1, 10);
+                }
+            }
+
+            private void DrawTool(Graphics g, ToolButton tool)
+            {
+                var bounds = tool.Bounds;
+
+                // Tool background
+                if (tool.IsSelected)
+                {
+                    GameEffects.Draw3DButton(g, bounds, tool.Color, true);
+                }
+                else
+                {
+                    GameEffects.Draw3DButton(g, bounds, tool.Color, false);
+                }
+
+                // Tool icon/color
+                if (tool.Name == "Color")
+                {
+                    using (var colorBrush = new SolidBrush(tool.Color))
+                    {
+                        var colorRect = new Rectangle(bounds.X + 8, bounds.Y + 8, bounds.Width - 16, bounds.Height - 16);
+                        g.FillRoundedRectangle(colorBrush, colorRect, 5);
+                        
+                        using (var borderPen = new Pen(Color.Gray, 1))
+                        {
+                            g.DrawRoundedRectangle(borderPen, colorRect, 5);
+                        }
+                    }
+                }
+                else
+                {
+                    // Icon
+                    using (var iconFont = new Font("Segoe UI Emoji", 16))
+                    using (var iconBrush = new SolidBrush(Color.White))
+                    {
+                        var iconSize = g.MeasureString(tool.Icon, iconFont);
+                        var iconPos = new PointF(
+                            bounds.X + (bounds.Width - iconSize.Width) / 2,
+                            bounds.Y + (bounds.Height - iconSize.Height) / 2
+                        );
+                        g.DrawString(tool.Icon, iconFont, iconBrush, iconPos);
+                    }
+                }
+            }
+
+            protected override void OnMouseClick(MouseEventArgs e)
+            {
+                base.OnMouseClick(e);
+
+                foreach (var tool in _tools)
+                {
+                    if (tool.Bounds.Contains(e.Location))
+                    {
+                        SelectTool(tool);
+                        tool.ClickAction?.Invoke();
+                        break;
+                    }
+                }
+            }
+
+            private void SelectTool(ToolButton tool)
+            {
+                if (_selectedTool != null)
+                    _selectedTool.IsSelected = false;
+
+                _selectedTool = tool;
+                tool.IsSelected = true;
+                Invalidate();
+            }
+
+            public void SetSelectedTool(string toolName)
+            {
+                var tool = _tools.FirstOrDefault(t => t.Name == toolName);
+                if (tool != null)
+                    SelectTool(tool);
+            }
+        }
+
+        #endregion
+
+        #region Enhanced Progress Bars
+
+        /// <summary>
+        /// Progress bar với hiệu ứng đẹp
+        /// </summary>
+        public class SpectacularProgressBar : Control
+        {
+            private int _value = 0;
+            private int _maximum = 100;
+            private Color _progressColor = Color.FromArgb(59, 130, 246);
+            private Timer _animationTimer;
+            private float _animationValue = 0;
+
+            public int Value
+            {
+                get => _value;
+                set
+                {
+                    _value = Math.Max(0, Math.Min(_maximum, value));
+                    Invalidate();
+                }
+            }
+
+            public int Maximum
+            {
+                get => _maximum;
+                set => _maximum = Math.Max(1, value);
+            }
+
+            public Color ProgressColor
+            {
+                get => _progressColor;
+                set
+                {
+                    _progressColor = value;
+                    Invalidate();
+                }
+            }
+
+            public SpectacularProgressBar()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+                Height = 25;
+                
+                _animationTimer = new Timer { Interval = 50 };
+                _animationTimer.Tick += (s, e) =>
+                {
+                    var targetValue = (float)_value / _maximum;
+                    _animationValue += (targetValue - _animationValue) * 0.1f;
+                    Invalidate();
+                };
+                _animationTimer.Start();
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                DrawProgressBar(e.Graphics);
+            }
+
+            private void DrawProgressBar(Graphics g)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Background
+                using (var bgBrush = new LinearGradientBrush(
+                    ClientRectangle,
+                    Color.FromArgb(240, 240, 240),
+                    Color.FromArgb(220, 220, 220),
+                    LinearGradientMode.Vertical))
+                {
+                    g.FillRoundedRectangle(bgBrush, ClientRectangle, Height / 2);
+                }
+
+                // Progress
+                var progressWidth = (int)(Width * _animationValue);
+                if (progressWidth > 0)
+                {
+                    var progressRect = new Rectangle(0, 0, progressWidth, Height);
+                    
+                    using (var progressBrush = new LinearGradientBrush(
+                        progressRect,
+                        GameEffects.LightenColor(_progressColor, 0.3f),
+                        _progressColor,
+                        LinearGradientMode.Vertical))
+                    {
+                        g.FillRoundedRectangle(progressBrush, progressRect, Height / 2);
+                    }
+
+                    // Shine effect
+                    var shineRect = new Rectangle(0, 0, progressWidth, Height / 2);
+                    using (var shineBrush = new LinearGradientBrush(
+                        shineRect,
+                        Color.FromArgb(100, 255, 255, 255),
+                        Color.Transparent,
+                        LinearGradientMode.Vertical))
+                    {
+                        g.FillRoundedRectangle(shineBrush, shineRect, Height / 2);
+                    }
+                }
+
+                // Border
+                using (var borderPen = new Pen(Color.FromArgb(180, 180, 180), 1))
+                {
+                    g.DrawRoundedRectangle(borderPen, 0, 0, Width - 1, Height - 1, Height / 2);
+                }
+
+                // Text
+                using (var font = new Font("Segoe UI", 9, FontStyle.Bold))
+                using (var textBrush = new SolidBrush(Color.FromArgb(80, 80, 80)))
+                {
+                    var text = $"{_value}/{_maximum}";
+                    var textSize = g.MeasureString(text, font);
+                    var textPos = new PointF(
+                        (Width - textSize.Width) / 2,
+                        (Height - textSize.Height) / 2
+                    );
+                    g.DrawString(text, font, textBrush, textPos);
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _animationTimer?.Stop();
+                    _animationTimer?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
+
+        #endregion
+    }
+}
