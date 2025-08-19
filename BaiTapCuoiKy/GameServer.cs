@@ -1,0 +1,152 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    public class GameServer
+    {
+        private TcpListener _listener;
+        private readonly List<TcpClient> _clients = new List<TcpClient>();
+        private readonly int _port;
+        private bool _isRunning = false;
+
+        public event Action<string> ServerLog;
+        public event Action<TcpClient, NetworkData> DataReceived;
+
+        public GameServer(int port)
+        {
+            _port = port;
+        }
+
+        public void Start()
+        {
+            try
+            {
+                _listener = new TcpListener(IPAddress.Any, _port);
+                _listener.Start();
+                _isRunning = true;
+                ServerLog?.Invoke($"Server started on port {_port}. Waiting for connections...");
+                Task.Run(() => ListenForClients());
+            }
+            catch (Exception ex)
+            {
+                ServerLog?.Invoke($"Error starting server: {ex.Message}");
+            }
+        }
+
+        private async Task ListenForClients()
+        {
+            while (_isRunning)
+            {
+                try
+                {
+                    TcpClient client = await _listener.AcceptTcpClientAsync();
+                    lock (_clients)
+                    {
+                        _clients.Add(client);
+                    }
+                    ServerLog?.Invoke($"New client connected: {((IPEndPoint)client.Client.RemoteEndPoint).Address}");
+                    Task.Run(() => HandleClient(client));
+                }
+                catch (Exception ex)
+                {
+                    if (_isRunning)
+                        ServerLog?.Invoke($"Error accepting client: {ex.Message}");
+                }
+            }
+        }
+
+        private async Task HandleClient(TcpClient client)
+        {
+            NetworkStream stream = client.GetStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+
+            while (_isRunning && client.Connected)
+            {
+                try
+                {
+                    bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead == 0)
+                    {
+                        // Client disconnected
+                        break;
+                    }
+
+                    byte[] receivedBytes = new byte[bytesRead];
+                    Array.Copy(buffer, receivedBytes, bytesRead);
+                    NetworkData data = NetworkData.FromBytes(receivedBytes);
+
+                    DataReceived?.Invoke(client, data);
+                }
+                catch (Exception)
+                {
+                    // Handle exceptions, e.g., client disconnected abruptly
+                    break;
+                }
+            }
+
+            RemoveClient(client);
+        }
+
+        public async Task BroadcastAsync(NetworkData data, TcpClient excludeClient = null)
+        {
+            byte[] bytesToSend = data.ToBytes();
+            List<TcpClient> clientsCopy;
+            lock (_clients)
+            {
+                clientsCopy = new List<TcpClient>(_clients);
+            }
+
+            foreach (var client in clientsCopy)
+            {
+                if (client != excludeClient && client.Connected)
+                {
+                    try
+                    {
+                        NetworkStream stream = client.GetStream();
+                        await stream.WriteAsync(bytesToSend, 0, bytesToSend.Length);
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerLog?.Invoke($"Error broadcasting to client: {ex.Message}");
+                        // Optionally remove client if broadcast fails
+                        RemoveClient(client);
+                    }
+                }
+            }
+        }
+
+        private void RemoveClient(TcpClient client)
+        {
+            lock (_clients)
+            {
+                if (_clients.Contains(client))
+                {
+                    _clients.Remove(client);
+                    ServerLog?.Invoke("Client disconnected.");
+                }
+            }
+            client.Close();
+        }
+
+        public void Stop()
+        {
+            _isRunning = false;
+            _listener?.Stop();
+            lock (_clients)
+            {
+                foreach (var client in _clients)
+                {
+                    client.Close();
+                }
+                _clients.Clear();
+            }
+            ServerLog?.Invoke("Server stopped.");
+        }
+    }
+}

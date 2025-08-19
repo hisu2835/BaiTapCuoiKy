@@ -1,0 +1,80 @@
+﻿using System;
+using System.Drawing;
+
+namespace BaiTapCuoiKy
+{
+    /// <summary>
+    /// Enum để xác định loại tin nhắn được gửi qua mạng.
+    /// </summary>
+    [Serializable]
+    public enum Command
+    {
+        Login,          // Gửi thông tin khi một người chơi mới kết nối
+        PlayerList,     // Gửi danh sách tất cả người chơi hiện tại
+        Message,        // Gửi một tin nhắn chat
+        Draw,           // Gửi dữ liệu nét vẽ
+        ClearCanvas,    // Yêu cầu xóa bảng vẽ
+        StartGame,      // Bắt đầu game
+        StartRound,     // Bắt đầu một vòng mới
+        WordToGuess,    // Gửi từ cần đoán (cho người vẽ) hoặc các dấu gạch (cho người đoán)
+        Guess,          // Gửi một lượt đoán từ
+        CorrectGuess,   // Thông báo có người đoán đúng
+        UpdateScore,    // Cập nhật điểm số
+        TimeUpdate,     // Cập nhật thời gian còn lại
+        EndOfRound,     // Thông báo kết thúc vòng
+        EndOfGame,      // Thông báo kết thúc game
+        Disconnect      // Thông báo một người chơi đã ngắt kết nối
+    }
+
+    /// <summary>
+    /// Lớp cơ sở để đóng gói dữ liệu gửi đi. Mọi dữ liệu gửi qua mạng sẽ kế thừa từ lớp này.
+    /// </summary>
+    [Serializable]
+    public class NetworkData
+    {
+        public Command Command { get; set; }
+        public string SenderName { get; set; }
+        public object Payload { get; set; } // Dữ liệu chính, có thể là bất kỳ kiểu gì
+
+        public NetworkData(Command command, string senderName, object payload = null)
+        {
+            Command = command;
+            SenderName = senderName;
+            Payload = payload;
+        }
+
+        // Chuyển đổi đối tượng NetworkData thành một mảng byte để gửi đi
+        public byte[] ToBytes()
+        {
+            using (var ms = new System.IO.MemoryStream())
+            {
+                var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                formatter.Serialize(ms, this);
+                return ms.ToArray();
+            }
+        }
+
+        // Chuyển đổi một mảng byte nhận được thành đối tượng NetworkData
+        public static NetworkData FromBytes(byte[] bytes)
+        {
+            using (var ms = new System.IO.MemoryStream(bytes))
+            {
+                var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                return (NetworkData)formatter.Deserialize(ms);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Dữ liệu cho nét vẽ.
+    /// </summary>
+    [Serializable]
+    public class DrawPayload
+    {
+        public Point StartPoint { get; set; }
+        public Point EndPoint { get; set; }
+        public Color PenColor { get; set; }
+        public int PenWidth { get; set; }
+        public bool IsEraser { get; set; }
+    }
+}

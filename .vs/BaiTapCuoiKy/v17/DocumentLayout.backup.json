@@ -3,16 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|c:\\users\\nitro\\source\\repos\\baitapcuoiky\\baitapcuoiky\\baitapcuoiky\\gameviewcontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\gameviewcontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\form1.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}",
       "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\form1.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|c:\\users\\nitro\\source\\repos\\baitapcuoiky\\baitapcuoiky\\baitapcuoiky\\gameviewcontrol.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\gameviewcontrol.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\gameviewcontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\gameviewcontrol.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\form1extensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -37,10 +45,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
       "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -93,6 +97,18 @@
     {
       "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\properties\\settings.settings||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\properties\\settings.settings||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|c:\\users\\nitro\\source\\repos\\baitapcuoiky\\baitapcuoiky\\baitapcuoiky\\networkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\networkdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|c:\\users\\nitro\\source\\repos\\baitapcuoiky\\baitapcuoiky\\baitapcuoiky\\gameserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\gameserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|c:\\users\\nitro\\source\\repos\\baitapcuoiky\\baitapcuoiky\\baitapcuoiky\\gameclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\gameclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -102,23 +118,62 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Form1Extensions.cs",
-              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1Extensions.cs",
-              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1Extensions.cs",
-              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1Extensions.cs",
-              "RelativeToolTip": "BaiTapCuoiKy\\Form1Extensions.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAIAAAAAAAAAA==",
+              "DocumentIndex": 26,
+              "Title": "GameClient.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameClient.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\GameClient.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameClient.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\GameClient.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T15:57:34.589Z"
+              "WhenOpened": "2025-08-19T11:23:54.621Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 25,
+              "Title": "GameServer.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameServer.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\GameServer.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameServer.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\GameServer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-19T11:23:41.353Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "NetworkData.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkData.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkData.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkData.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\NetworkData.cs",
+              "ViewState": "AgIAAEsAAAAAAAAAAGBiwFAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-19T11:23:25.198Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "GameViewControl.resx",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameViewControl.resx",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\GameViewControl.resx",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameViewControl.resx",
+              "RelativeToolTip": "BaiTapCuoiKy\\GameViewControl.resx",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
+              "WhenOpened": "2025-08-19T11:00:25.415Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "LoginForm.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\LoginForm.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\LoginForm.cs",
@@ -126,30 +181,7 @@
               "RelativeToolTip": "BaiTapCuoiKy\\LoginForm.cs",
               "ViewState": "AgIAAAUCAAAAAAAAAAAswEoCAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-15T13:52:37.876Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Form1.cs [Design]",
-              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs",
-              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.cs",
-              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs [Design]",
-              "RelativeToolTip": "BaiTapCuoiKy\\Form1.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-17T08:41:55.59Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "GameViewControl.cs",
-              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameViewControl.cs",
-              "RelativeDocumentMoniker": "BaiTapCuoiKy\\GameViewControl.cs",
-              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameViewControl.cs",
-              "RelativeToolTip": "BaiTapCuoiKy\\GameViewControl.cs",
-              "ViewState": "AgIAACkDAAAAAAAAAAApwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T15:16:55.541Z",
+              "WhenOpened": "2025-08-15T13:52:37.876Z",
               "EditorCaption": ""
             },
             {
@@ -161,11 +193,12 @@
               "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.resx",
               "RelativeToolTip": "BaiTapCuoiKy\\Form1.resx",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
-              "WhenOpened": "2025-08-17T07:55:10.22Z"
+              "WhenOpened": "2025-08-17T07:55:10.22Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "GameEffects.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameEffects.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\GameEffects.cs",
@@ -177,7 +210,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "App.config",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\App.config",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\App.config",
@@ -189,19 +222,57 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Form1.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.cs",
               "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs",
               "RelativeToolTip": "BaiTapCuoiKy\\Form1.cs",
-              "ViewState": "AgIAAKcBAAAAAAAAAADwv8UBAAAyAAAAAAAAAA==",
+              "ViewState": "AgIAAAsGAAAAAAAAAAAowMwBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-13T14:15:29.378Z"
+              "WhenOpened": "2025-08-13T14:15:29.378Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "GameViewControl.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameViewControl.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\GameViewControl.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameViewControl.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\GameViewControl.cs",
+              "ViewState": "AgIAACkDAAAAAAAAAAApwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-18T15:16:55.541Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Form1.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs [Design]",
+              "RelativeToolTip": "BaiTapCuoiKy\\Form1.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-17T08:41:55.59Z",
+              "EditorCaption": " [Design]"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
+              "Title": "Form1Extensions.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1Extensions.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1Extensions.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1Extensions.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\Form1Extensions.cs",
+              "ViewState": "AgIAAJgBAAAAAAAAAIBZwHsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-18T15:57:34.589Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "GameViewControl.cs [Design]",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\GameViewControl.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\GameViewControl.cs",
@@ -212,7 +283,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "Form1.Designer.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.Designer.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.Designer.cs",
@@ -220,11 +291,12 @@
               "RelativeToolTip": "BaiTapCuoiKy\\Form1.Designer.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-13T14:13:39.3Z"
+              "WhenOpened": "2025-08-13T14:13:39.3Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Program.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\Program.cs",
@@ -236,7 +308,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "RoomCreationDialog.cs [Design]",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\RoomCreationDialog.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\RoomCreationDialog.cs",
@@ -247,18 +319,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "LoginForm.cs [Design]",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\LoginForm.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\LoginForm.cs",
               "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\LoginForm.cs [Design]",
               "RelativeToolTip": "BaiTapCuoiKy\\LoginForm.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-17T08:35:55.322Z"
+              "WhenOpened": "2025-08-17T08:35:55.322Z",
+              "EditorCaption": " [Design]"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "NetworkControls2.cs [Design]",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls2.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls2.cs",
@@ -269,7 +342,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "NetworkControls.cs [Design]",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls.cs",
@@ -280,7 +353,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "RoomCreationDialog.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\RoomCreationDialog.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\RoomCreationDialog.cs",
@@ -292,7 +365,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "NetworkControls3.cs [Design]",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls3.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls3.cs",
@@ -303,7 +376,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "NetworkControls.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls.cs",
@@ -315,7 +388,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "Form1.resx",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.resx",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.resx",
@@ -323,11 +396,12 @@
               "RelativeToolTip": "BaiTapCuoiKy\\Form1.resx",
               "ViewState": "AgIAADwAAAAAAAAAAAAAAEUAAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
-              "WhenOpened": "2025-08-13T15:32:47.472Z"
+              "WhenOpened": "2025-08-13T15:32:47.472Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "NetworkControls2.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls2.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls2.cs",
@@ -339,7 +413,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "Settings.Designer.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Properties\\Settings.Designer.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\Properties\\Settings.Designer.cs",
@@ -351,7 +425,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "Settings.settings",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Properties\\Settings.settings",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\Properties\\Settings.settings",
@@ -363,7 +437,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "NetworkControls3.cs",
               "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkControls3.cs",
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkControls3.cs",

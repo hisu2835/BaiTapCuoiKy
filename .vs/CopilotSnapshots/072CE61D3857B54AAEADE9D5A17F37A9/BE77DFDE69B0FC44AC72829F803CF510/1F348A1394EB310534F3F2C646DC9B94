@@ -1335,12 +1335,21 @@ namespace BaiTapCuoiKy
 
         private void CreateLobbyInterface()
         {
-            this.Controls.Clear();
+            // Không Clear toàn bộ controls để tránh mất giao diện Designer
+            // this.Controls.Clear();
+            // if (!this.Controls.Contains(statusStripGame))
+            // {
+            //     this.Controls.Add(statusStripGame);
+            // }
             
+            // Update status bar
+            // toolStripStatusLabel.Text = $"🏠 Lobby - Phòng {currentRoomCode} - Chờ người chơi...";
+
             // Main lobby panel
             lobbyPanel = new Panel
             {
-                Dock = DockStyle.Fill,
+                Size = new Size(1300, 700),
+                Location = new Point(25, 25),
                 BackColor = Color.Transparent,
                 BorderStyle = BorderStyle.None
             };
@@ -1368,204 +1377,6 @@ namespace BaiTapCuoiKy
             // Send login message to server
             var loginData = new NetworkData(Command.Login, currentUser, connectedPlayers.FirstOrDefault(p => p.Name == currentUser));
             gameClient?.SendDataAsync(loginData);
-        }
-
-        #endregion
-
-        #region UI Creation Helpers (Moved from Extensions)
-
-        private Button CreateSpectacularButton(string text, Point location, Size size, Color color)
-        {
-            var btn = new Button
-            {
-                Text = text,
-                Location = location,
-                Size = size,
-                BackColor = color,
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand
-            };
-            btn.FlatAppearance.BorderSize = 0;
-            btn.MouseEnter += (s, e) => btn.BackColor = GameEffects.LightenColor(color, 0.15f);
-            btn.MouseLeave += (s, e) => btn.BackColor = color;
-            return btn;
-        }
-
-        private void CreateSpectacularUserStatsPanel()
-        {
-            gameStatsPanel = new Panel
-            {
-                Location = new Point(150, 230),
-                Size = new Size(600, 150),
-                BackColor = Color.FromArgb(100, 255, 255, 255),
-                BorderStyle = BorderStyle.None,
-            };
-
-            userStatsLabel = new Label
-            {
-                Text = "Loading stats...",
-                Font = new Font("Segoe UI", 14, FontStyle.Regular),
-                ForeColor = currentTheme.Text,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent
-            };
-            gameStatsPanel.Controls.Add(userStatsLabel);
-            LoadUserStats();
-        }
-
-        private void SetupJoinRoomSection()
-        {
-            roomCodeLabel = new Label
-            {
-                Text = "Hoặc nhập mã phòng để tham gia:",
-                Font = new Font("Segoe UI", 12, FontStyle.Regular),
-                ForeColor = currentTheme.Text,
-                Location = new Point(450, 450),
-                Size = new Size(300, 30),
-                BackColor = Color.Transparent
-            };
-
-            roomCodeTextBox = new TextBox
-            {
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                Location = new Point(450, 480),
-                Size = new Size(200, 35)
-            };
-
-            joinRoomButton = CreateSpectacularButton(
-                "🚀 THAM GIA",
-                new Point(660, 478),
-                new Size(140, 40),
-                currentTheme.Accent
-            );
-            joinRoomButton.Click += JoinRoomButton_Click;
-        }
-
-        private void SetupWelcomeAnimation()
-        {
-            // Animation logic can be placed here if needed
-        }
-
-        private void CreateLobbyHeader()
-        {
-            var headerPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 60,
-                BackColor = currentTheme.Primary
-            };
-
-            var titleLabel = new Label
-            {
-                Text = $"LOBBY - PHÒNG: {currentRoomCode}",
-                Font = new Font("Segoe UI", 20, FontStyle.Bold),
-                ForeColor = Color.White,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-            headerPanel.Controls.Add(titleLabel);
-            lobbyPanel.Controls.Add(headerPanel);
-        }
-
-        private void CreateLobbyMainContent()
-        {
-            // Main content panel
-            var contentPanel = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(20)
-            };
-            lobbyPanel.Controls.Add(contentPanel);
-
-            // Players List
-            var playersGroup = new GroupBox
-            {
-                Text = "👥 Người chơi trong phòng",
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                Dock = DockStyle.Left,
-                Width = 400
-            };
-            listViewLobbyPlayers = new ListView
-            {
-                View = View.Details,
-                Dock = DockStyle.Fill,
-                Font = new Font("Segoe UI", 10),
-                FullRowSelect = true
-            };
-            listViewLobbyPlayers.Columns.Add("#", 40);
-            listViewLobbyPlayers.Columns.Add("Tên người chơi", 180);
-            listViewLobbyPlayers.Columns.Add("Vai trò", 80);
-            listViewLobbyPlayers.Columns.Add("Trạng thái", 80);
-            playersGroup.Controls.Add(listViewLobbyPlayers);
-            contentPanel.Controls.Add(playersGroup);
-
-            // Spacer
-            var spacer = new Panel { Dock = DockStyle.Left, Width = 20 };
-            contentPanel.Controls.Add(spacer);
-
-            // Chat
-            var chatGroup = new GroupBox
-            {
-                Text = "💬 Chat sảnh chờ",
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                Dock = DockStyle.Fill
-            };
-            panelLobbyChat = new Panel { Dock = DockStyle.Fill, Padding = new Padding(5) };
-            listBoxLobbyChat = new ListBox { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10) };
-            txtLobbyChat = new TextBox { Dock = DockStyle.Bottom, Font = new Font("Segoe UI", 10) };
-            txtLobbyChat.KeyPress += TxtLobbyChat_KeyPress;
-            btnSendLobbyChat = new Button { Text = "Gửi", Dock = DockStyle.Right };
-            btnSendLobbyChat.Click += BtnSendLobbyChat_Click;
-            
-            var inputPanel = new Panel { Dock = DockStyle.Bottom, Height = 30 };
-            inputPanel.Controls.Add(btnSendLobbyChat);
-            inputPanel.Controls.Add(txtLobbyChat);
-
-            panelLobbyChat.Controls.Add(listBoxLobbyChat);
-            panelLobbyChat.Controls.Add(inputPanel);
-            chatGroup.Controls.Add(panelLobbyChat);
-            contentPanel.Controls.Add(chatGroup);
-        }
-
-        private void CreateLobbyControls()
-        {
-            var controlsPanel = new Panel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 80,
-                Padding = new Padding(20)
-            };
-
-            btnLeaveLobby = CreateSpectacularButton("🚪 Rời Lobby", new Point(20, 15), new Size(150, 50), Color.FromArgb(220, 53, 69));
-            btnLeaveLobby.Click += BtnLeaveLobby_Click;
-
-            btnInvitePlayers = CreateSpectacularButton("📧 Mời bạn bè", new Point(190, 15), new Size(180, 50), currentTheme.Accent);
-            btnInvitePlayers.Click += BtnInvitePlayers_Click;
-
-            btnStartGameLobby = CreateSpectacularButton("🎮 BẮT ĐẦU GAME", new Point(lobbyPanel.Width - 220, 15), new Size(200, 50), Color.FromArgb(40, 167, 69));
-            btnStartGameLobby.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnStartGameLobby.Click += BtnStartGameLobby_Click;
-            btnStartGameLobby.Enabled = false;
-
-            lblLobbyStatus = new Label
-            {
-                Text = "Đang chờ người chơi...",
-                Font = new Font("Segoe UI", 11, FontStyle.Bold),
-                ForeColor = Color.OrangeRed,
-                Location = new Point(390, 25),
-                Size = new Size(400, 30)
-            };
-
-            controlsPanel.Controls.AddRange(new Control[] { btnLeaveLobby, btnInvitePlayers, lblLobbyStatus, btnStartGameLobby });
-            lobbyPanel.Controls.Add(controlsPanel);
-        }
-
-        private void SetupLobbyAnimation()
-        {
-            // Animation logic can be placed here if needed
         }
 
         #endregion

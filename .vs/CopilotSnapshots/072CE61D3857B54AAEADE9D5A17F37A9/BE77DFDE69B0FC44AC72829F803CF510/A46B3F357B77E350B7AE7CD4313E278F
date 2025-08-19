@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace BaiTapCuoiKy
 {
-    // Partial class ch?a c�c method c�n thi?u cho Form1
+    // Partial class chứa các method còn thiếu cho Form1
     public partial class Form1
     {
-        // B? sung tr?ng th�i cho g?i � gi?a hi?p
-        private int roundDurationTotal; // t?ng th?i gian c?a v�ng hi?n t?i
-        private bool halfHintShown;     // ?� hi?n th? g?i � gi?a th?i gian ch?a
-        private bool isSpectator = false; // Tr?ng th�i xem
-        private Button btnSpectateMode; // N�t ?? b?t/t?t ch? ?? xem
+        // Bổ sung trạng thái cho gợi ý giữa hiệp
+        private int roundDurationTotal; // tổng thời gian của vòng hiện tại
+        private bool halfHintShown;     // đã hiển thị gợi ý giữa thời gian chưa
+        private bool isSpectator = false; // Trạng thái xem
+        private Button btnSpectateMode; // Nút để bật/tắt chế độ xem
 
         #region TransitionToGame and Game Logic
 
@@ -49,7 +49,7 @@ namespace BaiTapCuoiKy
                 this.WindowState = FormWindowState.Normal;
                 this.Size = new Size(1400, 800);
                 this.StartPosition = FormStartPosition.CenterScreen;
-                this.Text = $"DrawMaster - Ph�ng {currentRoomCode}";
+                this.Text = $"DrawMaster - Phòng {currentRoomCode}";
                 this.BackColor = Color.FromArgb(248, 249, 250);
 
                 // Create and show embedded game view
@@ -84,19 +84,19 @@ namespace BaiTapCuoiKy
                 // Initialize game timer
                 SetupGameTimer();
 
-                // Welcome messages (ti?ng Vi?t)
-                gameView.AddChat($"Ch�o m?ng ??n ph�ng {currentRoomCode}!");
-                gameView.AddChat("Nh?n 'B?t ??u' ?? v�o l??t v? v� ch?i!");
+                // Welcome messages (tiếng Việt)
+                gameView.AddChat($"Chào mừng đến phòng {currentRoomCode}!");
+                gameView.AddChat("Nhấn 'Bắt đầu' để vào lượt vẽ và chơi!");
                 gameView.SetRoundInfo("- - - - -", gameTimeLeft, currentRound, maxRounds);
 
                 // Update leaderboard with current players
                 UpdateGameViewLeaderboard();
 
-                // toolStripStatusLabel.Text = $"DrawMaster - Ph�ng {currentRoomCode} - S?n s�ng ch?i!";
+                // toolStripStatusLabel.Text = $"DrawMaster - Phòng {currentRoomCode} - Sẵn sàng chơi!";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"L?i khi chuy?n sang giao di?n game: {ex.Message}", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi chuyển sang giao diện game: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -138,7 +138,7 @@ namespace BaiTapCuoiKy
         private void HandleTimeUp()
         {
             gameTimer.Stop();
-            gameView?.AddChat("? H?t gi?!");
+            gameView?.AddChat("⏰ Hết giờ!");
             EndDrawingTurn();
         }
 
@@ -170,13 +170,13 @@ namespace BaiTapCuoiKy
             roundDurationTotal = 60;
             halfHintShown = false;
             gameView?.SetRoundInfo("B_N_N_", gameTimeLeft, currentRound, maxRounds);
-            gameView?.AddChat("M?t ng??i ch?i kh�c ?ang v?...");
+            gameView?.AddChat("Một người chơi khác đang vẽ...");
             gameTimer.Start();
         }
 
         private void EndGame()
         {
-            gameView?.AddChat("?? Tr� ch?i k?t th�c! C?m ?n ?� ch?i!");
+            gameView?.AddChat("🎉 Trò chơi kết thúc! Cảm ơn đã chơi!");
             // Show final scores, etc.
         }
 
@@ -197,7 +197,7 @@ namespace BaiTapCuoiKy
                     rank: index + 1,
                     player: p.Name,
                     score: p.Score,
-                    status: p.IsDrawing ? "?ang v?" : (p.Name == currentUser ? "B?n" : "?ang ?o�n")
+                    status: p.IsDrawing ? "Đang vẽ" : (p.Name == currentUser ? "Bạn" : "Đang đoán")
                 )).ToArray();
             gameView?.SetLeaderboard(leaderboardData);
         }
@@ -211,8 +211,8 @@ namespace BaiTapCuoiKy
         private void GameView_LeaveRequested(object sender, EventArgs e)
         {
             var result = MessageBox.Show(
-                "B?n c� ch?c ch?n mu?n r?i ph�ng kh�ng?",
-                "R?i ph�ng",
+                "Bạn có chắc chắn muốn rời phòng không?",
+                "Rời phòng",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );
@@ -226,8 +226,8 @@ namespace BaiTapCuoiKy
         private void GameView_BackLobbyRequested(object sender, EventArgs e)
         {
             var result = MessageBox.Show(
-                "Quay l?i s?nh ch?? L??t ch?i hi?n t?i s? k?t th�c.",
-                "V? Lobby",
+                "Quay lại sảnh chờ? Lượt chơi hiện tại sẽ kết thúc.",
+                "Về Lobby",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );
@@ -265,7 +265,7 @@ namespace BaiTapCuoiKy
             }
             catch (Exception ex)
             {
-                gameView?.AddChat($"? L?i g?i tin nh?n: {ex.Message}");
+                gameView?.AddChat($"❌ Lỗi gửi tin nhắn: {ex.Message}");
             }
         }
 
@@ -277,7 +277,7 @@ namespace BaiTapCuoiKy
         {
             if (gameView == null) return;
 
-            string statusMessage = isPlayerDrawing ? "B?n ?ang v?..." : "B?n ?ang ?o�n...";
+            string statusMessage = isPlayerDrawing ? "Bạn đang vẽ..." : "Bạn đang đoán...";
             gameView.AddChat(statusMessage);
         }
 
@@ -288,13 +288,13 @@ namespace BaiTapCuoiKy
 
             if (isSpectator)
             {
-                gameView?.AddChat("??? B?n ?ang ? ch? ?? xem. Kh�ng th? t??ng t�c trong tr� ch?i.");
-                // btnSpectateMode.Text = "?? Tho�t ch? ?? xem";
+                gameView?.AddChat("👁️ Bạn đang ở chế độ xem. Không thể tương tác trong trò chơi.");
+                // btnSpectateMode.Text = "➡️ Thoát chế độ xem";
             }
             else
             {
-                gameView?.AddChat("? B?n ?� tho�t ch? ?? xem. Ch�o m?ng tr? l?i tr� ch?i!");
-                // btnSpectateMode.Text = "?? Xem ch? ?? xem";
+                gameView?.AddChat("✅ Bạn đã thoát chế độ xem. Chào mừng trở lại trò chơi!");
+                // btnSpectateMode.Text = "👀 Xem chế độ xem";
             }
         }
 
@@ -306,7 +306,7 @@ namespace BaiTapCuoiKy
             
             // Disable drawing tools, chat input, etc.
             // gameView.SetDrawingToolsEnabled(canInteract);
-            gameView.SetAnswerInputEnabled(canInteract, isSpectator ? "Ch? ?? xem" : "");
+            gameView.SetAnswerInputEnabled(canInteract, isSpectator ? "Chế độ xem" : "");
 
             if (isPlayerDrawing && isSpectator)
             {
@@ -338,7 +338,7 @@ namespace BaiTapCuoiKy
                         var player = connectedPlayers[i];
                         var item = new ListViewItem((i + 1).ToString());
                         item.SubItems.Add(player.Name);
-                        item.SubItems.Add(player.Name == currentUser ? "?? Host" : "?? Player");
+                        item.SubItems.Add(player.Name == currentUser ? "👑 Host" : "👤 Player");
                         item.SubItems.Add(player.IsOnline ? "Online" : "Offline");
 
                         if (player.Name == currentUser)
@@ -354,13 +354,13 @@ namespace BaiTapCuoiKy
                 {
                     if (connectedPlayers.Count >= 2)
                     {
-                        lblLobbyStatus.Text = "?? ?? ng??i ch?i - C� th? b?t ??u game!";
+                        lblLobbyStatus.Text = "👍 Đủ người chơi - Có thể bắt đầu game!";
                         lblLobbyStatus.ForeColor = Color.FromArgb(40, 167, 69);
                         if (btnStartGameLobby != null) btnStartGameLobby.Enabled = true;
                     }
                     else
                     {
-                        lblLobbyStatus.Text = "? C?n th�m ng??i ch?i ?? b?t ??u...";
+                        lblLobbyStatus.Text = "⏳ Cần thêm người chơi để bắt đầu...";
                         lblLobbyStatus.ForeColor = Color.FromArgb(255, 140, 0);
                         if (btnStartGameLobby != null) btnStartGameLobby.Enabled = false;
                     }
@@ -368,7 +368,7 @@ namespace BaiTapCuoiKy
 
                 if (listBoxLobbyChat != null && listBoxLobbyChat.Items.Count == 0)
                 {
-                    AddLobbyMessage("System", $"?? Ch�o m?ng ??n lobby ph�ng {currentRoomCode}!");
+                    AddLobbyMessage("System", $"👋 Chào mừng đến lobby phòng {currentRoomCode}!");
                 }
             }
             catch (Exception ex)
