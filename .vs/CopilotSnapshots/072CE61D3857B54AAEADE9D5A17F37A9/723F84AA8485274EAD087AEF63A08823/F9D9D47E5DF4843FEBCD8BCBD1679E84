@@ -1096,7 +1096,7 @@ namespace BaiTapCuoiKy
             // Hide all game-related controls initially
             // HideAllGameControls(); // Obsolete
 
-            // Remove lobbyPanel if any
+            // G dismantle lobbyPanel if any
             if (lobbyPanel != null)
             {
                 this.Controls.Remove(lobbyPanel);
@@ -1104,7 +1104,9 @@ namespace BaiTapCuoiKy
                 lobbyPanel = null;
             }
 
-            // Remove welcomePanel if any
+            // G 
+
+reat new welcome panel if any
             if (welcomePanel != null)
             {
                 this.Controls.Remove(welcomePanel);

@@ -109,6 +109,10 @@
     {
       "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\gameclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\gameclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\baitapcuoiky\\networkmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7277F01F-34CB-459E-9523-2FF88D12033F}|BaiTapCuoiKy\\BaiTapCuoiKy.csproj|solutionrelative:baitapcuoiky\\networkmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -210,9 +214,22 @@
               "RelativeDocumentMoniker": "BaiTapCuoiKy\\Form1.cs",
               "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\Form1.cs",
               "RelativeToolTip": "BaiTapCuoiKy\\Form1.cs",
-              "ViewState": "AgIAAAsGAAAAAAAAAAAowBQGAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAACYGAAAAAAAAAAAlwDcGAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-13T14:15:29.378Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "NetworkManager.cs",
+              "DocumentMoniker": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkManager.cs",
+              "RelativeDocumentMoniker": "BaiTapCuoiKy\\NetworkManager.cs",
+              "ToolTip": "C:\\Users\\NITRO\\source\\repos\\BaiTapCuoiKy\\BaiTapCuoiKy\\BaiTapCuoiKy\\NetworkManager.cs",
+              "RelativeToolTip": "BaiTapCuoiKy\\NetworkManager.cs",
+              "ViewState": "AgIAAEsAAAAAAAAAAEBVwE8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-19T11:57:55.559Z",
               "EditorCaption": ""
             },
             {

@@ -494,7 +494,7 @@ namespace BaiTapCuoiKy
 
         #region Event Handlers
 
-        private async void CreateRoomButton_Click(object sender, EventArgs e)
+        private void CreateRoomButton_Click(object sender, EventArgs e)
         {
             try
             {
@@ -588,7 +588,7 @@ namespace BaiTapCuoiKy
             });
         }
 
-        private async void LogoutButton_Click(object sender, EventArgs e)
+        private void LogoutButton_Click(object sender, EventArgs e)
         {
             var result = MessageBox.Show(
                 "Bạn có chắc chắn muốn đăng xuất không?",
@@ -1096,7 +1096,7 @@ namespace BaiTapCuoiKy
             // Hide all game-related controls initially
             // HideAllGameControls(); // Obsolete
 
-            // Remove lobbyPanel if any
+            // Gỡ lobbyPanel nếu còn
             if (lobbyPanel != null)
             {
                 this.Controls.Remove(lobbyPanel);
@@ -1104,7 +1104,7 @@ namespace BaiTapCuoiKy
                 lobbyPanel = null;
             }
 
-            // Remove welcomePanel if any
+            // Gỡ welcomePanel cũ nếu còn để tạo mới
             if (welcomePanel != null)
             {
                 this.Controls.Remove(welcomePanel);
