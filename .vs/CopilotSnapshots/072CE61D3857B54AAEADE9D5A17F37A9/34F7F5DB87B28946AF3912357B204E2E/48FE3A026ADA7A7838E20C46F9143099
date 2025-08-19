@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -38,7 +38,7 @@ namespace BaiTapCuoiKy
 
         // NEW: Chat with two-column layout
         private GroupBox groupChat;
-        // Left column - TR? L?I (Answer)
+        // Left column - TRẢ LỜI (Answer)
         private Panel pnlAnswer;
         private Label lblAnswerHeader;
         private ListBox lbAnswer;
@@ -46,7 +46,7 @@ namespace BaiTapCuoiKy
         private Button btnAnswerSend;
         private Label lblAnswerWaiting;
         
-        // Right column - TR� CHUY?N (Chat)
+        // Right column - TRÒ CHUYỆN (Chat)
         private Panel pnlChatRight;
         private Label lblChatHeader;
         private ListBox lbChat;
@@ -122,12 +122,12 @@ namespace BaiTapCuoiKy
             // Setup answer textbox
             if (txtAnswer != null)
             {
-                txtAnswer.Text = "?ang ch?...";
+                txtAnswer.Text = "Đang chờ...";
                 txtAnswer.ForeColor = Color.Gray;
                 
                 txtAnswer.Enter += (s, e) =>
                 {
-                    if (txtAnswer.Text == "?ang ch?...")
+                    if (txtAnswer.Text == "Đang chờ...")
                     {
                         txtAnswer.Text = "";
                         txtAnswer.ForeColor = Color.Black;
@@ -138,7 +138,7 @@ namespace BaiTapCuoiKy
                 {
                     if (string.IsNullOrWhiteSpace(txtAnswer.Text))
                     {
-                        txtAnswer.Text = "?ang ch?...";
+                        txtAnswer.Text = "Đang chờ...";
                         txtAnswer.ForeColor = Color.Gray;
                     }
                 };
@@ -156,12 +156,12 @@ namespace BaiTapCuoiKy
             // Setup chat textbox
             if (txtChat != null)
             {
-                txtChat.Text = "Chat ? ?�y...";
+                txtChat.Text = "Chat ở đây...";
                 txtChat.ForeColor = Color.Gray;
                 
                 txtChat.Enter += (s, e) =>
                 {
-                    if (txtChat.Text == "Chat ? ?�y...")
+                    if (txtChat.Text == "Chat ở đây...")
                     {
                         txtChat.Text = "";
                         txtChat.ForeColor = Color.Black;
@@ -172,7 +172,7 @@ namespace BaiTapCuoiKy
                 {
                     if (string.IsNullOrWhiteSpace(txtChat.Text))
                     {
-                        txtChat.Text = "Chat ? ?�y...";
+                        txtChat.Text = "Chat ở đây...";
                         txtChat.ForeColor = Color.Gray;
                     }
                 };
@@ -184,13 +184,13 @@ namespace BaiTapCuoiKy
         private void SubmitAnswer()
         {
             var text = txtAnswer.Text.Trim();
-            if (!string.IsNullOrWhiteSpace(text) && text != "?ang ch?...")
+            if (!string.IsNullOrWhiteSpace(text) && text != "Đang chờ...")
             {
                 // Raise both events for compatibility
                 AnswerSubmitted?.Invoke(text);
                 MessageSubmitted?.Invoke(text);
                 
-                txtAnswer.Text = "?ang ch?...";
+                txtAnswer.Text = "Đang chờ...";
                 txtAnswer.ForeColor = Color.Gray;
             }
         }
@@ -211,7 +211,7 @@ namespace BaiTapCuoiKy
             };
             lblHeader = new Label
             {
-                Text = "?? DRAWMASTER - PH�NG TR� CH?I",
+                Text = "🎨 DRAWMASTER - PHÒNG TRÒ CHƠI",
                 ForeColor = Color.White,
                 AutoSize = false,
                 Dock = DockStyle.Fill,
@@ -255,8 +255,8 @@ namespace BaiTapCuoiKy
                 BorderStyle = BorderStyle.FixedSingle,
                 BackColor = Color.FromArgb(250, 252, 255)
             };
-            btnPencil = new Button { Text = "?? B�t", Size = new Size(80, 30) };
-            btnEraser = new Button { Text = "?? T?y", Size = new Size(80, 28) };
+            btnPencil = new Button { Text = "✏️ Bút", Size = new Size(80, 30) };
+            btnEraser = new Button { Text = "🧽 Tẩy", Size = new Size(80, 28) };
             btnPencil.Click += (s, e) => { 
                 _eraser = false; 
                 btnPencil.BackColor = Color.LightSkyBlue; 
@@ -275,14 +275,14 @@ namespace BaiTapCuoiKy
             btnCGreen = MakeColorButton(Color.ForestGreen, Point.Empty);
             btnCYellow= MakeColorButton(Color.Gold, Point.Empty);
 
-            lblColor = new Label { Text = "?? M�u:", AutoSize = true };
+            lblColor = new Label { Text = "🎨 Màu:", AutoSize = true };
             panelSelectedColor = new Panel { BackColor = _currentColor, Size = new Size(24, 24), BorderStyle = BorderStyle.FixedSingle };
 
-            lblBrush = new Label { Text = "?? K�ch th??c:", AutoSize = true };
+            lblBrush = new Label { Text = "📏 Kích thước:", AutoSize = true };
             trackBrush = new TrackBar { Minimum = 1, Maximum = 30, Value = _brushSize, TickStyle = TickStyle.None, Width = 180 };
             trackBrush.ValueChanged += (s, e) => _brushSize = trackBrush.Value;
 
-            btnClear = new Button { Text = "??? X�a t?t c?", Size = new Size(80, 36), BackColor = Color.IndianRed, ForeColor = Color.White };
+            btnClear = new Button { Text = "🗑️ Xóa tất cả", Size = new Size(80, 36), BackColor = Color.IndianRed, ForeColor = Color.White };
             btnClear.Click += (s, e) => { if (_g != null) { _g.Clear(Color.White); panelDrawing.Invalidate(); } };
 
             panelTools.Controls.AddRange(new Control[] {
@@ -294,7 +294,7 @@ namespace BaiTapCuoiKy
             // Leaderboard
             groupLeaderboard = new GroupBox
             {
-                Text = "?? B?ng x?p h?ng",
+                Text = "🏆 Bảng xếp hạng",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold)
             };
             lvLeaderboard = new ListView
@@ -305,9 +305,9 @@ namespace BaiTapCuoiKy
                 Font = new Font("Segoe UI", 9)
             };
             colRank = new ColumnHeader { Text = "#", Width = 30 };
-            colPlayer = new ColumnHeader { Text = "Ng??i ch?i", Width = 120 };
-            colScore = new ColumnHeader { Text = "?i?m", Width = 60 };
-            colStatus = new ColumnHeader { Text = "Tr?ng th�i", Width = 80 };
+            colPlayer = new ColumnHeader { Text = "Người chơi", Width = 120 };
+            colScore = new ColumnHeader { Text = "Điểm", Width = 60 };
+            colStatus = new ColumnHeader { Text = "Trạng thái", Width = 80 };
             lvLeaderboard.Columns.AddRange(new[] { colRank, colPlayer, colScore, colStatus });
             groupLeaderboard.Controls.Add(lvLeaderboard);
             Controls.Add(groupLeaderboard);
@@ -319,12 +319,12 @@ namespace BaiTapCuoiKy
                 Font = new Font("Segoe UI", 10, FontStyle.Bold)
             };
             
-            // Left panel - Answer (TR? L?I)
+            // Left panel - Answer (TRẢ LỜI)
             pnlAnswer = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.None };
             
             lblAnswerHeader = new Label
             {
-                Text = "TR? L?I",
+                Text = "TRẢ LỜI",
                 BackColor = Color.FromArgb(25, 55, 155),
                 ForeColor = Color.White,
                 TextAlign = ContentAlignment.MiddleCenter,
@@ -335,7 +335,7 @@ namespace BaiTapCuoiKy
             
             lblAnswerWaiting = new Label
             {
-                Text = "?? ?ang ch? ng??i ch?i",
+                Text = "ℹ️ Đang chờ người chơi",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9),
                 ForeColor = Color.RoyalBlue
@@ -351,12 +351,12 @@ namespace BaiTapCuoiKy
             {
                 Font = new Font("Segoe UI", 10),
                 BorderStyle = BorderStyle.FixedSingle,
-                Text = "?ang ch?..."
+                Text = "Đang chờ..."
             };
             
             btnAnswerSend = new Button
             {
-                Text = "G?i",
+                Text = "Gửi",
                 BackColor = Color.FromArgb(46, 204, 113),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -367,12 +367,12 @@ namespace BaiTapCuoiKy
             
             pnlAnswer.Controls.AddRange(new Control[] { lblAnswerHeader, lblAnswerWaiting, lbAnswer, txtAnswer, btnAnswerSend });
             
-            // Right panel - Chat (TR� CHUY?N)
+            // Right panel - Chat (TRÒ CHUYỆN)
             pnlChatRight = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.None };
             
             lblChatHeader = new Label
             {
-                Text = "TR� CHUY?N",
+                Text = "TRÒ CHUYỆN",
                 BackColor = Color.FromArgb(25, 55, 155),
                 ForeColor = Color.White,
                 TextAlign = ContentAlignment.MiddleCenter,
@@ -391,12 +391,12 @@ namespace BaiTapCuoiKy
             {
                 Font = new Font("Segoe UI", 10),
                 BorderStyle = BorderStyle.FixedSingle,
-                Text = "Chat ? ?�y..."
+                Text = "Chat ở đây..."
             };
             
             btnSend = new Button
             {
-                Text = "G?i",
+                Text = "Gửi",
                 BackColor = Color.FromArgb(52, 152, 219),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -406,12 +406,12 @@ namespace BaiTapCuoiKy
             btnSend.Click += (s, e) =>
             {
                 var text = txtChat.Text.Trim();
-                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ? ?�y...")
+                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ở đây...")
                 {
                     ChatSubmitted?.Invoke(text);
                     MessageSubmitted?.Invoke(text); // For compatibility
                     
-                    txtChat.Text = "Chat ? ?�y...";
+                    txtChat.Text = "Chat ở đây...";
                     txtChat.ForeColor = Color.Gray;
                 }
             };
@@ -430,31 +430,31 @@ namespace BaiTapCuoiKy
                 BorderStyle = BorderStyle.FixedSingle, 
                 SizeMode = PictureBoxSizeMode.Zoom 
             };
-            lblYou = new Label { Text = "B?n", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblYou = new Label { Text = "Bạn", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
             lblPlayerName = new Label { Text = "Player1", AutoSize = true, ForeColor = Color.RoyalBlue };
-            lblScoreTitle = new Label { Text = "?i?m s?:", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblScoreTitle = new Label { Text = "Điểm số:", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
             lblScoreValue = new Label { Text = "0", AutoSize = true, ForeColor = Color.SeaGreen };
 
-            groupRoundInfo = new GroupBox { Text = "?? Th�ng tin v�ng ch?i", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
-            lblWordTitle = new Label { Text = "T? c?n v?:", AutoSize = true };
+            groupRoundInfo = new GroupBox { Text = "🎯 Thông tin vòng chơi", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblWordTitle = new Label { Text = "Từ cần vẽ:", AutoSize = true };
             lblWord = new Label { Text = "- - - - -", AutoSize = true, ForeColor = Color.IndianRed };
-            lblTimeTitle = new Label { Text = "Th?i gian c�n l?i:", AutoSize = true };
+            lblTimeTitle = new Label { Text = "Thời gian còn lại:", AutoSize = true };
             lblTime = new Label { Text = "00:60", AutoSize = true, ForeColor = Color.IndianRed, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
-            lblRoundTitle = new Label { Text = "V�ng:", AutoSize = true };
+            lblRoundTitle = new Label { Text = "Vòng:", AutoSize = true };
             lblRound = new Label { Text = "1/5", AutoSize = true };
             progressTime = new ProgressBar { Value = 60, Maximum = 60 };
             groupRoundInfo.Controls.AddRange(new Control[] { lblWordTitle, lblWord, lblTimeTitle, lblTime, lblRoundTitle, lblRound, progressTime });
 
-            groupRoomInfo = new GroupBox { Text = "?? Th�ng tin ph�ng", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
-            lblRoomCodeTitle = new Label { Text = "M� ph�ng:", AutoSize = true };
+            groupRoomInfo = new GroupBox { Text = "🏠 Thông tin phòng", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblRoomCodeTitle = new Label { Text = "Mã phòng:", AutoSize = true };
             lblRoomCode = new Label { Text = "ABC123", AutoSize = true, ForeColor = Color.RoyalBlue, Cursor = Cursors.Hand };
             lblRoomCode.Click += (s, e) => { try { Clipboard.SetText(lblRoomCode.Text); } catch { } };
-            lblPlayersOnlineTitle = new Label { Text = "Ng??i ch?i online:", AutoSize = true };
+            lblPlayersOnlineTitle = new Label { Text = "Người chơi online:", AutoSize = true };
             lblPlayersOnline = new Label { Text = "3/8", AutoSize = true };
             groupRoomInfo.Controls.AddRange(new Control[] { lblRoomCodeTitle, lblRoomCode, lblPlayersOnlineTitle, lblPlayersOnline });
 
             btnStartGame = new Button { 
-                Text = "?? B?t ??u game", 
+                Text = "🎮 Bắt đầu game", 
                 BackColor = Color.FromArgb(46, 204, 113), 
                 ForeColor = Color.White, 
                 FlatStyle = FlatStyle.Flat,
@@ -463,7 +463,7 @@ namespace BaiTapCuoiKy
             btnStartGame.FlatAppearance.BorderSize = 0;
             
             btnLeave = new Button { 
-                Text = "?? R?i ph�ng", 
+                Text = "🚪 Rời phòng", 
                 BackColor = Color.FromArgb(231, 76, 60), 
                 ForeColor = Color.White, 
                 FlatStyle = FlatStyle.Flat,
@@ -472,7 +472,7 @@ namespace BaiTapCuoiKy
             btnLeave.FlatAppearance.BorderSize = 0;
             
             btnBackLobby = new Button { 
-                Text = "?? V? lobby", 
+                Text = "🏠 Về lobby", 
                 BackColor = Color.FromArgb(243, 156, 18), 
                 ForeColor = Color.White, 
                 FlatStyle = FlatStyle.Flat,
@@ -686,12 +686,12 @@ namespace BaiTapCuoiKy
             if (e.KeyChar == (char)Keys.Enter)
             {
                 var text = txtChat.Text.Trim();
-                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ? ?�y...")
+                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ở đây...")
                 {
                     ChatSubmitted?.Invoke(text);
                     MessageSubmitted?.Invoke(text); // For compatibility
                     
-                    txtChat.Text = "Chat ? ?�y...";
+                    txtChat.Text = "Chat ở đây...";
                     txtChat.ForeColor = Color.Gray;
                 }
                 e.Handled = true;
@@ -736,7 +736,7 @@ namespace BaiTapCuoiKy
             }
             
             lblAnswerWaiting.Visible = !enabled;
-            lblAnswerWaiting.Text = enabled ? string.Empty : "?? ?ang ch? ng??i ch?i";
+            lblAnswerWaiting.Text = enabled ? string.Empty : "ℹ️ Đang chờ người chơi";
         }
 
         public void SetRoundInfo(string word, int seconds, int round, int maxRound)
@@ -748,18 +748,18 @@ namespace BaiTapCuoiKy
             
             // If we are the drawer (word is visible), disable answering
             bool isDrawer = !string.IsNullOrEmpty(word) && word != "- - - - -";
-            SetAnswerInputEnabled(!isDrawer, isDrawer ? "B?n ?ang v?..." : "?ang ch?...");
+            SetAnswerInputEnabled(!isDrawer, isDrawer ? "Bạn đang vẽ..." : "Đang chờ...");
             
             if (lbAnswer != null)
             {
                 lbAnswer.Items.Clear();
                 if (!isDrawer)
                 {
-                    ShowAnswerStatus("?? H�y nh?p ?�p �n ? b�n d??i v� nh?n Enter");
+                    ShowAnswerStatus("ℹ️ Hãy nhập đáp án ở bên dưới và nhấn Enter");
                 }
                 else
                 {
-                    ShowAnswerStatus("?? B?n ?ang v?, kh�ng th? tr? l?i");
+                    ShowAnswerStatus("ℹ️ Bạn đang vẽ, không thể trả lời");
                 }
             }
             
@@ -787,7 +787,7 @@ namespace BaiTapCuoiKy
                 item.SubItems.Add(e.status);
                 
                 // Highlight current user and drawing player
-                if (e.status.Contains("?ang v?"))
+                if (e.status.Contains("Đang vẽ"))
                 {
                     item.BackColor = Color.FromArgb(255, 248, 220);
                     item.ForeColor = Color.FromArgb(184, 134, 11);
@@ -816,19 +816,19 @@ namespace BaiTapCuoiKy
                 // Update UI to show correct answer
                 if (playerName == PlayerName)
                 {
-                    ShowAnswerStatus($"? B?n ?� ?o�n ?�ng: {guess}!");
-                    SetAnswerInputEnabled(false, "?� ?o�n ?�ng!");
+                    ShowAnswerStatus($"✅ Bạn đã đoán đúng: {guess}!");
+                    SetAnswerInputEnabled(false, "Đã đoán đúng!");
                 }
                 
                 // Check if half the players have guessed correctly
                 int halfPlayers = Math.Max(1, totalPlayers / 2);
                 if (correctGuessers.Count >= halfPlayers)
                 {
-                    AddChat($"?? {correctGuessers.Count}/{totalPlayers} ng??i ?� ?o�n ?�ng! K?t th�c v�ng s?m!");
+                    AddChat($"🎉 {correctGuessers.Count}/{totalPlayers} người đã đoán đúng! Kết thúc vòng sớm!");
                     return true; // Signal to end round early
                 }
                 
-                AddChat($"? {playerName} ?o�n ?�ng!");
+                AddChat($"✅ {playerName} đoán đúng!");
             }
             
             return false;
