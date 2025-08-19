@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -10,10 +9,6 @@ namespace BaiTapCuoiKy
     // Partial class ch?a các method còn thi?u cho Form1
     public partial class Form1
     {
-        // B? sung tr?ng thái cho g?i ý gi?a hi?p
-        private int roundDurationTotal; // t?ng th?i gian c?a vòng hi?n t?i
-        private bool halfHintShown;     // ?ã hi?n th? g?i ý gi?a th?i gian ch?a
-
         #region TransitionToGame and Game Logic
 
         private void TransitionToGame()
@@ -39,14 +34,11 @@ namespace BaiTapCuoiKy
                     lobbyPanel = null;
                 }
 
-                // Hide all existing game controls first
-                HideAllGameControls();
-
                 // Setup form for game
                 this.WindowState = FormWindowState.Normal;
                 this.Size = new Size(1400, 800);
                 this.StartPosition = FormStartPosition.CenterScreen;
-                this.Text = $"DrawMaster - Phòng {currentRoomCode}";
+                this.Text = $"DrawMaster - Room {currentRoomCode}";
                 this.BackColor = Color.FromArgb(248, 249, 250);
 
                 // Create and show embedded game view
@@ -63,14 +55,11 @@ namespace BaiTapCuoiKy
                 gameView.PlayerName = currentUser;
                 gameView.PlayersOnline = connectedPlayers.Count;
 
-                // Connect event handlers from GameViewControl with correct signatures
+                // Connect event handlers from GameViewControl
                 gameView.StartGameRequested += GameView_StartGameRequested;
                 gameView.LeaveRequested += GameView_LeaveRequested;
                 gameView.BackLobbyRequested += GameView_BackLobbyRequested;
                 gameView.MessageSubmitted += GameView_MessageSubmitted;
-                
-                // Note: Fix the message submitted event - it should pass the message as parameter
-                // We'll handle this by creating a wrapper event or checking the GameViewControl implementation
 
                 // Add to form
                 this.Controls.Add(gameView);
@@ -82,15 +71,15 @@ namespace BaiTapCuoiKy
                 // Initialize game timer
                 SetupGameTimer();
 
-                // Welcome messages (ti?ng Vi?t)
-                gameView.AddChat($"Chào m?ng ??n phòng {currentRoomCode}!");
-                gameView.AddChat("Nh?n 'B?t ??u' ?? vào l??t v? và ch?i!");
+                // Welcome messages
+                gameView.AddChat($"?? Welcome to room {currentRoomCode}!");
+                gameView.AddChat("?? Click 'Start Game' to begin playing!");
                 gameView.SetRoundInfo("- - - - -", gameTimeLeft, currentRound, maxRounds);
 
                 // Update leaderboard with current players
                 UpdateGameViewLeaderboard();
 
-                toolStripStatusLabel.Text = $"DrawMaster - Phòng {currentRoomCode} - S?n sàng ch?i!";
+                toolStripStatusLabel.Text = $"?? DrawMaster - Room {currentRoomCode} - Ready to play!";
             }
             catch (Exception ex)
             {
@@ -103,8 +92,6 @@ namespace BaiTapCuoiKy
             currentRound = 1;
             playerScore = 0;
             gameTimeLeft = currentGameSettings?.TimePerRound ?? 60;
-            roundDurationTotal = gameTimeLeft;
-            halfHintShown = false;
             isPlayerDrawing = false;
             currentWord = "";
         }
@@ -128,21 +115,15 @@ namespace BaiTapCuoiKy
                 gameTimeLeft--;
                 gameView?.UpdateTime(gameTimeLeft);
 
-                // G?i ý khi còn n?a th?i gian cho ng??i ?oán
-                if (!halfHintShown && gameTimeLeft == roundDurationTotal / 2)
-                {
-                    ShowHalfTimeHint();
-                }
-
-                // C?nh báo khi s?p h?t gi?
+                // Warning when time is low
                 if (gameTimeLeft <= 10 && gameTimeLeft > 0)
                 {
-                    gameView?.AddChat($"C?nh báo: Còn {gameTimeLeft} giây!");
+                    gameView?.AddChat($"? Warning: {gameTimeLeft} seconds left!");
                     if (gameTimeLeft <= 5)
                         GameEffects.PlayWarningSound();
                 }
 
-                // H?t gi?
+                // Time up
                 if (gameTimeLeft <= 0)
                 {
                     gameTimer.Stop();
@@ -151,50 +132,18 @@ namespace BaiTapCuoiKy
             }
         }
 
-        private void ShowHalfTimeHint()
-        {
-            halfHintShown = true;
-
-            if (!string.IsNullOrEmpty(currentWord))
-            {
-                // T?o g?i ý: ch? cái ??u, s? ch? cái và m?t m?u ?n/hi?n
-                var word = currentWord.Trim();
-                char first = word[0];
-                int len = word.Length;
-                string pattern = BuildMaskedPattern(word);
-
-                gameView?.AddChat($"G?i ý: B?t ??u b?ng '{char.ToUpper(first)}', g?m {len} ch? cái. M?u: {pattern}");
-            }
-        }
-
-        private string BuildMaskedPattern(string word)
-        {
-            if (string.IsNullOrEmpty(word)) return string.Empty;
-            if (word.Length <= 2) return word.Substring(0, 1) + new string('_', Math.Max(0, word.Length - 1));
-
-            var chars = word.ToCharArray();
-            for (int i = 1; i < chars.Length - 1; i++)
-            {
-                if (char.IsWhiteSpace(chars[i])) continue;
-                // ng?u nhiên l? 1-2 ch? cái trong t?
-                bool reveal = (i % 3 == 0);
-                if (!reveal) chars[i] = '_';
-            }
-            return new string(chars);
-        }
-
         private void HandleTimeUp()
         {
             GameEffects.PlayErrorSound();
             
             if (isPlayerDrawing)
             {
-                gameView?.AddChat("H?t gi?! L??t v? c?a b?n ?ã k?t thúc.");
+                gameView?.AddChat("? Time's up! Your turn ended.");
                 EndDrawingTurn();
             }
             else
             {
-                gameView?.AddChat("H?t gi?! Không ai ?oán ???c t?.");
+                gameView?.AddChat("? Time's up! No one guessed the word.");
                 NextRound();
             }
         }
@@ -207,7 +156,7 @@ namespace BaiTapCuoiKy
             int pointsEarned = random.Next(10, 50);
             playerScore += pointsEarned;
             
-            gameView?.AddChat($"B?n nh?n ???c {pointsEarned} ?i?m cho l??t v?!");
+            gameView?.AddChat($"?? {currentUser} earned {pointsEarned} points for drawing!");
             
             // Update player score in connected players
             var currentPlayerInfo = connectedPlayers.FirstOrDefault(p => p.Name == currentUser);
@@ -225,7 +174,6 @@ namespace BaiTapCuoiKy
         private void NextRound()
         {
             currentRound++;
-            halfHintShown = false;
             
             if (currentRound > maxRounds)
             {
@@ -234,9 +182,8 @@ namespace BaiTapCuoiKy
             else
             {
                 gameTimeLeft = currentGameSettings?.TimePerRound ?? 60;
-                roundDurationTotal = gameTimeLeft;
                 gameView?.SetRoundInfo("- - - - -", gameTimeLeft, currentRound, maxRounds);
-                gameView?.AddChat($"Vòng {currentRound} b?t ??u! Nh?n 'B?t ??u' khi s?n sàng.");
+                gameView?.AddChat($"?? Round {currentRound} starting! Click 'Start Game' when ready.");
                 
                 // Simulate other players getting turns
                 SimulateOtherPlayerTurn();
@@ -253,56 +200,20 @@ namespace BaiTapCuoiKy
                     var nextPlayer = otherPlayers[random.Next(otherPlayers.Count)];
                     nextPlayer.IsDrawing = true;
                     
-                    gameView?.AddChat($"?? {nextPlayer.Name} ?ang v?...");
+                    gameView?.AddChat($"?? {nextPlayer.Name} is drawing now...");
                     
-                    // Simulate their drawing time and other players guessing
-                    var simulationTimer = new Timer { Interval = 3000 }; // 3 seconds simulation
-                    int guessCount = 0;
-                    
+                    // Simulate their drawing time
+                    var simulationTimer = new Timer { Interval = 5000 }; // 5 seconds simulation
                     simulationTimer.Tick += (s, e) =>
                     {
-                        guessCount++;
+                        simulationTimer.Stop();
+                        simulationTimer.Dispose();
                         
-                        if (guessCount < 3) // Simulate some guesses
-                        {
-                            var guessingPlayers = otherPlayers.Where(p => p != nextPlayer).ToList();
-                            if (guessingPlayers.Any())
-                            {
-                                var guesser = guessingPlayers[random.Next(guessingPlayers.Count)];
-                                var randomWords = new[] { "máy tính", "cây", "nhà", "m?t tr?i", "?i?n tho?i" };
-                                var guess = randomWords[random.Next(randomWords.Length)];
-                                
-                                // Simulate wrong guesses mostly, but occasionally right ones
-                                bool isCorrect = random.Next(100) < 30; // 30% chance of correct guess
-                                if (isCorrect)
-                                {
-                                    guesser.Score += random.Next(15, 35);
-                                    gameView?.AddChat($"? {guesser.Name} ?oán ?úng: {guess}!");
-                                    if (gameView != null)
-                                    {
-                                        gameView.ProcessGuess(guesser.Name, guess);
-                                    }
-                                }
-                                else
-                                {
-                                    gameView?.AddChat($"? {guesser.Name}: {guess}");
-                                }
-                                
-                                UpdateGameViewLeaderboard();
-                            }
-                        }
-                        else
-                        {
-                            // End simulation
-                            simulationTimer.Stop();
-                            simulationTimer.Dispose();
-                            
-                            nextPlayer.IsDrawing = false;
-                            nextPlayer.Score += random.Next(20, 80);
-                            
-                            gameView?.AddChat($"? {nextPlayer.Name} ?ã hoàn thành l??t v?!");
-                            UpdateGameViewLeaderboard();
-                        }
+                        nextPlayer.IsDrawing = false;
+                        nextPlayer.Score += random.Next(20, 80);
+                        
+                        gameView?.AddChat($"? {nextPlayer.Name} finished drawing!");
+                        UpdateGameViewLeaderboard();
                     };
                     simulationTimer.Start();
                 }
@@ -317,10 +228,10 @@ namespace BaiTapCuoiKy
             var isWinner = winner.Name == currentUser;
             
             var endMessage = isWinner 
-                ? $"Chúc m?ng! B?n th?ng v?i {winner.Score} ?i?m!" 
-                : $"K?t thúc game! Ng??i th?ng: {winner.Name} v?i {winner.Score} ?i?m. ?i?m c?a b?n: {playerScore}.";
+                ? $"?? Congratulations! You won with {winner.Score} points!" 
+                : $"?? Game Over! Winner: {winner.Name} with {winner.Score} points. You scored: {playerScore} points.";
             
-            gameView?.AddChat("Trò ch?i ?ã k?t thúc!");
+            gameView?.AddChat("?? Game Finished!");
             gameView?.AddChat(endMessage);
             
             if (isWinner)
@@ -336,8 +247,8 @@ namespace BaiTapCuoiKy
 
             // Show results dialog
             var result = MessageBox.Show(
-                $"{endMessage}\n\nB?n có mu?n ch?i l?i không?",
-                "K?t thúc game",
+                $"{endMessage}\n\nDo you want to play again?",
+                "Game Over",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Information
             );
@@ -358,8 +269,6 @@ namespace BaiTapCuoiKy
             currentRound = 1;
             playerScore = 0;
             gameTimeLeft = currentGameSettings?.TimePerRound ?? 60;
-            roundDurationTotal = gameTimeLeft;
-            halfHintShown = false;
             isPlayerDrawing = false;
             currentWord = "";
 
@@ -370,13 +279,8 @@ namespace BaiTapCuoiKy
                 player.IsDrawing = false;
             }
 
-            // Reset GameView for new game
-            if (gameView != null)
-            {
-                gameView.ResetForNewRound();
-                gameView.SetRoundInfo("- - - - -", gameTimeLeft, currentRound, maxRounds);
-                gameView.AddChat("?? Game ?ã kh?i ??ng l?i! Nh?n 'B?t ??u' ?? ch?i.");
-            }
+            gameView?.SetRoundInfo("- - - - -", gameTimeLeft, currentRound, maxRounds);
+            gameView?.AddChat("?? Game restarted! Click 'Start Game' to begin.");
             UpdateGameViewLeaderboard();
         }
 
@@ -390,7 +294,7 @@ namespace BaiTapCuoiKy
                         rank: index + 1,
                         player: p.Name,
                         score: p.Score,
-                        status: p.IsDrawing ? "?ang v?" : (p.Name == currentUser ? "B?n" : "Ch?")
+                        status: p.IsDrawing ? "Drawing" : (p.Name == currentUser ? "You" : "Waiting")
                     ))
                     .ToArray();
 
@@ -408,13 +312,13 @@ namespace BaiTapCuoiKy
             {
                 if (isPlayerDrawing)
                 {
-                    gameView?.AddChat("B?n ?ang trong l??t v?!");
+                    gameView?.AddChat("?? You are already drawing!");
                     return;
                 }
 
                 if (gameTimer != null && gameTimer.Enabled)
                 {
-                    gameView?.AddChat("Game ?ang di?n ra!");
+                    gameView?.AddChat("?? Game is already in progress!");
                     return;
                 }
 
@@ -422,15 +326,15 @@ namespace BaiTapCuoiKy
             }
             catch (Exception ex)
             {
-                gameView?.AddChat($"L?i khi b?t ??u game: {ex.Message}");
+                gameView?.AddChat($"? Error starting game: {ex.Message}");
             }
         }
 
         private void GameView_LeaveRequested(object sender, EventArgs e)
         {
             var result = MessageBox.Show(
-                "B?n có ch?c mu?n r?i kh?i game?",
-                "R?i game",
+                "Are you sure you want to leave the game?",
+                "Leave Game",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );
@@ -444,8 +348,8 @@ namespace BaiTapCuoiKy
         private void GameView_BackLobbyRequested(object sender, EventArgs e)
         {
             var result = MessageBox.Show(
-                "Quay l?i s?nh ch?? L??t ch?i hi?n t?i s? k?t thúc.",
-                "V? Lobby",
+                "Return to lobby? This will end the current game.",
+                "Back to Lobby",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );
@@ -456,7 +360,6 @@ namespace BaiTapCuoiKy
             }
         }
 
-        // Fix: Update event handler signature to match Action<string>
         private void GameView_MessageSubmitted(string message)
         {
             try
@@ -466,16 +369,13 @@ namespace BaiTapCuoiKy
                 var timestamp = DateTime.Now.ToString("HH:mm");
                 var chatLine = $"[{timestamp}] {currentUser}: {message}";
                 
-                // Enhanced chat processing - check message type
-                string processedMessage = ProcessChatMessage(message);
-                
-                // Check if it's a guess during active drawing phase
-                if (!isPlayerDrawing && !string.IsNullOrEmpty(currentWord) && gameTimer != null && gameTimer.Enabled)
+                // Check if it's a guess
+                if (!isPlayerDrawing && !string.IsNullOrEmpty(currentWord))
                 {
                     if (message.Trim().ToUpper() == currentWord.ToUpper())
                     {
                         // Correct guess!
-                        int guessPoints = CalculateGuessPoints(gameTimeLeft);
+                        int guessPoints = Math.Max(10, gameTimeLeft * 2);
                         playerScore += guessPoints;
                         
                         var currentPlayerInfo = connectedPlayers.FirstOrDefault(p => p.Name == currentUser);
@@ -484,313 +384,35 @@ namespace BaiTapCuoiKy
                             currentPlayerInfo.Score = playerScore;
                         }
 
-                        // Show success message with celebration
-                        gameView?.AddChat($"? {currentUser} ?oán chính xác: '{message}'!");
-                        gameView?.AddChat($"?? +{guessPoints} ?i?m! (Th?i gian còn l?i: {gameTimeLeft}s)");
-                        
-                        // Broadcast to others (simulation)
-                        BroadcastToAllPlayers($"{currentUser} ?oán ?úng!", "guessCorrect");
-                        
+                        gameView?.AddChat($"?? Correct! You earned {guessPoints} points!");
                         GameEffects.PlaySuccessSound();
                         UpdateGameViewLeaderboard();
                         
-                        // Check if round should end early due to half players guessing correctly
-                        bool shouldEndEarly = false;
-                        if (gameView != null)
-                        {
-                            shouldEndEarly = gameView.ProcessGuess(currentUser, message);
-                        }
-                        
-                        if (shouldEndEarly)
-                        {
-                            // Stop timer and end round early
-                            gameTimer?.Stop();
-                            gameView?.AddChat("?? Nhi?u ng??i ?ã ?oán ?úng! Chuy?n vòng m?i.");
-                            
-                            // Award bonus points for fast completion
-                            int bonusPoints = 20;
-                            playerScore += bonusPoints;
-                            if (currentPlayerInfo != null)
-                            {
-                                currentPlayerInfo.Score = playerScore;
-                            }
-                            gameView?.AddChat($"?? Ph?n th??ng nhóm: +{bonusPoints} ?i?m!");
-                            
-                            UpdateGameViewLeaderboard();
-                            NextRound();
-                        }
-                        else
-                        {
-                            // Continue with normal flow - end current turn
-                            gameTimer?.Stop();
-                            EndDrawingTurn();
-                        }
+                        // End the round early
+                        gameTimer?.Stop();
+                        NextRound();
                         return;
                     }
                     else
                     {
-                        // Wrong guess - process it and show to all players
-                        if (gameView != null)
-                        {
-                            gameView.ProcessGuess(currentUser, message);
-                        }
-                        
-                        // Enhanced wrong guess feedback
-                        string similarity = GetWordSimilarity(message, currentWord);
-                        gameView?.AddChat($"? {currentUser}: {message} {similarity}");
-                        
-                        // Broadcast to others (simulation)
-                        BroadcastToAllPlayers(message, "guess");
-                        
-                        // Play subtle wrong sound
-                        GameEffects.PlayWarningSound();
+                        gameView?.AddChat($"? Wrong guess: {message}");
                     }
                 }
                 else
                 {
-                    // Regular chat message or drawing phase chat
-                    if (isPlayerDrawing)
-                    {
-                        // Drawing player can only send limited messages
-                        if (IsAllowedDrawingMessage(message))
-                        {
-                            gameView?.AddChat($"?? {currentUser} (?ang v?): {processedMessage}");
-                            BroadcastToAllPlayers(processedMessage, "chat");
-                        }
-                        else
-                        {
-                            gameView?.AddChat($"?? Ng??i v? không ???c ti?t l? t? ho?c g?i ý!");
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        // Normal player chat with enhanced features
-                        gameView?.AddChat($"?? {chatLine}");
-                        BroadcastToAllPlayers(message, "chat");
-                    }
+                    // Regular chat message
+                    gameView?.AddChat(chatLine);
                 }
-                
-                // Simulate other players reactions to chat
-                SimulatePlayerReactions(message);
-                
             }
             catch (Exception ex)
             {
-                gameView?.AddChat($"? L?i g?i tin nh?n: {ex.Message}");
+                gameView?.AddChat($"? Error sending message: {ex.Message}");
             }
         }
 
-        #region Enhanced Chat Features
+        #endregion
 
-        private string ProcessChatMessage(string message)
-        {
-            // Filter out inappropriate content or hints when drawing
-            message = message.Trim();
-            
-            // Add emoji reactions for common phrases
-            var reactions = new Dictionary<string, string>
-            {
-                {"??", " ??"},
-                {"haha", " ??"},
-                {"wow", " ??"},
-                {"nice", " ??"},
-                {"good", " ??"},
-                {"easy", " ??"},
-                {"hard", " ??"},
-                {"help", " ??"},
-                {"hint", " ??"},
-                {"thanks", " ??"},
-                {"sorry", " ??"}
-            };
-            
-            foreach (var reaction in reactions)
-            {
-                if (message.ToLower().Contains(reaction.Key))
-                {
-                    message += reaction.Value;
-                    break;
-                }
-            }
-            
-            return message;
-        }
-
-        private bool IsAllowedDrawingMessage(string message)
-        {
-            // Check if drawing player's message contains hints about the word
-            if (string.IsNullOrEmpty(currentWord)) return true;
-            
-            string lowerMessage = message.ToLower();
-            string lowerWord = currentWord.ToLower();
-            
-            // Block direct word or parts of word
-            if (lowerMessage.Contains(lowerWord)) return false;
-            
-            // Block common hint words
-            var forbiddenWords = new[] {
-                "letter", "letters", "ch?", "t?", "word", "rhyme", "sounds like", 
-                "starts with", "ends with", "b?t ??u", "k?t thúc", "âm thanh", 
-                "gi?ng nh?", "t??ng t?", "hint", "g?i ý", "clue", "manh m?i"
-            };
-            
-            foreach (var forbidden in forbiddenWords)
-            {
-                if (lowerMessage.Contains(forbidden.ToLower()))
-                {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-
-        private string GetWordSimilarity(string guess, string target)
-        {
-            if (string.IsNullOrEmpty(guess) || string.IsNullOrEmpty(target))
-                return "";
-            
-            guess = guess.ToUpper().Trim();
-            target = target.ToUpper().Trim();
-            
-            // Check for length similarity
-            if (Math.Abs(guess.Length - target.Length) <= 1)
-            {
-                return "?? (?? dài g?n ?úng)";
-            }
-            
-            // Check for starting letter
-            if (guess.Length > 0 && target.Length > 0 && guess[0] == target[0])
-            {
-                return "?? (ch? ??u ?úng)";
-            }
-            
-            // Check for contains similar letters
-            int commonLetters = guess.Intersect(target).Count();
-            if (commonLetters >= target.Length / 2)
-            {
-                return "?? (có ch? cái t??ng t?)";
-            }
-            
-            return "";
-        }
-
-        private int CalculateGuessPoints(int timeLeft)
-        {
-            // More points for faster guesses
-            int basePoints = 10;
-            int timeBonus = Math.Max(0, timeLeft * 2);
-            int speedBonus = 0;
-            
-            if (timeLeft > roundDurationTotal * 0.8f) // Very fast guess
-            {
-                speedBonus = 30;
-            }
-            else if (timeLeft > roundDurationTotal * 0.6f) // Fast guess
-            {
-                speedBonus = 20;
-            }
-            else if (timeLeft > roundDurationTotal * 0.3f) // Normal guess
-            {
-                speedBonus = 10;
-            }
-            
-            return basePoints + timeBonus + speedBonus;
-        }
-
-        private void SimulatePlayerReactions(string message)
-        {
-            // Simulate other players reacting to chat messages
-            if (connectedPlayers.Count <= 1) return;
-            
-            var otherPlayers = connectedPlayers.Where(p => p.Name != currentUser && !p.IsDrawing).ToList();
-            if (!otherPlayers.Any()) return;
-            
-            // Random chance for reactions
-            if (random.Next(100) < 30) // 30% chance
-            {
-                var reactingPlayer = otherPlayers[random.Next(otherPlayers.Count)];
-                
-                // Different types of reactions
-                var reactions = new[]
-                {
-                    "??", "??", "??", "??", "??", "??", "??", "??", "??", "??"
-                };
-                
-                var phrases = new[]
-                {
-                    "?úng r?i!", "hay quá!", "khó quá!", "d? mà!", "thông minh!", 
-                    "tôi c?ng ngh? v?y", "không ph?i ?âu", "g?n r?i!", "xa quá!",
-                    "??????", "nice try!", "hmm...", "maybe?", "good guess!"
-                };
-                
-                string reaction = "";
-                if (random.Next(100) < 50) // 50% emoji, 50% phrase
-                {
-                    reaction = reactions[random.Next(reactions.Length)];
-                }
-                else
-                {
-                    reaction = phrases[random.Next(phrases.Length)];
-                }
-                
-                // Delay the reaction slightly for realism
-                var reactionTimer = new Timer { Interval = random.Next(1000, 3000) }; // 1-3 seconds
-                reactionTimer.Tick += (s, e) =>
-                {
-                    reactionTimer.Stop();
-                    reactionTimer.Dispose();
-                    gameView?.AddChat($"?? {reactingPlayer.Name}: {reaction}");
-                };
-                reactionTimer.Start();
-            }
-        }
-
-        private void BroadcastToAllPlayers(string message, string messageType = "chat")
-        {
-            // In a real multiplayer game, this would send to all connected players
-            // For simulation, we'll show it to current player and simulate others
-            
-            foreach (var player in connectedPlayers)
-            {
-                if (player.Name != currentUser)
-                {
-                    // Simulate receiving message for other players
-                    SimulatePlayerReceiveMessage(player.Name, message, messageType);
-                }
-            }
-        }
-
-        private void SimulatePlayerReceiveMessage(string playerName, string message, string messageType)
-        {
-            // Simulate other players receiving and potentially responding to messages
-            if (random.Next(100) < 20) // 20% chance to respond
-            {
-                var responses = new[]
-                {
-                    "tôi c?ng ngh? v?y", "không ch?c", "có th?", "?úng r?i", 
-                    "sai r?i", "g?n ?úng", "xa quá", "hay!", "khó quá!"
-                };
-                
-                var response = responses[random.Next(responses.Length)];
-                
-                // Delay response
-                var responseTimer = new Timer { Interval = random.Next(2000, 5000) };
-                responseTimer.Tick += (s, e) =>
-                {
-                    responseTimer.Stop();
-                    responseTimer.Dispose();
-                    gameView?.AddChat($"?? [{DateTime.Now:HH:mm}] {playerName}: {response}");
-                };
-                responseTimer.Start();
-            }
-        }
-
-        #endregion // Enhanced Chat Features
-
-        #endregion // GameViewControl Event Handlers
-
-        #region Enhanced Lobby Chat
+        #region Lobby Interface Methods
 
         private void UpdateLobbyInterface()
         {
@@ -806,7 +428,7 @@ namespace BaiTapCuoiKy
                         var player = connectedPlayers[i];
                         var item = new ListViewItem($"{i + 1}");
                         item.SubItems.Add(player.Name);
-                        item.SubItems.Add(player.Name == currentUser ? "Ch? phòng" : "Ng??i ch?i");
+                        item.SubItems.Add(player.Name == currentUser ? "?? Host" : "?? Player");
                         
                         if (player.Name == currentUser)
                         {
@@ -823,7 +445,7 @@ namespace BaiTapCuoiKy
                 {
                     if (connectedPlayers.Count >= 2)
                     {
-                        lblLobbyStatus.Text = "? ?ã ?? ng??i ch?i - Có th? b?t ??u game!";
+                        lblLobbyStatus.Text = "? ?? ng??i ch?i - Có th? b?t ??u game!";
                         lblLobbyStatus.ForeColor = Color.FromArgb(40, 167, 69);
                         if (btnStartGameLobby != null) btnStartGameLobby.Enabled = true;
                     }
@@ -835,19 +457,14 @@ namespace BaiTapCuoiKy
                     }
                 }
 
-                // Add welcome message to lobby chat with enhanced features
+                // Add welcome message to lobby chat
                 if (listBoxLobbyChat != null && listBoxLobbyChat.Items.Count == 0)
                 {
-                    AddLobbyMessage("?? System", $"?? Chào m?ng ??n lobby phòng {currentRoomCode}!");
-                    AddLobbyMessage("?? System", "?? Hãy chat ?? làm quen v?i m?i ng??i!");
-                    AddLobbyMessage("?? System", "?? Nh?n 'B?t ??u game' khi s?n sàng!");
-                    
-                    // Add some lobby chat tips
-                    AddLobbyMessage("?? Tips", "Gõ '/help' ?? xem các l?nh chat có s?n");
-                    AddLobbyMessage("?? Tips", "S? d?ng emoji ?? chat vui h?n! ??????");
+                    AddLobbyMessage("System", $"?? Chào m?ng ??n lobby phòng {currentRoomCode}!");
+                    AddLobbyMessage("System", "?? M?i thêm b?n bè và nh?n 'B?t ??u game' khi s?n sàng!");
                 }
                 
-                System.Diagnostics.Debug.WriteLine("?ã c?p nh?t giao di?n lobby v?i tính n?ng chat nâng cao");
+                System.Diagnostics.Debug.WriteLine("?ã c?p nh?t giao di?n lobby");
             }
             catch (Exception ex)
             {
@@ -866,13 +483,10 @@ namespace BaiTapCuoiKy
                         // Create floating particles
                         CreateFloatingParticle();
                         
-                        // Simulate new players joining occasionally using the method from Form1.cs
+                        // Simulate new players joining occasionally
                         if (random.Next(100) < 5 && connectedPlayers.Count < currentGameSettings.MaxPlayers)
                         {
-                            // Call the existing SimulatePlayerJoin from Form1.cs
-                            System.Reflection.MethodInfo method = this.GetType().GetMethod("SimulatePlayerJoin", 
-                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                            method?.Invoke(this, null);
+                            SimulatePlayerJoin();
                         }
                     }
                     else
@@ -914,7 +528,7 @@ namespace BaiTapCuoiKy
             // Title
             var titleLabel = new Label
             {
-                Text = "S?NH CH? TRÒ CH?I",
+                Text = "?? LOBBY PHÒNG GAME",
                 Font = new Font("Segoe UI", 24, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(50, 20),
@@ -925,7 +539,7 @@ namespace BaiTapCuoiKy
             // Room info
             var roomInfoLabel = new Label
             {
-                Text = $"Phòng: {currentGameSettings?.RoomName ?? "Không rõ"} | Mã: {currentRoomCode}",
+                Text = $"?? Phòng: {currentGameSettings?.RoomName ?? "Unknown"} | ?? Mã: {currentRoomCode}",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.FromArgb(200, 220, 255),
                 Location = new Point(500, 25),
@@ -964,7 +578,7 @@ namespace BaiTapCuoiKy
             // Preview title
             var previewTitle = new Label
             {
-                Text = "KHU V?C XEM TR??C",
+                Text = "?? PREVIEW CANVAS",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = currentTheme.Primary,
                 Location = new Point(20, 20),
@@ -1009,11 +623,11 @@ namespace BaiTapCuoiKy
             // Game settings display
             var settingsLabel = new Label
             {
-                Text = $"Cài ??t:\n" +
-                       $"Ng??i ch?i: {connectedPlayers.Count}/{currentGameSettings?.MaxPlayers ?? 8}\n" +
-                       $"S? vòng: {currentGameSettings?.Rounds ?? 5}\n" +
-                       $"Th?i gian: {currentGameSettings?.TimePerRound ?? 60}s/vòng\n" +
-                       $"?? khó: {currentGameSettings?.Difficulty ?? "Bình th??ng"}",
+                Text = $"?? Cài ??t:\n" +
+                       $"?? Ng??i ch?i: {connectedPlayers.Count}/{currentGameSettings?.MaxPlayers ?? 8}\n" +
+                       $"?? S? vòng: {currentGameSettings?.Rounds ?? 5}\n" +
+                       $"?? Th?i gian: {currentGameSettings?.TimePerRound ?? 60}s/vòng\n" +
+                       $"?? ?? khó: {currentGameSettings?.Difficulty ?? "Bình th??ng"}",
                 Font = new Font("Segoe UI", 11),
                 ForeColor = currentTheme.Text,
                 Location = new Point(20, 330),
@@ -1040,7 +654,7 @@ namespace BaiTapCuoiKy
             // Players title
             var playersTitle = new Label
             {
-                Text = "DANH SÁCH NG??I CH?I",
+                Text = "?? DANH SÁCH NG??I CH?I",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = Color.FromArgb(255, 140, 0),
                 Location = new Point(20, 20),
@@ -1067,7 +681,7 @@ namespace BaiTapCuoiKy
             // Player actions buttons
             btnInvitePlayers = new Button
             {
-                Text = "M?i b?n bè",
+                Text = "?? M?i b?n bè",
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 BackColor = Color.FromArgb(0, 123, 255),
                 ForeColor = Color.White,
@@ -1081,7 +695,7 @@ namespace BaiTapCuoiKy
 
             var btnKickPlayer = new Button
             {
-                Text = "Kick ng??i ch?i",
+                Text = "? Kick Player",
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 BackColor = Color.FromArgb(220, 53, 69),
                 ForeColor = Color.White,
@@ -1140,7 +754,7 @@ namespace BaiTapCuoiKy
 
             btnSendLobbyChat = new Button
             {
-                Text = "?? G?i",
+                Text = "??",
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 BackColor = Color.FromArgb(40, 167, 69),
                 ForeColor = Color.White,
@@ -1155,7 +769,7 @@ namespace BaiTapCuoiKy
             // Room status
             lblLobbyStatus = new Label
             {
-                Text = "Phòng ?ang m? - Ch? ng??i ch?i...",
+                Text = "?? Phòng ?ang m? - Ch? ng??i ch?i...",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 ForeColor = Color.FromArgb(40, 167, 69),
                 Location = new Point(20, 410),
@@ -1300,7 +914,7 @@ namespace BaiTapCuoiKy
         {
             roomCodeLabel = new Label
             {
-                Text = "Mã phòng:",
+                Text = "?? Mã phòng:",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = currentTheme.Text,
                 Location = new Point(470, 430),
@@ -1321,7 +935,7 @@ namespace BaiTapCuoiKy
             };
 
             joinRoomButton = CreateSpectacularButton(
-                "THAM GIA PHÒNG", 
+                "?? THAM GIA PHÒNG", 
                 new Point(470, 510), 
                 new Size(250, 60),
                 Color.FromArgb(0, 123, 255)
@@ -1374,7 +988,7 @@ namespace BaiTapCuoiKy
 
             Label statsTitle = new Label
             {
-                Text = "TH?NG KÊ C?A B?N",
+                Text = "?? TH?NG KÊ C?A B?N",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = currentTheme.Primary,
                 Location = new Point(20, 20),
