@@ -1,0 +1,21 @@
+@startuml
+skinparam linetype ortho
+start
+:User chooses Leave/Logout;
+if (Confirm?) then (Yes)
+  :await networkManager?.Cleanup();
+  :gameClient?.Disconnect();
+  if (isHost) then (Yes)
+    :gameServer?.Stop();
+  else (No)
+  endif
+  if (Leave Lobby/Game) then (Yes)
+    :ShowWaitingRoom();
+  else (Logout)
+    :Close Form1; Show LoginForm; On login -> new Form1;
+  endif
+else (No)
+  :Cancel;
+endif
+stop
+@enduml

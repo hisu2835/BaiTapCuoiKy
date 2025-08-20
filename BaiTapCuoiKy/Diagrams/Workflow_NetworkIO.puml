@@ -1,0 +1,47 @@
+@startuml
+skinparam linetype ortho
+skinparam activity {
+  BackgroundColor #F9FAFB
+  DiamondBackgroundColor #EFF6FF
+}
+
+partition Client {
+start
+:User types chat/answer;
+:Build NetworkData(Command, SenderName, Payload);
+:GameClient.SendDataAsync(data);
+stop
+}
+
+partition Server {
+start
+:AcceptTcpClientAsync();
+repeat
+  :ReadAsync(buffer);
+  if (bytesRead == 0?) then (Yes)
+    :RemoveClient;
+    break
+  else (No)
+    :data = NetworkData.FromBytes(...);
+    :BroadcastAsync(data);
+  endif
+repeat while (Connected)
+stop
+}
+
+partition UIUpdate {
+start
+:GameClient.ReceiveData();
+:Deserialize -> NetworkData;
+if (Command == Message) then (Chat)
+  :AddLobbyMessage or gameView.AddChat;
+else (Guess)
+  :Show guess line;
+  if (isHost && guess == currentWord) then (Score)
+    :TODO UpdateScore / CorrectGuess;
+  else (No)
+  endif
+endif
+stop
+}
+@enduml

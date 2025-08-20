@@ -94,6 +94,7 @@ namespace BaiTapCuoiKy
         private GameServer gameServer;
         private GameClient gameClient;
         private bool isHost = false;
+        private NetworkManager networkManager; // NEW: UPnP Network Manager
 
         #endregion
 
@@ -493,7 +494,7 @@ namespace BaiTapCuoiKy
 
         #region Event Handlers
 
-        private void CreateRoomButton_Click(object sender, EventArgs e)
+        private async void CreateRoomButton_Click(object sender, EventArgs e)
         {
             try
             {
@@ -503,10 +504,19 @@ namespace BaiTapCuoiKy
                     string roomCode = roomDialog.RoomCode;
                     var settings = roomDialog.GameSettings;
                     
+                    // Initialize network manager
+                    networkManager = new NetworkManager();
+                    networkManager.LogMessage += (msg) => AddLobbyMessage("Network", msg);
+                    networkManager.ErrorOccurred += (err) => AddLobbyMessage("Error", err);
+                    
+                    await networkManager.Initialize();
+                    
                     // Start the server
                     isHost = true;
-                    gameServer = new GameServer(7777); // Port can be configurable
-                    gameServer.ServerLog += (log) => this.Invoke((MethodInvoker)delegate { AddLobbyMessage("Server", log); });
+                    gameServer = new GameServer(7777);
+                    gameServer.ServerLog += (log) => this.Invoke((MethodInvoker)delegate { 
+                        AddLobbyMessage("Server", log);
+                    });
                     gameServer.DataReceived += GameServer_DataReceived;
                     gameServer.Start();
 
@@ -521,13 +531,16 @@ namespace BaiTapCuoiKy
                             await gameClient.ConnectAsync("127.0.0.1", 7777);
                             // On successful connection, transition to lobby
                             this.Invoke((MethodInvoker)delegate {
-                                EnterGameRoom(roomCode, true, settings);
+                                // Use public IP as room code
+                                string publicAddress = networkManager.GetConnectionAddress();
+                                EnterGameRoom(publicAddress, true, settings);
                             });
                         }
                         catch (Exception ex)
                         {
                             this.Invoke((MethodInvoker)delegate {
-                                MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show($"Lỗi kết nối đến server: {ex.Message}", "Lỗi", 
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                             });
                         }
                     });
@@ -575,7 +588,7 @@ namespace BaiTapCuoiKy
             });
         }
 
-        private void LogoutButton_Click(object sender, EventArgs e)
+        private async void LogoutButton_Click(object sender, EventArgs e)
         {
             var result = MessageBox.Show(
                 "Bạn có chắc chắn muốn đăng xuất không?",
@@ -586,7 +599,11 @@ namespace BaiTapCuoiKy
 
             if (result == DialogResult.Yes)
             {
-                // Disconnect network components
+                // Cleanup network components
+                if (networkManager != null)
+                {
+                    await networkManager.Cleanup();
+                }
                 gameClient?.Disconnect();
                 gameServer?.Stop();
 
@@ -604,18 +621,20 @@ namespace BaiTapCuoiKy
 
         private void BtnInvitePlayers_Click(object sender, EventArgs e)
         {
+            string connectionAddress = networkManager?.GetConnectionAddress() ?? currentRoomCode;
+            
             // Show invite dialog
             var inviteMessage = $"🎮 Mời bạn bè tham gia game!\n\n" +
-                              $"📋 Mã phòng: {currentRoomCode}\n" +
-                              $"🎯 Copy mã này và gửi cho bạn bè để họ có thể tham gia!";
+                              $"📋 Địa chỉ kết nối: {connectionAddress}\n" +
+                              $"🎯 Copy địa chỉ này và gửi cho bạn bè để họ có thể tham gia!";
             
             MessageBox.Show(inviteMessage, "Mời bạn bè", MessageBoxButtons.OK, MessageBoxIcon.Information);
             
-            // Copy room code to clipboard
+            // Copy connection address to clipboard
             try
             {
-                System.Windows.Forms.Clipboard.SetText(currentRoomCode);
-                AddLobbyMessage("System", "📋 Mã phòng đã được copy vào clipboard!");
+                System.Windows.Forms.Clipboard.SetText(connectionAddress);
+                AddLobbyMessage("System", "📋 Địa chỉ kết nối đã được copy vào clipboard!");
             }
             catch
             {
@@ -655,17 +674,39 @@ namespace BaiTapCuoiKy
             {
                 var timestamp = DateTime.Now.ToString("HH:mm");
                 string chatLine = $"[{timestamp}] {sender}: {message}";
-                
                 listBoxLobbyChat.Items.Add(chatLine);
-                
+
                 if (listBoxLobbyChat.Items.Count > 0)
                 {
                     listBoxLobbyChat.TopIndex = listBoxLobbyChat.Items.Count - 1;
                 }
-                
+
                 if (listBoxLobbyChat.Items.Count > 50)
                 {
                     listBoxLobbyChat.Items.RemoveAt(0);
+                }
+
+                // Apply language to chat panel caption as well
+                if (panelLobbyChat?.Parent is GroupBox gb)
+                {
+                    gb.Text = LocalizationManager.Tr("LOBBY_CHAT");
+                }
+
+                // Update status label depending on player count
+                if (lblLobbyStatus != null)
+                {
+                    if (connectedPlayers.Count >= 2)
+                    {
+                        lblLobbyStatus.Text = LocalizationManager.Tr("LOBBY_READY");
+                        lblLobbyStatus.ForeColor = Color.FromArgb(40, 167, 69);
+                        if (btnStartGameLobby != null) btnStartGameLobby.Enabled = true;
+                    }
+                    else
+                    {
+                        lblLobbyStatus.Text = LocalizationManager.Tr("LOBBY_NEED_MORE");
+                        lblLobbyStatus.ForeColor = Color.FromArgb(255, 140, 0);
+                        if (btnStartGameLobby != null) btnStartGameLobby.Enabled = false;
+                    }
                 }
             }
         }
@@ -790,10 +831,10 @@ namespace BaiTapCuoiKy
                 // Add current user as first player
                 connectedPlayers.Add(new PlayerInfo(currentUser));
                 
-                // Simulate other players joining for demonstration
+                // Auto add bot players for testing so you can start the game immediately
                 if (isCreator)
                 {
-                    // AddSimulatedPlayers(); // Don't simulate in network mode
+                    EnsureMinPlayersForTest(2); // đảm bảo tối thiểu 2 người chơi (bạn + 1 bot)
                 }
                 
                 // Apply game settings if provided
@@ -834,198 +875,24 @@ namespace BaiTapCuoiKy
             }
         }
 
-        private void ShowGameInterface()
+        // Thêm bot tự động để dễ test bắt đầu game
+        private void EnsureMinPlayersForTest(int minPlayers)
         {
-            // This method is now obsolete, TransitionToGame is used instead.
-        }
-
-        private void ShowDesignerControls()
-        {
-            // This method is now obsolete.
-        }
-
-        private void StartWordSelection()
-        {
-            try
+            int safety = 0; // tránh vòng lặp vô hạn
+            while (connectedPlayers.Count < minPlayers && safety < 20)
             {
-                if (wordBank == null)
+                safety++;
+                string botName = $"BOT_{connectedPlayers.Count}";
+                if (connectedPlayers.Any(p => p.Name.Equals(botName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    wordBank = new string[] {
-                        "CAT", "DOG", "HOUSE", "TREE", "CAR", "BOOK", "APPLE", "STAR", 
-                        "FISH", "BIRD", "FLOWER", "SUN", "MOON", "BANANA", "GUITAR", 
-                        "PHONE", "COMPUTER", "CHAIR", "TABLE", "WINDOW", "DOOR", "LAMP",
-                        "BOTTLE", "CUP", "PLATE", "FORK", "KNIFE", "SPOON", "BOWL"
-                    };
+                    botName = $"BOT_{connectedPlayers.Count}_{random.Next(100, 999)}";
                 }
-                
-                var word1 = wordBank[random.Next(wordBank.Length)];
-                var word2 = wordBank[random.Next(wordBank.Length)];
-                
-                while (word1 == word2)
+                connectedPlayers.Add(new PlayerInfo(botName)
                 {
-                    word2 = wordBank[random.Next(wordBank.Length)];
-                }
-                
-                ShowWordSelectionDialog(word1, word2);
-            }
-            catch (Exception ex)
-            {
-                if (gameView != null)
-                {
-                    gameView.AddChat($"❌ Error selecting word: {ex.Message}");
-                }
-                else
-                {
-                    MessageBox.Show($"Lỗi khi chọn từ: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                System.Diagnostics.Debug.WriteLine($"StartWordSelection Exception: {ex}");
-            }
-        }
-
-        private void ShowWordSelectionDialog(string word1, string word2)
-        {
-            var dialog = new Form
-            {
-                Text = "Chọn từ để vẽ",
-                Size = new Size(450, 250),
-                StartPosition = FormStartPosition.CenterParent,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                MaximizeBox = false,
-                MinimizeBox = false,
-                BackColor = Color.FromArgb(240, 248, 255)
-            };
-            
-            var titleLabel = new Label
-            {
-                Text = "🎨 Choose a word to draw:",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = currentTheme.Primary,
-                Location = new Point(20, 20),
-                Size = new Size(410, 35),
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent
-            };
-            
-            var instructionLabel = new Label
-            {
-                Text = "Select one of the words below and start drawing!",
-                Font = new Font("Segoe UI", 11, FontStyle.Regular),
-                ForeColor = currentTheme.Text,
-                Location = new Point(20, 60),
-                Size = new Size(410, 25),
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent
-            };
-            
-            var word1Button = new Button
-            {
-                Text = $"✏️ {word1}",
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                BackColor = currentTheme.Primary,
-                ForeColor = Color.White,
-                Size = new Size(160, 60),
-                Location = new Point(70, 100),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand,
-                Tag = word1
-            };
-            word1Button.FlatAppearance.BorderSize = 0;
-            
-            var word2Button = new Button
-            {
-                Text = $"✏️ {word2}",
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                BackColor = Color.FromArgb(40, 167, 69),
-                ForeColor = Color.White,
-                Size = new Size(160, 60),
-                Location = new Point(250, 100),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand,
-                Tag = word2
-            };
-            word2Button.FlatAppearance.BorderSize = 0;
-
-            // Add hover effects
-            word1Button.MouseEnter += (s, e) => word1Button.BackColor = GameEffects.LightenColor(currentTheme.Primary, 0.2f);
-            word1Button.MouseLeave += (s, e) => word1Button.BackColor = currentTheme.Primary;
-            word2Button.MouseEnter += (s, e) => word2Button.BackColor = GameEffects.LightenColor(Color.FromArgb(40, 167, 69), 0.2f);
-            word2Button.MouseLeave += (s, e) => word2Button.BackColor = Color.FromArgb(40, 167, 69);
-            
-            EventHandler selectWord = (s, e) => {
-                var selectedWord = ((Button)s).Tag.ToString();
-                currentWord = selectedWord;
-                dialog.DialogResult = DialogResult.OK;
-                dialog.Close();
-                StartDrawingPhase();
-            };
-            
-            word1Button.Click += selectWord;
-            word2Button.Click += selectWord;
-
-            // Cancel option
-            var cancelButton = new Button
-            {
-                Text = "❌ Cancel",
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                BackColor = Color.FromArgb(220, 53, 69),
-                ForeColor = Color.White,
-                Size = new Size(100, 35),
-                Location = new Point(175, 180),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand
-            };
-            cancelButton.FlatAppearance.BorderSize = 0;
-            cancelButton.Click += (s, e) => {
-                dialog.DialogResult = DialogResult.Cancel;
-                dialog.Close();
-            };
-            
-            dialog.Controls.AddRange(new Control[] { titleLabel, instructionLabel, word1Button, word2Button, cancelButton });
-            
-            // Show dialog and handle result
-            if (dialog.ShowDialog(this) == DialogResult.Cancel)
-            {
-                gameView?.AddChat("❌ Word selection cancelled.");
-            }
-        }
-
-        private void StartDrawingPhase()
-        {
-            try
-            {
-                isPlayerDrawing = true;
-                gameTimeLeft = currentGameSettings?.TimePerRound ?? 60;
-                
-                // Update UI
-                if (gameView != null)
-                {
-                    gameView.SetRoundInfo(currentWord, gameTimeLeft, currentRound, maxRounds);
-                    gameView.AddChat($"🎨 You are drawing: {currentWord}");
-                    gameView.AddChat($"⏰ You have {gameTimeLeft} seconds to draw!");
-                    gameView.AddChat("🖌️ Other players will try to guess your drawing.");
-                }
-
-                // Update player status
-                var currentPlayerInfo = connectedPlayers.FirstOrDefault(p => p.Name == currentUser);
-                if (currentPlayerInfo != null)
-                {
-                    currentPlayerInfo.IsDrawing = true;
-                }
-
-                UpdateGameViewLeaderboard();
-
-                // Start the timer
-                gameTimer.Start();
-
-                // Play start sound
-                GameEffects.PlaySuccessSound();
-
-                toolStripStatusLabel.Text = $"🎨 Drawing: {currentWord} - Time: {gameTimeLeft}s";
-            }
-            catch (Exception ex)
-            {
-                gameView?.AddChat($"❌ Error starting drawing phase: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"StartDrawingPhase Exception: {ex}");
+                    Score = random.Next(0, 50),
+                    IsOnline = true,
+                    IsDrawing = false
+                });
             }
         }
         #endregion
@@ -1077,7 +944,7 @@ namespace BaiTapCuoiKy
             // Hide all game-related controls initially
             // HideAllGameControls(); // Obsolete
 
-            // Gỡ lobbyPanel nếu còn
+            // Remove lobbyPanel if any
             if (lobbyPanel != null)
             {
                 this.Controls.Remove(lobbyPanel);
@@ -1085,7 +952,7 @@ namespace BaiTapCuoiKy
                 lobbyPanel = null;
             }
 
-            // Gỡ welcomePanel cũ nếu còn để tạo mới
+            // Remove welcomePanel if any
             if (welcomePanel != null)
             {
                 this.Controls.Remove(welcomePanel);
@@ -1228,11 +1095,9 @@ namespace BaiTapCuoiKy
                 System.Diagnostics.Debug.WriteLine($"Lỗi khi cập nhật dữ liệu game: {ex.Message}");
             }
         }
-
         private void CreateWelcomeInterface()
         {
             this.Controls.Clear();
-            // this.Controls.Add(statusStripGame); // statusStripGame is part of the old UI
 
             welcomePanel = new Panel
             {
@@ -1240,14 +1105,13 @@ namespace BaiTapCuoiKy
                 BackColor = Color.Transparent,
                 BorderStyle = BorderStyle.None
             };
-            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2, 
+            welcomePanel.Location = new Point((this.ClientSize.Width - welcomePanel.Width) / 2,
                                             (this.ClientSize.Height - welcomePanel.Height) / 2);
-
             welcomePanel.Paint += WelcomePanel_Paint;
 
             Label titleLabel = new Label
             {
-                Text = "🎨 DRAWMASTER PREMIUM 🎨",
+                Text = LocalizationManager.Tr("WELCOME_TITLE"),
                 Font = new Font("Segoe UI", 36, FontStyle.Bold),
                 ForeColor = currentTheme.Primary,
                 Location = new Point(50, 50),
@@ -1258,7 +1122,7 @@ namespace BaiTapCuoiKy
 
             Label subtitleLabel = new Label
             {
-                Text = "🌟 Multiplayer Drawing & Guessing Experience 🌟",
+                Text = LocalizationManager.Tr("WELCOME_SUBTITLE"),
                 Font = new Font("Segoe UI", 16, FontStyle.Italic),
                 ForeColor = currentTheme.Accent,
                 Location = new Point(50, 130),
@@ -1269,7 +1133,7 @@ namespace BaiTapCuoiKy
 
             welcomeLabel = new Label
             {
-                Text = $"🎉 Chào mừng, {currentUser}! 🎉",
+                Text = string.Format(LocalizationManager.Tr("WELCOME_HELLO"), currentUser),
                 Font = new Font("Segoe UI", 20, FontStyle.Bold),
                 ForeColor = currentTheme.Text,
                 Location = new Point(50, 180),
@@ -1282,7 +1146,7 @@ namespace BaiTapCuoiKy
 
             Label optionsLabel = new Label
             {
-                Text = "🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:",
+                Text = LocalizationManager.Tr("WELCOME_OPTIONS"),
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = currentTheme.Text,
                 Location = new Point(50, 400),
@@ -1292,31 +1156,51 @@ namespace BaiTapCuoiKy
             };
 
             createRoomButton = CreateSpectacularButton(
-                "🏆 TẠO PHÒNG MỚI", 
-                new Point(150, 450), 
+                LocalizationManager.Tr("BTN_CREATE_ROOM"),
+                new Point(150, 450),
                 new Size(280, 70),
                 currentTheme.Primary
             );
             createRoomButton.Click += CreateRoomButton_Click;
 
             SetupJoinRoomSection();
-            // Modify Join Room Label
             if (roomCodeLabel != null)
             {
-                roomCodeLabel.Text = "Nhập IP phòng:";
+                roomCodeLabel.Text = LocalizationManager.Tr("LBL_JOIN_IP");
             }
 
-
             logoutButton = CreateSpectacularButton(
-                "🚪 ĐĂNG XUẤT", 
-                new Point(375, 600), 
+                LocalizationManager.Tr("BTN_LOGOUT"),
+                new Point(375, 600),
                 new Size(150, 50),
                 Color.FromArgb(220, 53, 69)
             );
             logoutButton.Click += LogoutButton_Click;
 
+            // Language selector
+            var lblLang = new Label
+            {
+                Text = LocalizationManager.Tr("LANGUAGE"),
+                Location = new Point(50, 20),
+                Size = new Size(100, 24)
+            };
+            var cbLang = new ComboBox
+            {
+                Location = new Point(150, 18),
+                Width = 160,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            cbLang.Items.AddRange(new object[] { "Tiếng Việt", "English" });
+            cbLang.SelectedIndex = LocalizationManager.Language == AppLanguage.Vietnamese ? 0 : 1;
+            cbLang.SelectedIndexChanged += (s, e) =>
+            {
+                LocalizationManager.SetLanguage(cbLang.SelectedIndex == 0 ? AppLanguage.Vietnamese : AppLanguage.English);
+                // Rebuild the welcome UI to apply new language
+                CreateWelcomeInterface();
+            };
+
             welcomePanel.Controls.AddRange(new Control[] {
-                titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
+                lblLang, cbLang, titleLabel, subtitleLabel, welcomeLabel, gameStatsPanel, optionsLabel,
                 createRoomButton, roomCodeLabel, roomCodeTextBox, joinRoomButton, logoutButton
             });
 
@@ -1405,7 +1289,7 @@ namespace BaiTapCuoiKy
 
             userStatsLabel = new Label
             {
-                Text = "Loading stats...",
+                Text = LocalizationManager.Tr("STATS_BRIEF"),
                 Font = new Font("Segoe UI", 14, FontStyle.Regular),
                 ForeColor = currentTheme.Text,
                 Dock = DockStyle.Fill,
@@ -1413,14 +1297,13 @@ namespace BaiTapCuoiKy
                 BackColor = Color.Transparent
             };
             gameStatsPanel.Controls.Add(userStatsLabel);
-            LoadUserStats();
         }
 
         private void SetupJoinRoomSection()
         {
             roomCodeLabel = new Label
             {
-                Text = "Hoặc nhập mã phòng để tham gia:",
+                Text = LocalizationManager.Tr("LBL_JOIN_IP"),
                 Font = new Font("Segoe UI", 12, FontStyle.Regular),
                 ForeColor = currentTheme.Text,
                 Location = new Point(450, 450),
@@ -1436,7 +1319,7 @@ namespace BaiTapCuoiKy
             };
 
             joinRoomButton = CreateSpectacularButton(
-                "🚀 THAM GIA",
+                LocalizationManager.Tr("BTN_JOIN"),
                 new Point(660, 478),
                 new Size(140, 40),
                 currentTheme.Accent
@@ -1460,7 +1343,7 @@ namespace BaiTapCuoiKy
 
             var titleLabel = new Label
             {
-                Text = $"LOBBY - PHÒNG: {currentRoomCode}",
+                Text = LocalizationManager.TrFormat("LOBBY_TITLE", currentRoomCode),
                 Font = new Font("Segoe UI", 20, FontStyle.Bold),
                 ForeColor = Color.White,
                 Dock = DockStyle.Fill,
@@ -1472,7 +1355,6 @@ namespace BaiTapCuoiKy
 
         private void CreateLobbyMainContent()
         {
-            // Main content panel
             var contentPanel = new Panel
             {
                 Dock = DockStyle.Fill,
@@ -1480,10 +1362,9 @@ namespace BaiTapCuoiKy
             };
             lobbyPanel.Controls.Add(contentPanel);
 
-            // Players List
             var playersGroup = new GroupBox
             {
-                Text = "👥 Người chơi trong phòng",
+                Text = LocalizationManager.Tr("LOBBY_PLAYERS"),
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 Dock = DockStyle.Left,
                 Width = 400
@@ -1496,20 +1377,18 @@ namespace BaiTapCuoiKy
                 FullRowSelect = true
             };
             listViewLobbyPlayers.Columns.Add("#", 40);
-            listViewLobbyPlayers.Columns.Add("Tên người chơi", 180);
+            listViewLobbyPlayers.Columns.Add("Tên", 180);
             listViewLobbyPlayers.Columns.Add("Vai trò", 80);
             listViewLobbyPlayers.Columns.Add("Trạng thái", 80);
             playersGroup.Controls.Add(listViewLobbyPlayers);
             contentPanel.Controls.Add(playersGroup);
 
-            // Spacer
             var spacer = new Panel { Dock = DockStyle.Left, Width = 20 };
             contentPanel.Controls.Add(spacer);
 
-            // Chat
             var chatGroup = new GroupBox
             {
-                Text = "💬 Chat sảnh chờ",
+                Text = LocalizationManager.Tr("LOBBY_CHAT"),
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 Dock = DockStyle.Fill
             };
@@ -1519,7 +1398,6 @@ namespace BaiTapCuoiKy
             txtLobbyChat.KeyPress += TxtLobbyChat_KeyPress;
             btnSendLobbyChat = new Button { Text = "Gửi", Dock = DockStyle.Right };
             btnSendLobbyChat.Click += BtnSendLobbyChat_Click;
-            
             var inputPanel = new Panel { Dock = DockStyle.Bottom, Height = 30 };
             inputPanel.Controls.Add(btnSendLobbyChat);
             inputPanel.Controls.Add(txtLobbyChat);
@@ -1539,20 +1417,20 @@ namespace BaiTapCuoiKy
                 Padding = new Padding(20)
             };
 
-            btnLeaveLobby = CreateSpectacularButton("🚪 Rời Lobby", new Point(20, 15), new Size(150, 50), Color.FromArgb(220, 53, 69));
+            btnLeaveLobby = CreateSpectacularButton(LocalizationManager.Tr("BTN_LEAVE_LOBBY"), new Point(20, 15), new Size(150, 50), Color.FromArgb(220, 53, 69));
             btnLeaveLobby.Click += BtnLeaveLobby_Click;
 
-            btnInvitePlayers = CreateSpectacularButton("📧 Mời bạn bè", new Point(190, 15), new Size(180, 50), currentTheme.Accent);
+            btnInvitePlayers = CreateSpectacularButton(LocalizationManager.Tr("BTN_INVITE"), new Point(190, 15), new Size(180, 50), currentTheme.Accent);
             btnInvitePlayers.Click += BtnInvitePlayers_Click;
 
-            btnStartGameLobby = CreateSpectacularButton("🎮 BẮT ĐẦU GAME", new Point(lobbyPanel.Width - 220, 15), new Size(200, 50), Color.FromArgb(40, 167, 69));
+            btnStartGameLobby = CreateSpectacularButton(LocalizationManager.Tr("BTN_START_GAME"), new Point(lobbyPanel.Width - 220, 15), new Size(200, 50), Color.FromArgb(40, 167, 69));
             btnStartGameLobby.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnStartGameLobby.Click += BtnStartGameLobby_Click;
             btnStartGameLobby.Enabled = false;
 
             lblLobbyStatus = new Label
             {
-                Text = "Đang chờ người chơi...",
+                Text = LocalizationManager.Tr("LOBBY_WAITING"),
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 ForeColor = Color.OrangeRed,
                 Location = new Point(390, 25),

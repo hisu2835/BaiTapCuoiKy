@@ -1,0 +1,30 @@
+@startuml
+skinparam linetype ortho
+skinparam activity {
+  BackgroundColor #F7FEE7
+  DiamondBackgroundColor #DCFCE7
+}
+
+start
+:SetupGameTimer (1000ms);
+repeat
+  if (gameTimeLeft > 0?) then (Yes)
+    :gameTimeLeft--;
+    :gameView.UpdateTime(gameTimeLeft);
+    if (half-time and !hintShown?) then (Yes)
+      :TODO Show hint;
+    else (No)
+    endif
+  else (No)
+    :HandleTimeUp();
+    :EndDrawingTurn();
+    if (currentRound > maxRounds?) then (Yes)
+      :EndGame();
+      break
+    else (No)
+      :SimulateOtherPlayerTurn();
+    endif
+  endif
+repeat while (Game running)
+stop
+@enduml

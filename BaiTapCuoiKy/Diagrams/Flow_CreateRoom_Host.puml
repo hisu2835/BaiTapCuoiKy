@@ -1,0 +1,27 @@
+@startuml
+skinparam linetype ortho
+start
+:Click "T?o phòng";
+:Show RoomCreationDialog;
+if (DialogResult == OK?) then (Yes)
+  :Get GameSettings + RoomCode;
+  :networkManager.Initialize();
+  :isHost = true;
+  :gameServer.Start();
+  if (Server started?) then (Yes)
+    :gameClient.ConnectAsync("127.0.0.1",7777);
+    if (Connected?) then (Yes)
+      :publicIP = networkManager.GetConnectionAddress();
+      :EnterGameRoom(publicIP, true, settings);
+      :ShowLobbyInterface();
+    else (No)
+      :Show connect error;
+    endif
+  else (No)
+    :Show server error;
+  endif
+else (No)
+  :Cancel;
+endif
+stop
+@enduml

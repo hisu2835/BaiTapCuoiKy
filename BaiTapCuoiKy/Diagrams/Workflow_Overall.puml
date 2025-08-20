@@ -1,0 +1,100 @@
+@startuml
+skinparam linetype ortho
+skinparam activity {
+  BackgroundColor #F6FBFF
+  DiamondBackgroundColor #E8F2FF
+  BarColor #3B82F6
+}
+
+|User|
+start
+:Launch application;
+:Enter credentials / choose mode;
+
+|LoginForm|
+if (Mode?) then (Login)
+  :Validate credentials;
+  if (Valid?) then (Yes)
+    :LoginSuccessful(displayName);
+  else (No)
+    :Show error;
+    stop
+  endif
+elseif (Register)
+  :Validate + uniqueness;
+  if (OK?) then (Yes)
+    :Save account;
+    :Switch to Login;
+    stop
+  else (No)
+    :Show warning;
+    stop
+  endif
+else (Social)
+  :Create or reuse account;
+  :LoginSuccessful(displayName);
+endif
+
+|Form1|
+:ShowWaitingRoom();
+:CreateWelcomeInterface();
+if (Create room or Join?) then (Create)
+  :CreateRoomButton_Click;
+  |Network|
+  :NetworkManager.Initialize();
+  :GameServer.Start();
+  :GameClient.Connect(127.0.0.1:7777);
+  |Form1|
+  :EnterGameRoom(publicIP, true, settings);
+  :ShowLobbyInterface();
+else (Join)
+  :JoinRoomButton_Click;
+  |Network|
+  :GameClient.Connect(IP:7777);
+  |Form1|
+  :EnterGameRoom(IP, false, new GameSettings());
+  :ShowLobbyInterface();
+endif
+
+:UpdateLobbyInterface();
+repeat :Lobby chat via NetworkData(Message);
+repeat while (Waiting to start?)
+
+if (Players >= 2 and Confirm start?) then (Yes)
+  :TransitionToGame();
+  |GameViewControl|
+  :Configure UI (RoomCode/PlayerName/PlayersOnline);
+  :SetRoundInfo("- - - - -", time, round, maxRounds);
+  |Form1|
+  :SetupInitialGameState();
+  :SetupGameTimer();
+  repeat
+    :StartWordSelection() -> currentWord;
+    :isPlayerDrawing = true;
+    :gameTimer.Start();
+    while (gameTimeLeft > 0?) is (tick)
+      :gameTimeLeft--;
+      |GameViewControl|
+      :UpdateTime(gameTimeLeft);
+      |Network|
+      :Broadcast Message/Guess via Server;
+      |GameViewControl|
+      :Display chat/guesses;
+    endwhile
+    :HandleTimeUp();
+    :EndDrawingTurn();
+    if (currentRound > maxRounds?) then (Yes)
+      :EndGame();
+      break
+    else (No)
+      :NextRound();
+      :SimulateOtherPlayerTurn();
+    endif
+  repeat while (Game not finished)
+else (No)
+  :Stay in lobby;
+endif
+
+|User|
+stop
+@enduml

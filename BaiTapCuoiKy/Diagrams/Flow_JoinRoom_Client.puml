@@ -1,0 +1,19 @@
+@startuml
+skinparam linetype ortho
+start
+:Enter IP in textbox;
+if (IP empty?) then (Yes)
+  :Show warning;
+  stop
+else (No)
+  :isHost = false;
+  :gameClient.ConnectAsync(IP,7777);
+  if (Connected?) then (Yes)
+    :EnterGameRoom(IP, false, new GameSettings());
+    :ShowLobbyInterface();
+  else (No)
+    :Show connection error;
+  endif
+endif
+stop
+@enduml

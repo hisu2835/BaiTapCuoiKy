@@ -1,0 +1,20 @@
+@startuml
+participant ClientA as A
+participant GameServer as S
+participant ClientB as B
+
+A -> S : SendDataAsync(NetworkData(Message, "A", "hi"))
+S -> B : BroadcastAsync(NetworkData)
+B --> B : GameClient_DataReceived -> UI update
+
+A -> S : SendDataAsync(NetworkData(Guess, "A", "CAT"))
+S -> A : BroadcastAsync(NetworkData)
+S -> B : BroadcastAsync(NetworkData)
+
+note over S
+Server is a simple relay in current design.
+It does not validate or process commands
+(other than broadcasting to clients).
+end note
+
+@enduml

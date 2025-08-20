@@ -1,0 +1,35 @@
+@startuml
+skinparam linetype ortho
+partition Client {
+start
+:User types message/guess;
+:Create NetworkData(Command, sender, payload);
+:gameClient.SendDataAsync(data);
+stop
+}
+partition Server {
+start
+:Receive bytes;
+:Deserialize -> NetworkData;
+:BroadcastAsync(data);
+stop
+}
+partition OtherClients {
+start
+:Receive NetworkData;
+if (Command == Message) then (Chat)
+  if (gameView exists?) then (Yes)
+    :gameView.AddChat(...);
+  else (No)
+    :AddLobbyMessage(...);
+  endif
+else (Guess)
+  :Show guess in chat;
+  if (isHost && guess == currentWord) then (Yes)
+    :TODO: UpdateScore / CorrectGuess broadcast;
+  else (No)
+  endif
+endif
+stop
+}
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+actor User as U
+participant LoginForm as LF
+participant Form1 as F1
+participant NetworkManager as NM
+participant GameServer as GS
+participant GameClient as GC
+
+== Login ==
+U -> LF : enter credentials
+LF --> U : LoginSuccessful(displayName)
+U -> F1 : open Form1(displayName)
+
+== Create room (Host) ==
+U -> F1 : Click CreateRoom
+F1 -> NM : Initialize()
+NM --> F1 : LogMessage
+F1 -> GS : Start()
+GS --> F1 : ServerLog
+F1 -> GC : ConnectAsync("127.0.0.1", 7777)
+GC --> F1 : ConnectionStatusChanged
+F1 -> F1 : EnterGameRoom(publicIP, isCreator=true)
+F1 -> F1 : ShowLobbyInterface()
+
+== Chat in lobby ==
+U -> F1 : type lobby chat
+F1 -> GC : SendDataAsync(NetworkData(Message))
+GC -> GS : send bytes
+GS -> GC : BroadcastAsync
+GC --> F1 : DataReceived -> AddLobbyMessage
+
+== Start game ==
+U -> F1 : BtnStartGameLobby_Click
+F1 -> F1 : TransitionToGame()
+F1 -> GameViewControl : AddChat("welcome...")
+F1 -> GameViewControl : SetRoundInfo("- - - - -", ...)
+
+== Drawer selects word ==
+U -> GameViewControl : StartGameRequested
+F1 -> F1 : StartWordSelection()
+F1 -> GameViewControl : SetRoundInfo(currentWord, ...)
+F1 -> GameViewControl : AddChat("B?n ?ang v?: <word>")
+
+@enduml

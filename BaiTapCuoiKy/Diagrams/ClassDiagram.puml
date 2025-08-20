@@ -1,0 +1,191 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+hide circle
+
+package "BaiTapCuoiKy" {
+
+class Form1 {
+  - currentUser : string
+  - isInGame : bool
+  - isInWaitingRoom : bool
+  - isInLobby : bool
+  - isHost : bool
+  - currentRoomCode : string
+  - currentWord : string
+  - gameTimeLeft : int
+  - currentRound : int
+  - maxRounds : int
+  - playerScore : int
+  + Form1()
+  + Form1(username : string)
+  + EnterGameRoom(roomCode : string, isCreator : bool, settings : GameSettings)
+  + ShowWaitingRoom()
+  + ShowLobbyInterface()
+  + TransitionToGame()
+  + StartWordSelection()
+}
+
+class "Form1.ThemeColors" as ThemeColors {
+  + Primary : Color
+  + Secondary : Color
+  + Accent : Color
+  + Background : Color
+  + Text : Color
+}
+
+class "Form1.PlayerInfo" as PlayerInfo {
+  + Name : string
+  + Score : int
+  + IsDrawing : bool
+  + IsOnline : bool
+  + LastActivity : DateTime
+  + Avatar : Image
+}
+
+class "Form1.GameSettings" as GameSettings {
+  + MaxPlayers : int
+  + Rounds : int
+  + TimePerRound : int
+  + Difficulty : string
+  + RoomName : string
+}
+
+class GameViewControl {
+  + StartGameRequested()
+  + LeaveRequested()
+  + BackLobbyRequested()
+  + MessageSubmitted(text : string)
+  + AnswerSubmitted(text : string)
+  + ChatSubmitted(text : string)
+  + SetRoundInfo(word : string, seconds : int, round : int, maxRound : int)
+  + AddChat(text : string)
+  + UpdateTime(seconds : int)
+  + SetLeaderboard(entries : (int,string,int,string)[])
+}
+
+class GameServer {
+  - _listener : TcpListener
+  - _clients : List<TcpClient>
+  - _port : int
+  - _isRunning : bool
+  + Start()
+  + Stop()
+  + BroadcastAsync(data : NetworkData, excludeClient : TcpClient)
+  ..events..
+  + ServerLog(msg : string)
+  + DataReceived(client : TcpClient, data : NetworkData)
+}
+
+class GameClient {
+  - _client : TcpClient
+  - _stream : NetworkStream
+  - _isConnected : bool
+  + IsConnected : bool
+  + ConnectAsync(ip : string, port : int)
+  + SendDataAsync(data : NetworkData)
+  + Disconnect()
+  ..events..
+  + DataReceived(data : NetworkData)
+  + ConnectionStatusChanged()
+}
+
+class NetworkManager {
+  - _connectionAddress : string
+  + Initialize()
+  + Cleanup()
+  + GetConnectionAddress() : string
+  ..events..
+  + LogMessage(msg : string)
+  + ErrorOccurred(err : string)
+}
+
+enum Command {
+  Login
+  PlayerList
+  Message
+  Draw
+  ClearCanvas
+  StartGame
+  StartRound
+  WordToGuess
+  Guess
+  CorrectGuess
+  UpdateScore
+  TimeUpdate
+  EndOfRound
+  EndOfGame
+  Disconnect
+}
+
+class NetworkData {
+  + Command : Command
+  + SenderName : string
+  + Payload : object
+  + ToBytes() : byte[]
+  + FromBytes(bytes : byte[]) : NetworkData
+}
+
+class DrawPayload {
+  + StartPoint : Point
+  + EndPoint : Point
+  + PenColor : Color
+  + PenWidth : int
+  + IsEraser : bool
+}
+
+class LocalizationManager {
+  + Language : AppLanguage
+  + Tr(key : string) : string
+  + TrFormat(key : string, args) : string
+  + SetLanguage(lang : AppLanguage)
+  + LocalizeContainer(root : Control)
+  ..events..
+  + LanguageChanged()
+}
+
+enum AppLanguage {
+  Vietnamese
+  English
+}
+
+class LoginForm {
+  + LoginSuccessful(displayName : string)
+  + ValidateLogin(username : string, password : string) : bool
+  + SocialLogin(provider : string)
+}
+
+class Program
+
+class GameEffects {
+  + LightenColor(color : Color, pct : float) : Color
+  + DarkenColor(color : Color, pct : float) : Color
+  + CalculateBounce(time : float, amplitude : float) : float
+  + CalculatePulse(time : float, minScale : float, maxScale : float) : float
+  + DrawGradientText(...)
+  + Draw3DButton(...)
+  + PlaySuccessSound()
+  + PlayErrorSound()
+  + PlayWarningSound()
+}
+
+' relationships
+Form1 o-- GameViewControl
+Form1 o-- GameServer
+Form1 o-- GameClient
+Form1 o-- NetworkManager
+Form1 *-- ThemeColors
+Form1 *-- PlayerInfo
+Form1 *-- GameSettings
+GameServer ..> NetworkData
+GameClient ..> NetworkData
+NetworkData ..> Command
+LocalizationManager ..> AppLanguage
+LoginForm ..> LocalizationManager
+Program ..> LoginForm
+Form1 ..> LocalizationManager
+Form1 ..> GameEffects
+DrawPayload ..> Color
+
+}
+@enduml

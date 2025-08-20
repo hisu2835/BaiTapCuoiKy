@@ -1,0 +1,22 @@
+@startuml
+skinparam linetype ortho
+start
+:Lobby shown;
+:UpdateLobbyInterface();
+if (Players >= 2?) then (Yes)
+  :Enable Start button;
+else (No)
+  :Disable Start button;
+endif
+:Click Start;
+if (Confirm start?) then (Yes)
+  :TransitionToGame();
+  :Configure GameViewControl;
+  :SetupInitialGameState();
+  :SetupGameTimer();
+  :SetRoundInfo("- - - - -", ...);
+else (No)
+  :Stay in lobby;
+endif
+stop
+@enduml

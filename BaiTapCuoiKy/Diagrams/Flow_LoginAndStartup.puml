@@ -1,0 +1,42 @@
+@startuml
+skinparam linetype ortho
+skinparam monochrome false
+skinparam activity {
+  BackgroundColor #EEF5FF
+  DiamondBackgroundColor #DDEBFF
+}
+
+start
+:Start application;
+:Show LoginForm;
+if (User selects mode) then (Login)
+  :Enter username/password;
+  if (ValidateLogin OK?) then (Yes)
+    :Raise LoginSuccessful(displayName);
+  else (No)
+    :Show error;
+    stop
+  endif
+else (Register/Social)
+  if (Register)
+    :Fill username/email/password/confirm;
+    if (Valid + unique?) then (Yes)
+      :Save account;
+      :Switch to Login;
+      stop
+    else (No)
+      :Show warning;
+      stop
+    endif
+  else (Social)
+    :Simulate provider user;
+    :Create or reuse account;
+    :Raise LoginSuccessful(displayName);
+  endif
+endif
+
+:Open Form1(displayName);
+:Form1.ShowWaitingRoom();
+:CreateWelcomeInterface();
+stop
+@enduml

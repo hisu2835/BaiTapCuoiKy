@@ -1,0 +1,29 @@
+@startuml
+skinparam linetype ortho
+start
+:StartWordSelection();
+:currentWord = random from wordBank;
+:isPlayerDrawing = true;
+:Mark current player IsDrawing = true;
+:gameView.SetRoundInfo(currentWord, timeLeft, round, maxRounds);
+:gameTimer.Start();
+while (gameTimeLeft > 0?) is (tick)
+  :gameTimeLeft--;
+  :gameView.UpdateTime(gameTimeLeft);
+  if (half-time and hint not shown?) then (Yes)
+    :TODO: show hint;
+  else (No)
+  endif
+endwhile
+:HandleTimeUp();
+:EndDrawingTurn();
+:currentRound++;
+if (currentRound > maxRounds?) then (Yes)
+  :EndGame();
+else (No)
+  :SimulateOtherPlayerTurn();
+  :gameView.SetRoundInfo(maskedWord, 60, round, maxRounds);
+  :gameTimer.Start();
+endif
+stop
+@enduml
