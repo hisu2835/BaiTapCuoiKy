@@ -1,0 +1,961 @@
+﻿using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+using System.Collections.Generic;
+
+namespace BaiTapCuoiKy
+{
+    // Lightweight, self-contained game UI similar to the screenshot
+    public class GameViewControl : UserControl
+    {
+        // Public events to integrate with Form1
+        public event EventHandler StartGameRequested;
+        public event EventHandler LeaveRequested;
+        public event EventHandler BackLobbyRequested;
+        public event Action<string> MessageSubmitted;
+        public event Action<string> AnswerSubmitted; // NEW: Event for answer submission
+        public event Action<string> ChatSubmitted;   // NEW: Event for chat messages
+
+        // Left: Drawing
+        private Panel panelTopBar;
+        private Label lblHeader;
+        private Panel panelDrawing;
+        private Panel panelTools;
+        private Button btnPencil;
+        private Button btnEraser;
+        private Button btnClear;
+        private Panel panelSelectedColor;
+        private Label lblColor;
+        private TrackBar trackBrush;
+        private Label lblBrush;
+        private Button btnCBlack, btnCWhite, btnCRed, btnCBlue, btnCGreen, btnCYellow;
+
+        // Middle/right: Leaderboard & Chat
+        private GroupBox groupLeaderboard;
+        private ListView lvLeaderboard;
+        private ColumnHeader colRank, colPlayer, colScore, colStatus;
+
+        // NEW: Chat with two-column layout
+        private GroupBox groupChat;
+        // Left column - TR? L?I (Answer)
+        private Panel pnlAnswer;
+        private Label lblAnswerHeader;
+        private ListBox lbAnswer;
+        private TextBox txtAnswer;
+        private Button btnAnswerSend;
+        private Label lblAnswerWaiting;
+        
+        // Right column - TRÒ CHUY?N (Chat)
+        private Panel pnlChatRight;
+        private Label lblChatHeader;
+        private ListBox lbChat;
+        private TextBox txtChat;
+        private Button btnSend;
+
+        // Right sidebar
+        private Panel panelSidebar;
+        private PictureBox avatarBox;
+        private Label lblYou, lblPlayerName, lblScoreTitle, lblScoreValue;
+        private GroupBox groupRoundInfo;
+        private Label lblWordTitle, lblWord, lblTimeTitle, lblTime, lblRoundTitle, lblRound;
+        private ProgressBar progressTime;
+        private GroupBox groupRoomInfo;
+        private Label lblRoomCodeTitle, lblRoomCode, lblPlayersOnlineTitle, lblPlayersOnline;
+
+        private Button btnStartGame, btnLeave, btnBackLobby;
+
+        // Drawing state
+        private Bitmap _canvas;
+        private Graphics _g;
+        private bool _drawing;
+        private Point _last;
+        private Color _currentColor = Color.Black;
+        private int _brushSize = 4;
+        private bool _eraser;
+        
+        // Game state for tracking correct guesses
+        private HashSet<string> correctGuessers = new HashSet<string>();
+        private int totalPlayers = 0;
+        private string currentWord = "";
+
+        public string RoomCode
+        {
+            get => lblRoomCode?.Text; 
+            set { if (lblRoomCode != null) lblRoomCode.Text = value; }
+        }
+
+        public string PlayerName
+        {
+            get => lblPlayerName?.Text; 
+            set { if (lblPlayerName != null) lblPlayerName.Text = value; }
+        }
+
+        public int PlayersOnline
+        {
+            get => totalPlayers;
+            set 
+            { 
+                totalPlayers = value; 
+                if (lblPlayersOnline != null) 
+                    lblPlayersOnline.Text = value.ToString(); 
+            }
+        }
+
+        public GameViewControl()
+        {
+            DoubleBuffered = true;
+            BackColor = Color.FromArgb(245, 247, 250);
+            BuildLayout();
+            InitCanvas();
+
+            // Responsive layout
+            this.Resize += (s, e) => PerformResponsiveLayout();
+            PerformResponsiveLayout();
+            
+            // Setup placeholders and events
+            SetupTextInputs();
+        }
+        
+        private void SetupTextInputs()
+        {
+            // Setup answer textbox
+            if (txtAnswer != null)
+            {
+                txtAnswer.Text = "?ang ch?...";
+                txtAnswer.ForeColor = Color.Gray;
+                
+                txtAnswer.Enter += (s, e) =>
+                {
+                    if (txtAnswer.Text == "?ang ch?...")
+                    {
+                        txtAnswer.Text = "";
+                        txtAnswer.ForeColor = Color.Black;
+                    }
+                };
+                
+                txtAnswer.Leave += (s, e) =>
+                {
+                    if (string.IsNullOrWhiteSpace(txtAnswer.Text))
+                    {
+                        txtAnswer.Text = "?ang ch?...";
+                        txtAnswer.ForeColor = Color.Gray;
+                    }
+                };
+                
+                txtAnswer.KeyPress += (s, e) =>
+                {
+                    if (e.KeyChar == (char)Keys.Enter)
+                    {
+                        SubmitAnswer();
+                        e.Handled = true;
+                    }
+                };
+            }
+            
+            // Setup chat textbox
+            if (txtChat != null)
+            {
+                txtChat.Text = "Chat ? ?ây...";
+                txtChat.ForeColor = Color.Gray;
+                
+                txtChat.Enter += (s, e) =>
+                {
+                    if (txtChat.Text == "Chat ? ?ây...")
+                    {
+                        txtChat.Text = "";
+                        txtChat.ForeColor = Color.Black;
+                    }
+                };
+                
+                txtChat.Leave += (s, e) =>
+                {
+                    if (string.IsNullOrWhiteSpace(txtChat.Text))
+                    {
+                        txtChat.Text = "Chat ? ?ây...";
+                        txtChat.ForeColor = Color.Gray;
+                    }
+                };
+                
+                txtChat.KeyPress += TxtChat_KeyPress;
+            }
+        }
+        
+        private void SubmitAnswer()
+        {
+            var text = txtAnswer.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(text) && text != "?ang ch?...")
+            {
+                // Raise both events for compatibility
+                AnswerSubmitted?.Invoke(text);
+                MessageSubmitted?.Invoke(text);
+                
+                txtAnswer.Text = "?ang ch?...";
+                txtAnswer.ForeColor = Color.Gray;
+            }
+        }
+
+        private void BuildLayout()
+        {
+            SuspendLayout();
+
+            // Top bar with gradient
+            panelTopBar = new Panel { Height = 40, Dock = DockStyle.Top };
+            panelTopBar.Paint += (s, e) =>
+            {
+                using (var brush = new LinearGradientBrush(panelTopBar.ClientRectangle,
+                    Color.FromArgb(67, 82, 161), Color.FromArgb(45, 125, 245), LinearGradientMode.Horizontal))
+                {
+                    e.Graphics.FillRectangle(brush, panelTopBar.ClientRectangle);
+                }
+            };
+            lblHeader = new Label
+            {
+                Text = "?? DRAWMASTER - PHÒNG TRÒ CH?I",
+                ForeColor = Color.White,
+                AutoSize = false,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold)
+            };
+            panelTopBar.Controls.Add(lblHeader);
+            Controls.Add(panelTopBar);
+
+            // Left drawing panel
+            panelDrawing = new Panel
+            {
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            panelDrawing.Paint += (s, e) => 
+            { 
+                if (_canvas != null) 
+                    e.Graphics.DrawImage(_canvas, 0, 0); 
+            };
+            panelDrawing.MouseDown += (s, e) => { _drawing = true; _last = e.Location; };
+            panelDrawing.MouseMove += (s, e) =>
+            {
+                if (!_drawing || _g == null) return;
+                using (var pen = new Pen(_eraser ? Color.White : _currentColor, _brushSize))
+                { 
+                    pen.StartCap = LineCap.Round; 
+                    pen.EndCap = LineCap.Round; 
+                    _g.DrawLine(pen, _last, e.Location); 
+                }
+                _last = e.Location; 
+                panelDrawing.Invalidate();
+            };
+            panelDrawing.MouseUp += (s, e) => { _drawing = false; };
+            panelDrawing.Resize += (s, e) => ResizeCanvasToPanel();
+            Controls.Add(panelDrawing);
+
+            // Tools panel
+            panelTools = new Panel
+            {
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.FromArgb(250, 252, 255)
+            };
+            btnPencil = new Button { Text = "?? Bút", Size = new Size(80, 30) };
+            btnEraser = new Button { Text = "?? T?y", Size = new Size(80, 28) };
+            btnPencil.Click += (s, e) => { 
+                _eraser = false; 
+                btnPencil.BackColor = Color.LightSkyBlue; 
+                btnEraser.BackColor = SystemColors.Control; 
+            };
+            btnEraser.Click += (s, e) => { 
+                _eraser = true; 
+                btnEraser.BackColor = Color.LightPink; 
+                btnPencil.BackColor = SystemColors.Control; 
+            };
+
+            btnCBlack = MakeColorButton(Color.Black, Point.Empty);
+            btnCWhite = MakeColorButton(Color.White, Point.Empty);
+            btnCRed   = MakeColorButton(Color.Red, Point.Empty);
+            btnCBlue  = MakeColorButton(Color.RoyalBlue, Point.Empty);
+            btnCGreen = MakeColorButton(Color.ForestGreen, Point.Empty);
+            btnCYellow= MakeColorButton(Color.Gold, Point.Empty);
+
+            lblColor = new Label { Text = "?? Màu:", AutoSize = true };
+            panelSelectedColor = new Panel { BackColor = _currentColor, Size = new Size(24, 24), BorderStyle = BorderStyle.FixedSingle };
+
+            lblBrush = new Label { Text = "?? Kích th??c:", AutoSize = true };
+            trackBrush = new TrackBar { Minimum = 1, Maximum = 30, Value = _brushSize, TickStyle = TickStyle.None, Width = 180 };
+            trackBrush.ValueChanged += (s, e) => _brushSize = trackBrush.Value;
+
+            btnClear = new Button { Text = "??? Xóa t?t c?", Size = new Size(80, 36), BackColor = Color.IndianRed, ForeColor = Color.White };
+            btnClear.Click += (s, e) => { if (_g != null) { _g.Clear(Color.White); panelDrawing.Invalidate(); } };
+
+            panelTools.Controls.AddRange(new Control[] {
+                btnPencil, btnEraser, btnCBlack, btnCWhite, btnCRed, btnCBlue, btnCGreen, btnCYellow,
+                lblColor, panelSelectedColor, lblBrush, trackBrush, btnClear
+            });
+            Controls.Add(panelTools);
+
+            // Leaderboard
+            groupLeaderboard = new GroupBox
+            {
+                Text = "?? B?ng x?p h?ng",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            lvLeaderboard = new ListView
+            {
+                View = View.Details, 
+                FullRowSelect = true, 
+                GridLines = true,
+                Font = new Font("Segoe UI", 9)
+            };
+            colRank = new ColumnHeader { Text = "#", Width = 30 };
+            colPlayer = new ColumnHeader { Text = "Ng??i ch?i", Width = 120 };
+            colScore = new ColumnHeader { Text = "?i?m", Width = 60 };
+            colStatus = new ColumnHeader { Text = "Tr?ng thái", Width = 80 };
+            lvLeaderboard.Columns.AddRange(new[] { colRank, colPlayer, colScore, colStatus });
+            groupLeaderboard.Controls.Add(lvLeaderboard);
+            Controls.Add(groupLeaderboard);
+
+            // NEW: Chat with two panels
+            groupChat = new GroupBox
+            {
+                Text = string.Empty,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            
+            // Left panel - Answer (TR? L?I)
+            pnlAnswer = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.None };
+            
+            lblAnswerHeader = new Label
+            {
+                Text = "TR? L?I",
+                BackColor = Color.FromArgb(25, 55, 155),
+                ForeColor = Color.White,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                Dock = DockStyle.Top,
+                Height = 28
+            };
+            
+            lblAnswerWaiting = new Label
+            {
+                Text = "?? ?ang ch? ng??i ch?i",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.RoyalBlue
+            };
+            
+            lbAnswer = new ListBox
+            {
+                Font = new Font("Segoe UI", 9),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            txtAnswer = new TextBox
+            {
+                Font = new Font("Segoe UI", 10),
+                BorderStyle = BorderStyle.FixedSingle,
+                Text = "?ang ch?..."
+            };
+            
+            btnAnswerSend = new Button
+            {
+                Text = "G?i",
+                BackColor = Color.FromArgb(46, 204, 113),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            btnAnswerSend.FlatAppearance.BorderSize = 0;
+            btnAnswerSend.Click += (s, e) => SubmitAnswer();
+            
+            pnlAnswer.Controls.AddRange(new Control[] { lblAnswerHeader, lblAnswerWaiting, lbAnswer, txtAnswer, btnAnswerSend });
+            
+            // Right panel - Chat (TRÒ CHUY?N)
+            pnlChatRight = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.None };
+            
+            lblChatHeader = new Label
+            {
+                Text = "TRÒ CHUY?N",
+                BackColor = Color.FromArgb(25, 55, 155),
+                ForeColor = Color.White,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                Dock = DockStyle.Top,
+                Height = 28
+            };
+            
+            lbChat = new ListBox
+            {
+                Font = new Font("Segoe UI", 9),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            txtChat = new TextBox
+            {
+                Font = new Font("Segoe UI", 10),
+                BorderStyle = BorderStyle.FixedSingle,
+                Text = "Chat ? ?ây..."
+            };
+            
+            btnSend = new Button
+            {
+                Text = "G?i",
+                BackColor = Color.FromArgb(52, 152, 219),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            btnSend.FlatAppearance.BorderSize = 0;
+            btnSend.Click += (s, e) =>
+            {
+                var text = txtChat.Text.Trim();
+                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ? ?ây...")
+                {
+                    ChatSubmitted?.Invoke(text);
+                    MessageSubmitted?.Invoke(text); // For compatibility
+                    
+                    txtChat.Text = "Chat ? ?ây...";
+                    txtChat.ForeColor = Color.Gray;
+                }
+            };
+            
+            pnlChatRight.Controls.AddRange(new Control[] { lblChatHeader, lbChat, txtChat, btnSend });
+            
+            // Add both panels to chat group
+            groupChat.Controls.AddRange(new Control[] { pnlAnswer, pnlChatRight });
+            Controls.Add(groupChat);
+
+            // Right sidebar
+            panelSidebar = new Panel { BackColor = Color.Transparent };
+            avatarBox = new PictureBox { 
+                Size = new Size(70, 70), 
+                BackColor = Color.WhiteSmoke, 
+                BorderStyle = BorderStyle.FixedSingle, 
+                SizeMode = PictureBoxSizeMode.Zoom 
+            };
+            lblYou = new Label { Text = "B?n", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblPlayerName = new Label { Text = "Player1", AutoSize = true, ForeColor = Color.RoyalBlue };
+            lblScoreTitle = new Label { Text = "?i?m s?:", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblScoreValue = new Label { Text = "0", AutoSize = true, ForeColor = Color.SeaGreen };
+
+            groupRoundInfo = new GroupBox { Text = "?? Thông tin vòng ch?i", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblWordTitle = new Label { Text = "T? c?n v?:", AutoSize = true };
+            lblWord = new Label { Text = "- - - - -", AutoSize = true, ForeColor = Color.IndianRed };
+            lblTimeTitle = new Label { Text = "Th?i gian còn l?i:", AutoSize = true };
+            lblTime = new Label { Text = "00:60", AutoSize = true, ForeColor = Color.IndianRed, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblRoundTitle = new Label { Text = "Vòng:", AutoSize = true };
+            lblRound = new Label { Text = "1/5", AutoSize = true };
+            progressTime = new ProgressBar { Value = 60, Maximum = 60 };
+            groupRoundInfo.Controls.AddRange(new Control[] { lblWordTitle, lblWord, lblTimeTitle, lblTime, lblRoundTitle, lblRound, progressTime });
+
+            groupRoomInfo = new GroupBox { Text = "?? Thông tin phòng", Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblRoomCodeTitle = new Label { Text = "Mã phòng:", AutoSize = true };
+            lblRoomCode = new Label { Text = "ABC123", AutoSize = true, ForeColor = Color.RoyalBlue, Cursor = Cursors.Hand };
+            lblRoomCode.Click += (s, e) => { try { Clipboard.SetText(lblRoomCode.Text); } catch { } };
+            lblPlayersOnlineTitle = new Label { Text = "Ng??i ch?i online:", AutoSize = true };
+            lblPlayersOnline = new Label { Text = "3/8", AutoSize = true };
+            groupRoomInfo.Controls.AddRange(new Control[] { lblRoomCodeTitle, lblRoomCode, lblPlayersOnlineTitle, lblPlayersOnline });
+
+            btnStartGame = new Button { 
+                Text = "?? B?t ??u game", 
+                BackColor = Color.FromArgb(46, 204, 113), 
+                ForeColor = Color.White, 
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            btnStartGame.FlatAppearance.BorderSize = 0;
+            
+            btnLeave = new Button { 
+                Text = "?? R?i phòng", 
+                BackColor = Color.FromArgb(231, 76, 60), 
+                ForeColor = Color.White, 
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            btnLeave.FlatAppearance.BorderSize = 0;
+            
+            btnBackLobby = new Button { 
+                Text = "?? V? lobby", 
+                BackColor = Color.FromArgb(243, 156, 18), 
+                ForeColor = Color.White, 
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            btnBackLobby.FlatAppearance.BorderSize = 0;
+
+            btnStartGame.Click += (s, e) => StartGameRequested?.Invoke(this, EventArgs.Empty);
+            btnLeave.Click += (s, e) => LeaveRequested?.Invoke(this, EventArgs.Empty);
+            btnBackLobby.Click += (s, e) => BackLobbyRequested?.Invoke(this, EventArgs.Empty);
+
+            panelSidebar.Controls.AddRange(new Control[] {
+                avatarBox, lblYou, lblPlayerName, lblScoreTitle, lblScoreValue,
+                groupRoundInfo, groupRoomInfo, btnStartGame, btnLeave, btnBackLobby
+            });
+            Controls.Add(panelSidebar);
+
+            ResumeLayout(false);
+        }
+
+        private Button MakeColorButton(Color color, Point location)
+        {
+            var btn = new Button { BackColor = color, Location = location, Size = new Size(32, 24) };
+            btn.FlatStyle = FlatStyle.Flat; btn.FlatAppearance.BorderSize = 1;
+            btn.Click += (s, e) => { _currentColor = color; panelSelectedColor.BackColor = color; _eraser = false; };
+            return btn;
+        }
+
+        private void InitCanvas()
+        {
+            // Initialize with a reasonable default; will resize with panel
+            _canvas = new Bitmap(Math.Max(10, panelDrawing.Width), Math.Max(10, panelDrawing.Height));
+            _g = Graphics.FromImage(_canvas);
+            _g.SmoothingMode = SmoothingMode.AntiAlias;
+            _g.Clear(Color.White);
+        }
+
+        private void ResizeCanvasToPanel()
+        {
+            if (panelDrawing.Width <= 0 || panelDrawing.Height <= 0) return;
+
+            var newBmp = new Bitmap(panelDrawing.Width, panelDrawing.Height);
+            using (var g = Graphics.FromImage(newBmp))
+            {
+                g.Clear(Color.White);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                if (_canvas != null)
+                {
+                    // draw existing content scaled to new size (simple fit)
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.DrawImage(_canvas, new Rectangle(0, 0, newBmp.Width, newBmp.Height));
+                }
+            }
+
+            _g?.Dispose();
+            _canvas?.Dispose();
+            _canvas = newBmp;
+            _g = Graphics.FromImage(_canvas);
+            _g.SmoothingMode = SmoothingMode.AntiAlias;
+            panelDrawing.Invalidate();
+        }
+
+        private void PerformResponsiveLayout()
+        {
+            // Enhanced responsive layout with better proportions
+            int margin = 15;
+            int topBarH = panelTopBar?.Height ?? 45;
+            int gap = 15;
+            
+            // Calculate available dimensions
+            int availW = Math.Max(800, this.ClientSize.Width - margin * 2);
+            int availH = Math.Max(600, this.ClientSize.Height - topBarH - margin * 2);
+
+            // Improved column width calculations
+            int rightSidebarWidth = 280; // Fixed sidebar width
+            int middleColumnWidth = Math.Max(320, (int)(availW * 0.25)); // 25% minimum
+            int leftDrawingWidth = availW - rightSidebarWidth - middleColumnWidth - gap * 2;
+            
+            // Ensure minimum widths
+            if (leftDrawingWidth < 600)
+            {
+                middleColumnWidth = Math.Max(280, availW - 600 - rightSidebarWidth - gap * 2);
+                leftDrawingWidth = availW - rightSidebarWidth - middleColumnWidth - gap * 2;
+            }
+
+            // Column positions
+            int xLeft = margin;
+            int xMiddle = xLeft + leftDrawingWidth + gap;
+            int xRight = xMiddle + middleColumnWidth + gap;
+
+            // Left column: Enhanced drawing area + tools
+            int toolsHeight = 85;
+            int drawingHeight = availH - toolsHeight - gap;
+            
+            panelDrawing.Location = new Point(xLeft, topBarH + margin);
+            panelDrawing.Size = new Size(leftDrawingWidth, drawingHeight);
+
+            panelTools.Location = new Point(xLeft, panelDrawing.Bottom + gap);
+            panelTools.Size = new Size(leftDrawingWidth, toolsHeight);
+
+            // Enhanced tools layout
+            LayoutToolsPanel();
+
+            // Middle column: Leaderboard (45%) and Chat (55%)
+            int leaderboardHeight = (int)(availH * 0.42);
+            int chatHeight = availH - leaderboardHeight - gap;
+
+            groupLeaderboard.Location = new Point(xMiddle, topBarH + margin);
+            groupLeaderboard.Size = new Size(middleColumnWidth, leaderboardHeight);
+
+            // Enhanced leaderboard layout
+            int pad = 12;
+            lvLeaderboard.Location = new Point(pad, 25 + pad);
+            lvLeaderboard.Size = new Size(
+                groupLeaderboard.Width - pad * 2, 
+                groupLeaderboard.Height - (25 + pad * 2)
+            );
+
+            // Chat section with two-column layout
+            groupChat.Location = new Point(xMiddle, groupLeaderboard.Bottom + gap);
+            groupChat.Size = new Size(middleColumnWidth, chatHeight);
+
+            // Enhanced two-column chat layout
+            LayoutChatColumns();
+
+            // Right sidebar: Enhanced layout
+            LayoutRightSidebar(xRight, topBarH + margin, rightSidebarWidth, availH);
+        }
+
+        private void LayoutToolsPanel()
+        {
+            int padding = 10;
+            int x = padding;
+            int y = padding;
+            int spacing = 8;
+            int buttonHeight = 32;
+
+            // Tool buttons row
+            btnPencil.Location = new Point(x, y);
+            btnPencil.Size = new Size(85, buttonHeight);
+            x += 85 + spacing;
+
+            btnEraser.Location = new Point(x, y);
+            btnEraser.Size = new Size(85, buttonHeight);
+            x += 85 + spacing * 2;
+
+            // Color palette
+            int colorSize = 28;
+            btnCBlack.Location = new Point(x, y + 2);
+            btnCBlack.Size = new Size(colorSize, colorSize);
+            x += colorSize + 4;
+
+            btnCWhite.Location = new Point(x, y + 2);
+            btnCWhite.Size = new Size(colorSize, colorSize);
+            x += colorSize + 4;
+
+            btnCRed.Location = new Point(x, y + 2);
+            btnCRed.Size = new Size(colorSize, colorSize);
+            x += colorSize + 4;
+
+            btnCBlue.Location = new Point(x, y + 2);
+            btnCBlue.Size = new Size(colorSize, colorSize);
+            x += colorSize + 4;
+
+            btnCGreen.Location = new Point(x, y + 2);
+            btnCGreen.Size = new Size(colorSize, colorSize);
+            x += colorSize + 4;
+
+            btnCYellow.Location = new Point(x, y + 2);
+            btnCYellow.Size = new Size(colorSize, colorSize);
+            x += colorSize + spacing * 2;
+
+            // Selected color indicator
+            lblColor.Location = new Point(x, y + 6);
+            lblColor.Size = new Size(50, 20);
+            x += 55;
+
+            panelSelectedColor.Location = new Point(x, y + 4);
+            panelSelectedColor.Size = new Size(24, 24);
+            x += 30 + spacing;
+
+            // Brush size
+            lblBrush.Location = new Point(x, y + 6);
+            lblBrush.Size = new Size(80, 20);
+            x += 85;
+
+            trackBrush.Location = new Point(x, y + 2);
+            trackBrush.Size = new Size(Math.Min(150, panelTools.Width - x - 120), 28);
+
+            // Clear button at far right
+            btnClear.Location = new Point(
+                panelTools.Width - 120 - padding, 
+                panelTools.Height - 40 - padding
+            );
+            btnClear.Size = new Size(120, 40);
+        }
+
+        private void LayoutChatColumns()
+        {
+            int chatPadding = 12;
+            int columnSpacing = 10;
+            int columnWidth = (groupChat.Width - chatPadding * 2 - columnSpacing) / 2;
+            
+            // Answer panel (left column)
+            pnlAnswer.Location = new Point(chatPadding, 28);
+            pnlAnswer.Size = new Size(columnWidth, groupChat.Height - 28 - chatPadding);
+            
+            lblAnswerHeader.Size = new Size(pnlAnswer.Width, 32);
+            
+            lblAnswerWaiting.Location = new Point(8, lblAnswerHeader.Bottom + 8);
+            lblAnswerWaiting.Size = new Size(pnlAnswer.Width - 16, 20);
+            
+            lbAnswer.Location = new Point(8, lblAnswerWaiting.Bottom + 5);
+            lbAnswer.Size = new Size(
+                pnlAnswer.Width - 16, 
+                pnlAnswer.Height - lblAnswerHeader.Height - lblAnswerWaiting.Height - 55
+            );
+            
+            txtAnswer.Location = new Point(8, pnlAnswer.Height - 35);
+            txtAnswer.Size = new Size(pnlAnswer.Width - 70, 28);
+            
+            btnAnswerSend.Location = new Point(txtAnswer.Right + 6, txtAnswer.Top - 1);
+            btnAnswerSend.Size = new Size(55, 30);
+            
+            // Chat panel (right column)
+            pnlChatRight.Location = new Point(pnlAnswer.Right + columnSpacing, 28);
+            pnlChatRight.Size = new Size(columnWidth, groupChat.Height - 28 - chatPadding);
+            
+            lblChatHeader.Size = new Size(pnlChatRight.Width, 32);
+            
+            lbChat.Location = new Point(8, lblChatHeader.Bottom + 8);
+            lbChat.Size = new Size(
+                pnlChatRight.Width - 16, 
+                pnlChatRight.Height - lblChatHeader.Height - 50
+            );
+            
+            txtChat.Location = new Point(8, pnlChatRight.Height - 35);
+            txtChat.Size = new Size(pnlChatRight.Width - 70, 28);
+            
+            btnSend.Location = new Point(txtChat.Right + 6, txtChat.Top - 1);
+            btnSend.Size = new Size(55, 30);
+        }
+
+        private void LayoutRightSidebar(int x, int y, int width, int height)
+        {
+            panelSidebar.Location = new Point(x, y);
+            panelSidebar.Size = new Size(width, height);
+
+            // Enhanced sidebar content layout
+            int sx = 15, sy = 15;
+            int sectionSpacing = 20;
+
+            // Player info section
+            avatarBox.Location = new Point(sx, sy);
+            avatarBox.Size = new Size(75, 75);
+            
+            lblYou.Location = new Point(avatarBox.Right + 12, sy + 5);
+            lblYou.Size = new Size(width - avatarBox.Right - 25, 25);
+            
+            lblPlayerName.Location = new Point(avatarBox.Right + 12, sy + 25);
+            lblPlayerName.Size = new Size(width - avatarBox.Right - 25, 25);
+            
+            lblScoreTitle.Location = new Point(avatarBox.Right + 12, sy + 50);
+            lblScoreTitle.Size = new Size(80, 25);
+            
+            lblScoreValue.Location = new Point(lblScoreTitle.Right + 5, sy + 50);
+            lblScoreValue.Size = new Size(60, 25);
+
+            // Round info section
+            sy = avatarBox.Bottom + sectionSpacing;
+            groupRoundInfo.Location = new Point(sx, sy);
+            groupRoundInfo.Size = new Size(width - sx * 2, 200);
+            
+            // Round info content
+            int gx = 12, gy = 30;
+            int lineHeight = 28;
+            
+            lblWordTitle.Location = new Point(gx, gy);
+            lblWordTitle.Size = new Size(80, 25);
+            lblWord.Location = new Point(gx + 85, gy);
+            lblWord.Size = new Size(groupRoundInfo.Width - gx - 90, 25);
+            
+            gy += lineHeight;
+            lblTimeTitle.Location = new Point(gx, gy);
+            lblTimeTitle.Size = new Size(100, 25);
+            lblTime.Location = new Point(gx + 105, gy);
+            lblTime.Size = new Size(groupRoundInfo.Width - gx - 110, 25);
+            
+            gy += lineHeight;
+            lblRoundTitle.Location = new Point(gx, gy);
+            lblRoundTitle.Size = new Size(60, 25);
+            lblRound.Location = new Point(gx + 65, gy);
+            lblRound.Size = new Size(groupRoundInfo.Width - gx - 70, 25);
+            
+            gy += lineHeight + 10;
+            progressTime.Location = new Point(gx, gy);
+            progressTime.Size = new Size(groupRoundInfo.Width - gx * 2, 22);
+
+            // Room info section
+            sy = groupRoundInfo.Bottom + sectionSpacing;
+            groupRoomInfo.Location = new Point(sx, sy);
+            groupRoomInfo.Size = new Size(width - sx * 2, 120);
+            
+            // Room info content
+            gy = 30;
+            lblRoomCodeTitle.Location = new Point(gx, gy);
+            lblRoomCodeTitle.Size = new Size(90, 25);
+            lblRoomCode.Location = new Point(gx + 95, gy);
+            lblRoomCode.Size = new Size(groupRoomInfo.Width - gx - 100, 25);
+            
+            gy += lineHeight;
+            lblPlayersOnlineTitle.Location = new Point(gx, gy);
+            lblPlayersOnlineTitle.Size = new Size(120, 25);
+            lblPlayersOnline.Location = new Point(gx + 125, gy);
+            lblPlayersOnline.Size = new Size(groupRoomInfo.Width - gx - 130, 25);
+
+            // Action buttons at bottom
+            sy = groupRoomInfo.Bottom + sectionSpacing;
+            int buttonWidth = width - sx * 2;
+            int smallButtonWidth = (buttonWidth - 8) / 2;
+            
+            btnStartGame.Size = new Size(buttonWidth, 45);
+            btnStartGame.Location = new Point(sx, sy);
+            
+            sy += 55;
+            btnLeave.Size = new Size(smallButtonWidth, 40);
+            btnLeave.Location = new Point(sx, sy);
+            
+            btnBackLobby.Size = new Size(smallButtonWidth, 40);
+            btnBackLobby.Location = new Point(btnLeave.Right + 8, sy);
+        }
+
+        private void TxtChat_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                var text = txtChat.Text.Trim();
+                if (!string.IsNullOrWhiteSpace(text) && text != "Chat ? ?ây...")
+                {
+                    ChatSubmitted?.Invoke(text);
+                    MessageSubmitted?.Invoke(text); // For compatibility
+                    
+                    txtChat.Text = "Chat ? ?ây...";
+                    txtChat.ForeColor = Color.Gray;
+                }
+                e.Handled = true;
+            }
+        }
+
+        public void AddChat(string text)
+        {
+            lbChat.Items.Add(text);
+            if (lbChat.Items.Count > 0)
+                lbChat.TopIndex = lbChat.Items.Count - 1;
+            
+            // Limit chat history
+            if (lbChat.Items.Count > 100)
+            {
+                lbChat.Items.RemoveAt(0);
+            }
+        }
+        
+        public void ShowAnswerStatus(string text)
+        {
+            lbAnswer.Items.Add(text);
+            if (lbAnswer.Items.Count > 0)
+                lbAnswer.TopIndex = lbAnswer.Items.Count - 1;
+                
+            // Limit answer history
+            if (lbAnswer.Items.Count > 50)
+            {
+                lbAnswer.Items.RemoveAt(0);
+            }
+        }
+        
+        public void SetAnswerInputEnabled(bool enabled, string placeholder = null)
+        {
+            txtAnswer.Enabled = enabled;
+            btnAnswerSend.Enabled = enabled;
+            
+            if (placeholder != null)
+            {
+                txtAnswer.Text = placeholder;
+                txtAnswer.ForeColor = Color.Gray;
+            }
+            
+            lblAnswerWaiting.Visible = !enabled;
+            lblAnswerWaiting.Text = enabled ? string.Empty : "?? ?ang ch? ng??i ch?i";
+        }
+
+        public void SetRoundInfo(string word, int seconds, int round, int maxRound)
+        {
+            lblWord.Text = word;
+            lblTime.Text = $"00:{seconds:00}";
+            progressTime.Maximum = seconds; progressTime.Value = Math.Min(seconds, progressTime.Maximum);
+            lblRound.Text = $"{round}/{maxRound}";
+            
+            // If we are the drawer (word is visible), disable answering
+            bool isDrawer = !string.IsNullOrEmpty(word) && word != "- - - - -";
+            SetAnswerInputEnabled(!isDrawer, isDrawer ? "B?n ?ang v?..." : "?ang ch?...");
+            
+            if (lbAnswer != null)
+            {
+                lbAnswer.Items.Clear();
+                if (!isDrawer)
+                {
+                    ShowAnswerStatus("?? Hãy nh?p ?áp án ? bên d??i và nh?n Enter");
+                }
+                else
+                {
+                    ShowAnswerStatus("?? B?n ?ang v?, không th? tr? l?i");
+                }
+            }
+            
+            // Reset correct guessers for new round
+            correctGuessers.Clear();
+            currentWord = word;
+        }
+
+        public void UpdateTime(int seconds)
+        {
+            if (seconds < 0) seconds = 0;
+            if (progressTime.Maximum < seconds) progressTime.Maximum = seconds;
+            progressTime.Value = Math.Min(seconds, progressTime.Maximum);
+            lblTime.Text = $"00:{seconds:00}";
+        }
+
+        public void SetLeaderboard((int rank, string player, int score, string status)[] entries)
+        {
+            lvLeaderboard.Items.Clear();
+            foreach (var e in entries)
+            {
+                var item = new ListViewItem(e.rank.ToString());
+                item.SubItems.Add(e.player);
+                item.SubItems.Add(e.score.ToString());
+                item.SubItems.Add(e.status);
+                
+                // Highlight current user and drawing player
+                if (e.status.Contains("?ang v?"))
+                {
+                    item.BackColor = Color.FromArgb(255, 248, 220);
+                    item.ForeColor = Color.FromArgb(184, 134, 11);
+                }
+                else if (e.player == PlayerName)
+                {
+                    item.BackColor = Color.FromArgb(220, 252, 231);
+                    item.ForeColor = Color.FromArgb(22, 101, 52);
+                }
+                
+                lvLeaderboard.Items.Add(item);
+            }
+        }
+        
+        // Process guess and return true if round should end early
+        public bool ProcessGuess(string playerName, string guess)
+        {
+            if (string.IsNullOrEmpty(currentWord)) return false;
+            
+            bool isCorrect = guess.Trim().ToUpper() == currentWord.ToUpper();
+            
+            if (isCorrect && !correctGuessers.Contains(playerName))
+            {
+                correctGuessers.Add(playerName);
+                
+                // Update UI to show correct answer
+                if (playerName == PlayerName)
+                {
+                    ShowAnswerStatus($"? B?n ?ã ?oán ?úng: {guess}!");
+                    SetAnswerInputEnabled(false, "?ã ?oán ?úng!");
+                }
+                
+                // Check if half the players have guessed correctly
+                int halfPlayers = Math.Max(1, totalPlayers / 2);
+                if (correctGuessers.Count >= halfPlayers)
+                {
+                    AddChat($"?? {correctGuessers.Count}/{totalPlayers} ng??i ?ã ?oán ?úng! K?t thúc vòng s?m!");
+                    return true; // Signal to end round early
+                }
+                
+                AddChat($"? {playerName} ?oán ?úng!");
+            }
+            
+            return false;
+        }
+    }
+}

@@ -1,0 +1,322 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    /// <summary>
+    /// GameEffects - Visual and audio effects for DrawMaster Premium
+    /// </summary>
+    public static class GameEffects
+    {
+        #region Color Utilities
+
+        /// <summary>
+        /// Lighten a color by percentage
+        /// </summary>
+        public static Color LightenColor(Color color, float percentage)
+        {
+            return Color.FromArgb(
+                color.A,
+                Math.Min(255, (int)(color.R + (255 - color.R) * percentage)),
+                Math.Min(255, (int)(color.G + (255 - color.G) * percentage)),
+                Math.Min(255, (int)(color.B + (255 - color.B) * percentage))
+            );
+        }
+
+        /// <summary>
+        /// Darken a color by percentage
+        /// </summary>
+        public static Color DarkenColor(Color color, float percentage)
+        {
+            return Color.FromArgb(
+                color.A,
+                Math.Max(0, (int)(color.R * (1 - percentage))),
+                Math.Max(0, (int)(color.G * (1 - percentage))),
+                Math.Max(0, (int)(color.B * (1 - percentage)))
+            );
+        }
+
+        #endregion
+
+        #region Animation Helpers
+
+        /// <summary>
+        /// Tính toán bounce animation
+        /// </summary>
+        public static float CalculateBounce(float time, float amplitude = 1.0f)
+        {
+            return (float)(amplitude * Math.Abs(Math.Sin(time * Math.PI)));
+        }
+
+        /// <summary>
+        /// Tính toán pulse animation
+        /// </summary>
+        public static float CalculatePulse(float time, float minScale = 0.8f, float maxScale = 1.2f)
+        {
+            var pulse = (float)((Math.Sin(time * Math.PI * 2) + 1) / 2);
+            return minScale + (maxScale - minScale) * pulse;
+        }
+
+        #endregion
+
+        #region Text Effects
+
+        /// <summary>
+        /// Vẽ text với gradient effect
+        /// </summary>
+        public static void DrawGradientText(Graphics g, string text, Font font, Rectangle bounds, Color color1, Color color2)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+            using (var brush = new LinearGradientBrush(
+                new Point(bounds.X, bounds.Y), 
+                new Point(bounds.X, bounds.Y + bounds.Height),
+                color1, color2))
+            {
+                var format = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center
+                };
+                
+                g.DrawString(text, font, brush, bounds, format);
+            }
+        }
+
+        #endregion
+
+        #region Visual Enhancements
+
+        /// <summary>
+        /// Vẽ button với hiệu ứng 3D
+        /// </summary>
+        public static void Draw3DButton(Graphics g, Rectangle bounds, Color baseColor, bool pressed = false)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            
+            // Fill background
+            using (var brush = new SolidBrush(baseColor))
+            {
+                g.FillRectangle(brush, bounds);
+            }
+            
+            // Draw border with 3D effect
+            var lightColor = LightenColor(baseColor, 0.3f);
+            var darkColor = DarkenColor(baseColor, 0.3f);
+            
+            using (var lightPen = new Pen(lightColor, 1))
+            using (var darkPen = new Pen(darkColor, 1))
+            {
+                if (!pressed)
+                {
+                    // Light border on top and left
+                    g.DrawLine(lightPen, bounds.Left, bounds.Top, bounds.Right - 1, bounds.Top);
+                    g.DrawLine(lightPen, bounds.Left, bounds.Top, bounds.Left, bounds.Bottom - 1);
+                    
+                    // Dark border on bottom and right
+                    g.DrawLine(darkPen, bounds.Right - 1, bounds.Top, bounds.Right - 1, bounds.Bottom - 1);
+                    g.DrawLine(darkPen, bounds.Left, bounds.Bottom - 1, bounds.Right - 1, bounds.Bottom - 1);
+                }
+                else
+                {
+                    // Inverted for pressed effect
+                    g.DrawLine(darkPen, bounds.Left, bounds.Top, bounds.Right - 1, bounds.Top);
+                    g.DrawLine(darkPen, bounds.Left, bounds.Top, bounds.Left, bounds.Bottom - 1);
+                    
+                    g.DrawLine(lightPen, bounds.Right - 1, bounds.Top, bounds.Right - 1, bounds.Bottom - 1);
+                    g.DrawLine(lightPen, bounds.Left, bounds.Bottom - 1, bounds.Right - 1, bounds.Bottom - 1);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Enhanced Drawing Utilities
+
+        /// <summary>
+        /// Vẽ hình chữ nhật với góc bo tròn
+        /// </summary>
+        public static void FillRoundedRectangle(this Graphics g, Brush brush, Rectangle rect, int radius)
+        {
+            using (GraphicsPath path = CreateRoundedRectanglePath(rect, radius))
+            {
+                g.FillPath(brush, path);
+            }
+        }
+
+        /// <summary>
+        /// Vẽ viền hình chữ nhật với góc bo tròn
+        /// </summary>
+        public static void DrawRoundedRectangle(this Graphics g, Pen pen, Rectangle rect, int radius)
+        {
+            using (GraphicsPath path = CreateRoundedRectanglePath(rect, radius))
+            {
+                g.DrawPath(pen, path);
+            }
+        }
+
+        /// <summary>
+        /// Tạo path cho hình chữ nhật bo góc
+        /// </summary>
+        private static GraphicsPath CreateRoundedRectanglePath(Rectangle rect, int radius)
+        {
+            var path = new GraphicsPath();
+            int diameter = radius * 2;
+            
+            // Top-left arc
+            path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+            
+            // Top-right arc
+            path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+            
+            // Bottom-right arc
+            path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+            
+            // Bottom-left arc
+            path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+            
+            path.CloseFigure();
+            return path;
+        }
+
+        #endregion
+
+        #region Control Extensions
+
+        /// <summary>
+        /// Scale transform for controls
+        /// </summary>
+        public static void Transform(this Control control, float scale)
+        {
+            try
+            {
+                // Simple scale effect by adjusting font size
+                if (control.Font != null)
+                {
+                    var originalSize = control.Tag as float? ?? control.Font.Size;
+                    if (control.Tag == null)
+                        control.Tag = originalSize;
+                    
+                    var newSize = originalSize * scale;
+                    control.Font = new Font(control.Font.FontFamily, newSize, control.Font.Style);
+                }
+            }
+            catch
+            {
+                // Ignore transform errors
+            }
+        }
+
+        /// <summary>
+        /// Add glow effect to controls
+        /// </summary>
+        public static void AddGlowEffect(this Control control, Color glowColor, int intensity = 5)
+        {
+            control.Paint += (s, e) =>
+            {
+                try
+                {
+                    var rect = new Rectangle(0, 0, control.Width, control.Height);
+                    using (var path = CreateRoundedRectanglePath(rect, 5))
+                    {
+                        for (int i = 0; i < intensity; i++)
+                        {
+                            using (var pen = new Pen(Color.FromArgb(20, glowColor), i * 2))
+                            {
+                                e.Graphics.DrawPath(pen, path);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore glow errors
+                }
+            };
+        }
+
+        #endregion
+
+        #region Sound Effect Helpers
+
+        /// <summary>
+        /// Play success sound effect
+        /// </summary>
+        public static void PlaySuccessSound()
+        {
+            try
+            {
+                // Simple system beep for success
+                System.Media.SystemSounds.Asterisk.Play();
+            }
+            catch
+            {
+                // Ignore sound errors
+            }
+        }
+
+        /// <summary>
+        /// Play error sound effect
+        /// </summary>
+        public static void PlayErrorSound()
+        {
+            try
+            {
+                // Simple system beep for error
+                System.Media.SystemSounds.Hand.Play();
+            }
+            catch
+            {
+                // Ignore sound errors
+            }
+        }
+
+        /// <summary>
+        /// Play warning sound
+        /// </summary>
+        public static void PlayWarningSound()
+        {
+            try
+            {
+                System.Media.SystemSounds.Exclamation.Play();
+            }
+            catch
+            {
+                // Ignore if sound fails
+            }
+        }
+
+        #endregion
+
+        #region Panel Enhancement Utilities
+
+        /// <summary>
+        /// Thêm shadow effect cho panel
+        /// </summary>
+        public static void AddShadowEffect(this Panel panel, Color shadowColor, int offset = 3)
+        {
+            panel.Paint += (s, e) =>
+            {
+                try
+                {
+                    var shadowRect = new Rectangle(offset, offset, panel.Width - offset, panel.Height - offset);
+                    using (var brush = new SolidBrush(Color.FromArgb(50, shadowColor)))
+                    {
+                        e.Graphics.FillRoundedRectangle(brush, shadowRect, 5);
+                    }
+                }
+                catch
+                {
+                    // Ignore shadow errors
+                }
+            };
+        }
+
+        #endregion
+    }
+}

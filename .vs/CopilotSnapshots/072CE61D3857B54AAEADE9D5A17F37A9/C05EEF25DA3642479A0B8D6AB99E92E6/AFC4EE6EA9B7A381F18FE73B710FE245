@@ -1,0 +1,414 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Windows.Forms;
+using System.Threading.Tasks;
+
+namespace BaiTapCuoiKy
+{
+    // Partial class ch?a các method còn thi?u cho Form1
+    public partial class Form1
+    {
+        // B? sung tr?ng thái cho g?i ý gi?a hi?p
+        private int roundDurationTotal; // t?ng th?i gian c?a vòng hi?n t?i
+        private bool halfHintShown;     // ?ã hi?n th? g?i ý gi?a th?i gian ch?a
+        private bool isSpectator = false; // Tr?ng thái xem
+        private Button btnSpectateMode; // Nút ?? b?t/t?t ch? ?? xem
+
+        #region TransitionToGame and Game Logic
+
+        private void TransitionToGame()
+        {
+            try
+            {
+                isInWaitingRoom = false;
+                isInLobby = false;
+                isInGame = true;
+
+                if (lobbyAnimationTimer != null)
+                {
+                    lobbyAnimationTimer.Stop();
+                    lobbyAnimationTimer.Dispose();
+                    lobbyAnimationTimer = null;
+                }
+
+                // Remove lobby panel if exists
+                if (lobbyPanel != null)
+                {
+                    this.Controls.Remove(lobbyPanel);
+                    lobbyPanel.Dispose();
+                    lobbyPanel = null;
+                }
+
+                // Hide all existing game controls first
+                // HideAllGameControls(); // Obsolete
+
+                // Setup form for game
+                this.WindowState = FormWindowState.Normal;
+                this.Size = new Size(1400, 800);
+                this.StartPosition = FormStartPosition.CenterScreen;
+                this.Text = $"DrawMaster - Phòng {currentRoomCode}";
+                this.BackColor = Color.FromArgb(248, 249, 250);
+
+                // Create and show embedded game view
+                if (gameView == null)
+                {
+                    gameView = new GameViewControl
+                    {
+                        Dock = DockStyle.Fill
+                    };
+                }
+
+                // Configure initial info
+                gameView.RoomCode = currentRoomCode;
+                gameView.PlayerName = currentUser;
+                gameView.PlayersOnline = connectedPlayers.Count;
+
+                // Connect event handlers from GameViewControl with correct signatures
+                gameView.StartGameRequested += GameView_StartGameRequested;
+                gameView.LeaveRequested += GameView_LeaveRequested;
+                gameView.BackLobbyRequested += GameView_BackLobbyRequested;
+                gameView.MessageSubmitted += GameView_MessageSubmitted; // General purpose
+                gameView.AnswerSubmitted += GameView_AnswerSubmitted;   // Specific for answers
+                gameView.ChatSubmitted += GameView_ChatSubmitted;       // Specific for chat
+                
+                // Add to form
+                this.Controls.Add(gameView);
+                gameView.BringToFront();
+
+                // Setup initial game state
+                SetupInitialGameState();
+
+                // Initialize game timer
+                SetupGameTimer();
+
+                // Welcome messages (ti?ng Vi?t)
+                gameView.AddChat($"Chào m?ng ??n phòng {currentRoomCode}!");
+                gameView.AddChat("Nh?n 'B?t ??u' ?? vào l??t v? và ch?i!");
+                gameView.SetRoundInfo("- - - - -", gameTimeLeft, currentRound, maxRounds);
+
+                // Update leaderboard with current players
+                UpdateGameViewLeaderboard();
+
+                // toolStripStatusLabel.Text = $"DrawMaster - Phòng {currentRoomCode} - S?n sàng ch?i!";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"L?i khi chuy?n sang giao di?n game: {ex.Message}", "L?i", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SetupInitialGameState()
+        {
+            // Logic to set up the initial state of the game
+            playerScore = 0;
+            currentRound = 1;
+            isPlayerDrawing = false;
+            // ... any other setup
+        }
+
+        private void SetupGameTimer()
+        {
+            gameTimer = new Timer { Interval = 1000 };
+            gameTimer.Tick += GameTimer_Tick;
+        }
+
+        private void GameTimer_Tick(object sender, EventArgs e)
+        {
+            if (gameTimeLeft > 0)
+            {
+                gameTimeLeft--;
+                gameView?.UpdateTime(gameTimeLeft);
+
+                // Logic for half-time hint
+                if (gameTimeLeft <= roundDurationTotal / 2 && !halfHintShown)
+                {
+                    // Show hint logic here
+                    halfHintShown = true;
+                }
+            }
+            else
+            {
+                HandleTimeUp();
+            }
+        }
+
+        private void HandleTimeUp()
+        {
+            gameTimer.Stop();
+            gameView?.AddChat("? H?t gi?!");
+            EndDrawingTurn();
+        }
+
+        private void EndDrawingTurn()
+        {
+            isPlayerDrawing = false;
+            // Logic to handle end of a player's turn
+            NextRound();
+        }
+
+        private void NextRound()
+        {
+            currentRound++;
+            if (currentRound > maxRounds)
+            {
+                EndGame();
+            }
+            else
+            {
+                // Start new round logic
+                SimulateOtherPlayerTurn();
+            }
+        }
+
+        private void SimulateOtherPlayerTurn()
+        {
+            // For demonstration, just reset the timer and show a message
+            gameTimeLeft = 60;
+            roundDurationTotal = 60;
+            halfHintShown = false;
+            gameView?.SetRoundInfo("B_N_N_", gameTimeLeft, currentRound, maxRounds);
+            gameView?.AddChat("M?t ng??i ch?i khác ?ang v?...");
+            gameTimer.Start();
+        }
+
+        private void EndGame()
+        {
+            gameView?.AddChat("?? Trò ch?i k?t thúc! C?m ?n ?ã ch?i!");
+            // Show final scores, etc.
+        }
+
+        private void RestartGame()
+        {
+            currentRound = 1;
+            playerScore = 0;
+            // Reset all players' scores
+            foreach (var p in connectedPlayers) p.Score = 0;
+            TransitionToGame();
+        }
+
+        private void UpdateGameViewLeaderboard()
+        {
+            var leaderboardData = connectedPlayers
+                .OrderByDescending(p => p.Score)
+                .Select((p, index) => (
+                    rank: index + 1,
+                    player: p.Name,
+                    score: p.Score,
+                    status: p.IsDrawing ? "?ang v?" : (p.Name == currentUser ? "B?n" : "?ang ?oán")
+                )).ToArray();
+            gameView?.SetLeaderboard(leaderboardData);
+        }
+
+        private void GameView_StartGameRequested(object sender, EventArgs e)
+        {
+            // Logic to start the game, likely for the host
+            StartWordSelection();
+        }
+
+        private void GameView_LeaveRequested(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "B?n có ch?c ch?n mu?n r?i phòng không?",
+                "R?i phòng",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                ShowWaitingRoom();
+            }
+        }
+
+        private void GameView_BackLobbyRequested(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Quay l?i s?nh ch?? L??t ch?i hi?n t?i s? k?t thúc.",
+                "V? Lobby",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                ShowLobbyInterface();
+            }
+        }
+
+        // Specific handler for answers
+        private void GameView_AnswerSubmitted(string answer)
+        {
+            if (string.IsNullOrWhiteSpace(answer)) return;
+            var data = new NetworkData(Command.Guess, currentUser, answer);
+            gameClient?.SendDataAsync(data);
+        }
+
+        // Specific handler for chat messages
+        private void GameView_ChatSubmitted(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+            var data = new NetworkData(Command.Message, currentUser, message);
+            gameClient?.SendDataAsync(data);
+        }
+
+        // Fix: Update event handler signature to match Action<string>
+        private void GameView_MessageSubmitted(string message)
+        {
+            try
+            {
+                // This can be a general handler or you can decide if it's a guess or chat
+                // For now, let's assume it's a guess for compatibility
+                GameView_AnswerSubmitted(message);
+            }
+            catch (Exception ex)
+            {
+                gameView?.AddChat($"? L?i g?i tin nh?n: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Enhanced Chat Features
+
+        private void UpdatePlayerStatusInChat()
+        {
+            if (gameView == null) return;
+
+            string statusMessage = isPlayerDrawing ? "B?n ?ang v?..." : "B?n ?ang ?oán...";
+            gameView.AddChat(statusMessage);
+        }
+
+        private void ToggleSpectateMode()
+        {
+            isSpectator = !isSpectator;
+            UpdateUIForSpectatorMode();
+
+            if (isSpectator)
+            {
+                gameView?.AddChat("??? B?n ?ang ? ch? ?? xem. Không th? t??ng tác trong trò ch?i.");
+                // btnSpectateMode.Text = "?? Thoát ch? ?? xem";
+            }
+            else
+            {
+                gameView?.AddChat("? B?n ?ã thoát ch? ?? xem. Chào m?ng tr? l?i trò ch?i!");
+                // btnSpectateMode.Text = "?? Xem ch? ?? xem";
+            }
+        }
+
+        private void UpdateUIForSpectatorMode()
+        {
+            if (gameView == null) return;
+
+            bool canInteract = !isSpectator;
+            
+            // Disable drawing tools, chat input, etc.
+            // gameView.SetDrawingToolsEnabled(canInteract);
+            gameView.SetAnswerInputEnabled(canInteract, isSpectator ? "Ch? ?? xem" : "");
+
+            if (isPlayerDrawing && isSpectator)
+            {
+                // If the current player enters spectator mode while they are supposed to draw,
+                // we need to end their turn.
+                EndDrawingTurn();
+            }
+
+            // Update button state if it exists
+            if (btnSpectateMode != null)
+            {
+                btnSpectateMode.Enabled = true;
+            }
+        }
+        
+        #endregion
+
+        #region UI Creation and Management (from original Form1Extensions)
+
+        private void UpdateLobbyInterface()
+        {
+            try
+            {
+                if (listViewLobbyPlayers != null)
+                {
+                    listViewLobbyPlayers.Items.Clear();
+                    for (int i = 0; i < connectedPlayers.Count; i++)
+                    {
+                        var player = connectedPlayers[i];
+                        var item = new ListViewItem((i + 1).ToString());
+                        item.SubItems.Add(player.Name);
+                        item.SubItems.Add(player.Name == currentUser ? "?? Host" : "?? Player");
+                        item.SubItems.Add(player.IsOnline ? "Online" : "Offline");
+
+                        if (player.Name == currentUser)
+                        {
+                            item.BackColor = Color.FromArgb(220, 252, 231);
+                            item.ForeColor = Color.FromArgb(22, 101, 52);
+                        }
+                        listViewLobbyPlayers.Items.Add(item);
+                    }
+                }
+
+                if (lblLobbyStatus != null)
+                {
+                    if (connectedPlayers.Count >= 2)
+                    {
+                        lblLobbyStatus.Text = "?? ?? ng??i ch?i - Có th? b?t ??u game!";
+                        lblLobbyStatus.ForeColor = Color.FromArgb(40, 167, 69);
+                        if (btnStartGameLobby != null) btnStartGameLobby.Enabled = true;
+                    }
+                    else
+                    {
+                        lblLobbyStatus.Text = "? C?n thêm ng??i ch?i ?? b?t ??u...";
+                        lblLobbyStatus.ForeColor = Color.FromArgb(255, 140, 0);
+                        if (btnStartGameLobby != null) btnStartGameLobby.Enabled = false;
+                    }
+                }
+
+                if (listBoxLobbyChat != null && listBoxLobbyChat.Items.Count == 0)
+                {
+                    AddLobbyMessage("System", $"?? Chào m?ng ??n lobby phòng {currentRoomCode}!");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateLobbyInterface Exception: {ex}");
+            }
+        }
+
+        private void WelcomePanel_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var brush = new LinearGradientBrush(welcomePanel.ClientRectangle,
+                Color.FromArgb(240, 248, 255), Color.FromArgb(208, 232, 255), 90F))
+            {
+                e.Graphics.FillRectangle(brush, welcomePanel.ClientRectangle);
+            }
+
+            // Draw floating particles
+            foreach (var particle in particles)
+            {
+                if (!particle.IsDead)
+                {
+                    using (var brush = new SolidBrush(Color.FromArgb((int)(particle.Life * 255), particle.Color)))
+                    {
+                        e.Graphics.FillEllipse(brush, particle.X, particle.Y, particle.Size, particle.Size);
+                    }
+                }
+            }
+        }
+
+        private void LobbyPanel_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var brush = new LinearGradientBrush(lobbyPanel.ClientRectangle,
+                Color.FromArgb(240, 248, 255), Color.FromArgb(220, 240, 255), 90F))
+            {
+                e.Graphics.FillRectangle(brush, lobbyPanel.ClientRectangle);
+            }
+        }
+
+        #endregion
+    }
+}

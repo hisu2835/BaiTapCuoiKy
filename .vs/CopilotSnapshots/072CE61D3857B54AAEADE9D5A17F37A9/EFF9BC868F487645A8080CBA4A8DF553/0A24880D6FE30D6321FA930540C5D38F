@@ -1,0 +1,155 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace BaiTapCuoiKy
+{
+    public enum AppLanguage
+    {
+        Vietnamese,
+        English
+    }
+
+    public static class LocalizationManager
+    {
+        private static AppLanguage _language = AppLanguage.Vietnamese;
+        public static AppLanguage Language => _language;
+
+        public static event Action LanguageChanged;
+
+        private static readonly Dictionary<string, (string vi, string en)> _texts = new Dictionary<string, (string vi, string en)>
+        {
+            ["APP_TITLE"] = ("DrawMaster - Chào mừng", "DrawMaster - Welcome"),
+            ["APP_TITLE_LOGIN"] = ("DrawMaster - Đăng nhập", "DrawMaster - Login"),
+
+            // Welcome/Main
+            ["WELCOME_TITLE"] = ("🎨 DRAWMASTER PREMIUM 🎨", "🎨 DRAWMASTER PREMIUM 🎨"),
+            ["WELCOME_SUBTITLE"] = ("🌟 Trải nghiệm Vẽ và Đoán nhiều người chơi 🌟", "🌟 Multiplayer Drawing & Guessing Experience 🌟"),
+            ["WELCOME_HELLO"] = ("🎉 Chào mừng, {0}! 🎉", "🎉 Welcome, {0}! 🎉"),
+            ["WELCOME_OPTIONS"] = ("🚀 Chọn một tùy chọn để bắt đầu cuộc phiêu lưu:", "🚀 Choose an option to start the adventure:"),
+            ["LANGUAGE"] = ("Ngôn ngữ:", "Language:"),
+
+            // Buttons/common
+            ["BTN_CREATE_ROOM"] = ("🏆 TẠO PHÒNG MỚI", "🏆 CREATE ROOM"),
+            ["BTN_JOIN"] = ("🚀 THAM GIA", "🚀 JOIN"),
+            ["BTN_LOGOUT"] = ("🚪 ĐĂNG XUẤT", "🚪 LOG OUT"),
+            ["BTN_LEAVE_LOBBY"] = ("🚪 Rời Lobby", "🚪 Leave Lobby"),
+            ["BTN_INVITE"] = ("📧 Mời bạn bè", "📧 Invite friends"),
+            ["BTN_START_GAME"] = ("🎮 BẮT ĐẦU GAME", "🎮 START GAME"),
+
+            // Lobby
+            ["LBL_JOIN_IP"] = ("Nhập IP phòng:", "Enter room IP:"),
+            ["STATS_BRIEF"] = ("🎮 Trận đã chơi: 0  |  ⭐ Điểm cao nhất: 0  |  🏆 Thắng: 0", "🎮 Games: 0  |  ⭐ Best: 0  |  🏆 Wins: 0"),
+            ["LOBBY_TITLE"] = ("LOBBY - PHÒNG: {0}", "LOBBY - ROOM: {0}"),
+            ["LOBBY_PLAYERS"] = ("👥 Người chơi trong phòng", "👥 Players in room"),
+            ["LOBBY_CHAT"] = ("💬 Chat sảnh chờ", "💬 Lobby chat"),
+            ["LOBBY_WAITING"] = ("Đang chờ người chơi...", "Waiting for players..."),
+            ["LOBBY_READY"] = ("✅ Đủ người chơi - Có thể bắt đầu game!", "✅ Enough players - Ready to start!"),
+            ["LOBBY_NEED_MORE"] = ("⏳ Cần thêm người chơi để bắt đầu...", "⏳ Need more players to start..."),
+            ["INVITE_MESSAGE"] = ("🎮 Mời bạn bè tham gia game!\n\n📋 Địa chỉ kết nối: {0}\n🎯 Copy địa chỉ này và gửi cho bạn bè để họ có thể tham gia!", "🎮 Invite your friends!\n\n📋 Connection address: {0}\n🎯 Copy this address and share to let them join!"),
+            ["COPIED_CLIPBOARD"] = ("📋 Địa chỉ kết nối đã được copy vào clipboard!", "📋 Connection address copied to clipboard!"),
+            ["CONFIRM_LEAVE_LOBBY_TITLE"] = ("Xác nhận rời lobby", "Confirm leave lobby"),
+            ["CONFIRM_LEAVE_LOBBY_MSG"] = ("Bạn có chắc chắn muốn rời khỏi lobby không?", "Are you sure you want to leave the lobby?"),
+            ["NOT_ENOUGH_PLAYERS"] = ("Cần ít nhất 2 người chơi để bắt đầu game!", "At least 2 players are required to start!"),
+            ["CONFIRM_START_TITLE"] = ("Xác nhận bắt đầu game", "Confirm start"),
+            ["CONFIRM_START_MSG"] = ("🎮 Bắt đầu game với {0} người chơi?\n\n⚠️ Sau khi bắt đầu, không thể thêm người chơi mới!", "🎮 Start game with {0} players?\n\n⚠️ After starting, no new players can join!"),
+
+            // Game chat/UI
+            ["CHAT_WELCOME_ROOM"] = ("Chào mừng đến phòng {0}!", "Welcome to room {0}!"),
+            ["CHAT_PRESS_START"] = ("Nhấn 'Bắt đầu' để vào lượt vẽ và chơi!", "Press 'Start' to begin drawing and playing!"),
+            ["TIME_UP"] = ("⏰ Hết giờ!", "⏰ Time's up!"),
+            ["ANOTHER_PLAYER_DRAWING"] = ("Một người chơi khác đang vẽ...", "Another player is drawing..."),
+            ["GAME_OVER"] = ("🎉 Trò chơi kết thúc! Cảm ơn đã chơi!", "🎉 Game over! Thanks for playing!"),
+
+            // Login form
+            ["LOGIN_BRAND_TITLE"] = ("DrawMaster", "DrawMaster"),
+            ["LOGIN_BRAND_SUBTITLE"] = ("Trò chơi Vẽ nhiều người chơi", "Multiplayer Drawing Game"),
+            ["LOGIN_FEATURES"] = ("✏️ Vẽ và đoán cùng bạn bè\n🛠️ Công cụ vẽ chuyên nghiệp\n💬 Chat thời gian thực\n🏆 Hệ thống điểm số\n🌐 Hỗ trợ đa ngôn ngữ", "✏️ Draw & guess with friends\n🛠️ Pro drawing tools\n💬 Real-time chat\n🏆 Scoring system\n🌐 Multi-language support"),
+            ["LOGIN_TITLE"] = ("ĐĂNG NHẬP", "LOGIN"),
+            ["REGISTER_TITLE"] = ("ĐĂNG KÝ", "REGISTER"),
+            ["USERNAME_OR_EMAIL"] = ("Tên đăng nhập hoặc Email:", "Username or Email:"),
+            ["USERNAME_ONLY"] = ("Tên đăng nhập:", "Username:"),
+            ["PASSWORD"] = ("Mật khẩu:", "Password:"),
+            ["CONFIRM_PASSWORD"] = ("Xác nhận mật khẩu:", "Confirm password:"),
+            ["EMAIL"] = ("Email:", "Email:"),
+            ["BTN_LOGIN"] = ("ĐĂNG NHẬP", "LOGIN"),
+            ["BTN_REGISTER"] = ("ĐĂNG KÝ", "REGISTER"),
+            ["OR_LOGIN_WITH"] = ("HOẶC ĐĂNG NHẬP BẰNG", "OR SIGN IN WITH"),
+            ["TOGGLE_TO_REGISTER"] = ("Chưa có tài khoản? Đăng ký ngay", "Don't have an account? Register now"),
+            ["TOGGLE_TO_LOGIN"] = ("Đã có tài khoản? Đăng nhập", "Already have an account? Login"),
+            ["FILL_ALL_FIELDS"] = ("Vui lòng nhập đầy đủ thông tin!", "Please fill in all fields!"),
+            ["LOGIN_SUCCESS"] = ("Đăng nhập thành công! Chào mừng {0}!", "Login successful! Welcome {0}!"),
+            ["LOGIN_FAILED"] = ("Tên đăng nhập hoặc mật khẩu không đúng!", "Invalid username or password!"),
+            ["PASSWORD_MISMATCH"] = ("Mật khẩu xác nhận không khớp!", "Password confirmation does not match!"),
+            ["INVALID_EMAIL"] = ("Email không hợp lệ!", "Invalid email!"),
+            ["USERNAME_EXISTS"] = ("Tên đăng nhập đã tồn tại!", "Username already exists!"),
+            ["EMAIL_IN_USE"] = ("Email đã được sử dụng!", "Email is already in use!"),
+            ["REGISTER_SUCCESS"] = ("Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.", "Registration successful! You can login now."),
+            ["SOCIAL_LOGIN_SUCCESS"] = ("Đăng nhập {0} thành công!", "{0} login successful!"),
+            ["ERROR"] = ("Lỗi", "Error"),
+            ["ERROR_LOAD_ACCOUNTS"] = ("Lỗi khi tải dữ liệu tài khoản: {0}", "Error loading accounts: {0}"),
+            ["ERROR_SAVE_ACCOUNTS"] = ("Lỗi khi lưu dữ liệu tài khoản: {0}", "Error saving accounts: {0}"),
+        };
+
+        public static string Tr(string key)
+        {
+            if (_texts.TryGetValue(key, out var tuple))
+            {
+                return _language == AppLanguage.English ? tuple.en : tuple.vi;
+            }
+            return key;
+        }
+
+        public static string TrFormat(string key, params object[] args)
+        {
+            return string.Format(Tr(key), args);
+        }
+
+        public static void SetLanguage(AppLanguage lang)
+        {
+            if (_language != lang)
+            {
+                _language = lang;
+                LanguageChanged?.Invoke();
+            }
+        }
+
+        private static readonly Dictionary<string, string> _viToEn = new Dictionary<string, string>
+        {
+            {"🚪 Rời Lobby", "🚪 Leave Lobby"},
+            {"📧 Mời bạn bè", "📧 Invite friends"},
+            {"🎮 BẮT ĐẦU GAME", "🎮 START GAME"},
+            {"Đang chờ người chơi...", "Waiting for players..."},
+            {"💬 Chat sảnh chờ", "💬 Lobby chat"},
+            {"👥 Người chơi trong phòng", "👥 Players in room"},
+            {"🚪 ĐĂNG XUẤT", "🚪 LOG OUT"},
+            {"🏆 TẠO PHÒNG MỚI", "🏆 CREATE ROOM"},
+            {"🚀 THAM GIA", "🚀 JOIN"},
+            {"Nhập IP phòng:", "Enter room IP:"},
+        };
+
+        public static void LocalizeContainer(Control root)
+        {
+            if (root == null) return;
+            Action<Control> apply = null;
+            apply = (ctrl) =>
+            {
+                if (!string.IsNullOrEmpty(ctrl.Text))
+                {
+                    if (_language == AppLanguage.English && _viToEn.TryGetValue(ctrl.Text, out var en))
+                    {
+                        ctrl.Text = en;
+                    }
+                    else if (_language == AppLanguage.Vietnamese && _viToEn.ContainsValue(ctrl.Text))
+                    {
+                        var vi = _viToEn.FirstOrDefault(kv => kv.Value == ctrl.Text).Key;
+                        if (!string.IsNullOrEmpty(vi)) ctrl.Text = vi;
+                    }
+                }
+                foreach (Control child in ctrl.Controls) apply(child);
+            };
+            apply(root);
+        }
+    }
+}
